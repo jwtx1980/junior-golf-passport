@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Private Dashboard | Junior Golf Passport</title>
+    <meta
+      name="description"
+      content="Private parent dashboard preview for managing Kara Walker's Junior Golf Passport."
+    >
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="dashboard-page">
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">JGP</span>
+        <span>Junior Golf Passport</span>
+      </a>
+      <nav aria-label="Primary">
+        <a href="/Kara/">Public Passport</a>
+        <a href="/Kara/map/">Map</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Private parent dashboard</p>
+          <h1>Kara's public page stays clean. Editing belongs here.</h1>
+          <p>
+            This route is the planned home for Supabase Auth, course and round
+            entry, photo uploads, and AI-assisted memory drafts. Public visitors
+            should only see approved passport content.
+          </p>
+        </div>
+        <form class="login-panel">
+          <label>
+            <span>Email for magic link</span>
+            <input type="email" placeholder="parent@example.com" autocomplete="email">
+          </label>
+          <button class="button primary" type="button">Send Magic Link</button>
+          <p>Static preview only. Supabase Auth will make this route private.</p>
+        </form>
+      </section>
+
+      <section class="dashboard-section private-flow" aria-label="Dashboard workflow">
+        <div class="dashboard-shell">
+          <aside class="dashboard-nav" aria-label="Private dashboard navigation">
+            <span class="brand-mark" aria-hidden="true">JGP</span>
+            <button class="active" type="button">Inbox</button>
+            <button type="button">Courses</button>
+            <button type="button">Rounds</button>
+            <button type="button">Achievements</button>
+            <button type="button">Photos</button>
+          </aside>
+          <div class="dashboard-main">
+            <div class="dashboard-top">
+              <div>
+                <p class="eyebrow">AI helper behind auth</p>
+                <h2>Rough note in. Reviewed passport entry out.</h2>
+              </div>
+              <a class="button secondary" href="/Kara/">Preview Public Page</a>
+            </div>
+            <div class="ai-flow-grid">
+              <article>
+                <span class="card-kicker">1. Parent note</span>
+                <p>Played Gannon Municipal in Lynn MA. Kara hit a great drive on 7 and we want to remember it.</p>
+              </article>
+              <article>
+                <span class="card-kicker">2. Verified data</span>
+                <p>Course lookup confirms name, city, state, and map coordinates before a pin is saved.</p>
+              </article>
+              <article>
+                <span class="card-kicker">3. Draft memory</span>
+                <p>Kara added Massachusetts to her golf passport with a round at Gannon Municipal Golf Course in Lynn.</p>
+              </article>
+              <article>
+                <span class="card-kicker">4. Review and publish</span>
+                <p>An approved adult edits the story, chooses visibility, and saves it to Kara's public passport.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Junior Golf Passport. Private editing requires authentication.</p>
+      <nav aria-label="Footer">
+        <a href="/Kara/">Kara's Passport</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/support/">Support</a>
+      </nav>
+    </footer>
+  </body>
+</html>

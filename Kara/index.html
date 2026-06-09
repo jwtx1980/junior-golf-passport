@@ -6,10 +6,10 @@
     <title>Kara Walker | Junior Golf Passport</title>
     <meta
       name="description"
-      content="Kara Walker's Junior Golf Passport: courses played, states played, achievements, memorable rounds, and golf memories."
+      content="Kara Walker's Junior Golf Passport: courses played, states played, favorite rounds, achievements, tournament history, photos, memories, and goals."
     >
     <meta property="og:title" content="Kara Walker | Junior Golf Passport">
-    <meta property="og:description" content="Courses, states, milestones, memorable rounds, and golf memories.">
+    <meta property="og:description" content="Courses played, memories made, milestones earned.">
     <meta property="og:type" content="profile">
     <meta property="og:url" content="https://juniorgolfpassport.com/Kara/">
     <meta property="og:image" content="https://juniorgolfpassport.com/assets/junior-golf-hero.png">
@@ -22,45 +22,49 @@
         <span>Junior Golf Passport</span>
       </a>
       <nav aria-label="Primary">
-        <a href="/">Home</a>
+        <a href="#map">Map</a>
         <a href="#courses">Courses</a>
-        <a href="#achievements">Achievements</a>
         <a href="#rounds">Rounds</a>
+        <a href="#goals">Goals</a>
       </nav>
     </header>
 
     <main>
       <section class="profile-hero">
-        <div class="profile-card">
+        <div class="profile-card passport-card">
           <div class="profile-photo" aria-hidden="true">K</div>
           <div class="profile-summary">
-            <p class="eyebrow">Junior golfer passport</p>
+            <p class="eyebrow">Kara Walker's Junior Golf Passport</p>
             <h1>Kara Walker</h1>
-            <p class="profile-meta">Parent-managed profile - Courses, states, milestones, and memories</p>
+            <p class="profile-meta">Courses played, memories made, milestones earned.</p>
             <p>
-              Kara's passport tracks the golf courses she has played, the states
-              she has added to her map, and the milestones that make the rounds
-              worth remembering.
+              Kara's passport is a living record of where golf has taken her:
+              the local courses, the destination rounds, the milestones, the
+              tournament days, and the goals still in front of her.
             </p>
             <div class="profile-actions">
               <button class="button primary" id="share-button" type="button">Share Page</button>
-              <span class="privacy-pill">Example public profile</span>
+              <a class="button secondary" href="/Kara/map/">Open Map</a>
             </div>
             <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
           </div>
         </div>
         <div class="profile-stats">
           <div><strong>9</strong><span>Courses played</span></div>
-          <div><strong>3</strong><span>States</span></div>
-          <div><strong>9</strong><span>Course pins</span></div>
-          <div><strong>6</strong><span>Milestone slots</span></div>
+          <div><strong>3</strong><span>States stamped</span></div>
+          <div><strong>9</strong><span>Verified pins</span></div>
+          <div><strong>50</strong><span>State goal</span></div>
         </div>
       </section>
 
       <section class="profile-section" id="map">
         <div class="section-heading">
-          <p class="eyebrow">Course map</p>
-          <h2>States and courses Kara has played.</h2>
+          <p class="eyebrow">Map of states and courses</p>
+          <h2>Every stamp starts with a real course.</h2>
+          <p>
+            Kara's current map includes Texas, Mississippi, and Hawaii. Course
+            pins are tied to verified locations rather than guessed from notes.
+          </p>
         </div>
         <div class="course-map-layout">
           <iframe
@@ -71,19 +75,19 @@
           ></iframe>
           <aside class="map-notes">
             <article>
-              <strong>Texas cluster</strong>
+              <strong>Texas</strong>
               <span>7 courses</span>
-              <p>Paris, Daingerfield, Pittsburg, Longview, Bullard, Tyler, and Kemp.</p>
+              <p>East Texas rounds in Paris, Daingerfield, Pittsburg, Longview, Bullard, Tyler, and Kemp.</p>
             </article>
             <article>
-              <strong>Kona Country Club</strong>
-              <span>Kailua-Kona, Hawaii</span>
-              <p>Destination course and Hawaii passport stamp.</p>
+              <strong>Mississippi</strong>
+              <span>Grand Bear Golf Club</span>
+              <p>A Gulf Coast-area passport stamp in Saucier.</p>
             </article>
             <article>
-              <strong>Grand Bear Golf Club</strong>
-              <span>Saucier, Mississippi</span>
-              <p>Mississippi course near Gulfport.</p>
+              <strong>Hawaii</strong>
+              <span>Kona Country Club</span>
+              <p>A destination round in Kailua-Kona and a favorite map pin.</p>
             </article>
             <a class="button primary" href="/Kara/map/">Open Full Interactive Map</a>
           </aside>
@@ -92,125 +96,124 @@
 
       <section class="profile-section" id="courses">
         <div class="section-heading">
-          <p class="eyebrow">Course log</p>
-          <h2>Courses played.</h2>
+          <p class="eyebrow">Course passport</p>
+          <h2>Courses Kara has played.</h2>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Course</th>
-                <th>City</th>
-                <th>State</th>
-                <th>Memory fields</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Kona Country Club</td>
-                <td>Kailua-Kona</td>
-                <td>Hawaii</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Grand Bear Golf Club</td>
-                <td>Saucier</td>
-                <td>Mississippi</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Pine Ridge Golf Course</td>
-                <td>Paris</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Daingerfield Country Club</td>
-                <td>Daingerfield</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Princedale Country Club</td>
-                <td>Pittsburg</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Crossing Creeks Country Club</td>
-                <td>Longview</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Eagle's Bluff Country Club</td>
-                <td>Bullard</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>Hollytree Country Club</td>
-                <td>Tyler</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-              <tr>
-                <td>The Championship Course at Cedar Creek Country Club</td>
-                <td>Kemp</td>
-                <td>Texas</td>
-                <td>Date, score, photos, notes</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="course-card-grid">
+          <article><span>HI</span><h3>Kona Country Club</h3><p>Kailua-Kona, Hawaii</p></article>
+          <article><span>MS</span><h3>Grand Bear Golf Club</h3><p>Saucier, Mississippi</p></article>
+          <article><span>TX</span><h3>Pine Ridge Golf Course</h3><p>Paris, Texas</p></article>
+          <article><span>TX</span><h3>Daingerfield Country Club</h3><p>Daingerfield, Texas</p></article>
+          <article><span>TX</span><h3>Princedale Country Club</h3><p>Pittsburg, Texas</p></article>
+          <article><span>TX</span><h3>Crossing Creeks Country Club</h3><p>Longview, Texas</p></article>
+          <article><span>TX</span><h3>Eagle's Bluff Country Club</h3><p>Bullard, Texas</p></article>
+          <article><span>TX</span><h3>Hollytree Country Club</h3><p>Tyler, Texas</p></article>
+          <article><span>TX</span><h3>The Championship Course at Cedar Creek Country Club</h3><p>Kemp, Texas</p></article>
+        </div>
+      </section>
+
+      <section class="profile-section timeline-section" id="rounds">
+        <div class="section-heading">
+          <p class="eyebrow">Favorite rounds</p>
+          <h2>Memories worth saving.</h2>
+        </div>
+        <div class="timeline">
+          <article>
+            <span class="timeline-date">Destination stamp</span>
+            <h3>Kona Country Club</h3>
+            <p>Kara added Hawaii to the passport with a round in Kailua-Kona, one of the map pins that makes the journey feel bigger than a scorecard.</p>
+          </article>
+          <article>
+            <span class="timeline-date">Road-trip stamp</span>
+            <h3>Grand Bear Golf Club</h3>
+            <p>Grand Bear added Mississippi to Kara's course collection and gave the passport another state outside the Texas home base.</p>
+          </article>
+          <article>
+            <span class="timeline-date">Home-state collection</span>
+            <h3>East Texas course run</h3>
+            <p>Seven Texas courses now sit together as the first regional chapter of Kara's golf passport.</p>
+          </article>
         </div>
       </section>
 
       <section class="profile-section" id="achievements">
         <div class="section-heading">
           <p class="eyebrow">Achievements</p>
-          <h2>Milestones to track as Kara's passport grows.</h2>
+          <h2>Milestones Kara can keep building on.</h2>
         </div>
         <div class="achievement-grid">
-          <article><span>3</span><strong>States played</strong><p>Texas, Mississippi, and Hawaii.</p></article>
-          <article><span>9</span><strong>Courses played</strong><p>Current course log total.</p></article>
-          <article><span>50</span><strong>All 50 states goal</strong><p>Long-term passport challenge.</p></article>
-          <article><span>PB</span><strong>Lowest score</strong><p>Ready for personal best tracking.</p></article>
-          <article><span>1</span><strong>First birdie</strong><p>Add date, course, hole, and photo.</p></article>
-          <article><span>T</span><strong>Tournament result</strong><p>Add event, score, finish, and division.</p></article>
-        </div>
-      </section>
-
-      <section class="profile-section timeline-section" id="rounds">
-        <div class="section-heading">
-          <p class="eyebrow">Memorable rounds</p>
-          <h2>Golf memories worth saving.</h2>
-        </div>
-        <div class="timeline">
-          <article>
-            <span class="timeline-date">Example memory</span>
-            <h3>Destination round at Kona Country Club</h3>
-            <p>Save the date, scorecard, photos, who played, favorite hole, and what made the round special.</p>
-          </article>
-          <article>
-            <span class="timeline-date">Example memory</span>
-            <h3>Texas course collection</h3>
-            <p>Track East Texas courses as a growing regional passport collection.</p>
-          </article>
+          <article><span>3</span><strong>States played</strong><p>Texas, Mississippi, and Hawaii are stamped on the map.</p></article>
+          <article><span>9</span><strong>Courses played</strong><p>Current verified course log total.</p></article>
+          <article><span>7</span><strong>Texas courses</strong><p>The first regional collection in the passport.</p></article>
+          <article><span>HI</span><strong>Destination round</strong><p>Kona Country Club added a memorable island stamp.</p></article>
+          <article><span>MS</span><strong>New-state round</strong><p>Grand Bear Golf Club added Mississippi.</p></article>
+          <article><span>PB</span><strong>Personal best tracker</strong><p>Ready to record low rounds, firsts, and score milestones.</p></article>
         </div>
       </section>
 
       <section class="profile-section" id="tournaments">
         <div class="section-heading">
           <p class="eyebrow">Tournament history</p>
-          <h2>Ready for results when tournament rounds are added.</h2>
+          <h2>Results will live here as Kara's competitive record grows.</h2>
         </div>
         <div class="tournament-list">
           <article>
             <div>
-              <h3>Future tournament entry</h3>
-              <p>Event name, date, course, division, score, placement, notes, and results link.</p>
+              <h3>Next tournament entry</h3>
+              <p>Event name, date, course, division, score, finish, notes, and result link.</p>
             </div>
-            <div class="result">Add</div>
+            <div class="result">Ready</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="profile-section" id="photos">
+        <div class="section-heading">
+          <p class="eyebrow">Photos and memories</p>
+          <h2>The scrapbook side of the passport.</h2>
+        </div>
+        <div class="memory-grid">
+          <article>
+            <img src="/assets/junior-golf-hero.png" alt="Junior golfer walking a fairway with a parent nearby.">
+            <div>
+              <h3>Course walks</h3>
+              <p>Photos from rounds, trips, practice days, and family golf memories can collect here.</p>
+            </div>
+          </article>
+          <article>
+            <div class="memory-placeholder">Scorecards</div>
+            <div>
+              <h3>Scorecards and firsts</h3>
+              <p>Low rounds, first birdies, best shots, and saved scorecards will become part of the timeline.</p>
+            </div>
+          </article>
+          <article>
+            <div class="memory-placeholder accent">Trophies</div>
+            <div>
+              <h3>Tournament moments</h3>
+              <p>Finishes, placements, team moments, and awards can sit next to the course record.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="profile-section" id="goals">
+        <div class="section-heading">
+          <p class="eyebrow">Goals</p>
+          <h2>Where the passport goes next.</h2>
+        </div>
+        <div class="goal-list">
+          <article>
+            <strong>Play all 50 states</strong>
+            <span>3 of 50 stamped</span>
+          </article>
+          <article>
+            <strong>Add more round notes and photos</strong>
+            <span>Turn the course log into a richer scrapbook</span>
+          </article>
+          <article>
+            <strong>Track scoring milestones</strong>
+            <span>Personal bests, firsts, and tournament results</span>
           </article>
         </div>
       </section>
@@ -220,8 +223,10 @@
       <p>&copy; 2026 Junior Golf Passport. Kara's page is parent-managed.</p>
       <nav aria-label="Footer">
         <a href="/">Home</a>
-        <a href="#map">Map</a>
-        <a href="#courses">Courses</a>
+        <a href="/#about">About Junior Golf Passport</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/support/">Support</a>
       </nav>
     </footer>
     <script src="/app.js"></script>
