@@ -18,7 +18,6 @@
       </a>
       <nav aria-label="Primary">
         <a href="/golfers/">Golfers</a>
-        <a href="/Kara/">Kara</a>
         <a href="/dashboard/">Sign In</a>
       </nav>
     </header>
@@ -35,8 +34,16 @@
         </div>
       </section>
 
-      <section class="golfer-directory" aria-label="Public golfer profiles">
-        <a class="golfer-card" href="/Kara/">
+      <section class="golfer-lookup" aria-label="Find golfers">
+        <label>
+          <span>Search golfers</span>
+          <input id="golfer-search" type="search" placeholder="Search by golfer, city, or state" autocomplete="off">
+        </label>
+        <p id="golfer-search-status" role="status" aria-live="polite">1 public golfer</p>
+      </section>
+
+      <section class="golfer-directory" id="golfer-directory" aria-label="Public golfer profiles">
+        <a class="golfer-card" href="/Kara/" data-golfer-card data-search-text="kara walker paris texas">
           <span class="golfer-avatar" aria-hidden="true">KW</span>
           <span>
             <strong>Kara Walker</strong>
@@ -44,6 +51,7 @@
           </span>
           <em>Open Passport</em>
         </a>
+        <p class="empty-state" id="golfer-empty-state" hidden>No public golfers match that search.</p>
       </section>
     </main>
 
@@ -57,5 +65,29 @@
         <a href="/support/">Support</a>
       </nav>
     </footer>
+    <script>
+      (function () {
+        var search = document.getElementById("golfer-search");
+        var cards = Array.from(document.querySelectorAll("[data-golfer-card]"));
+        var status = document.getElementById("golfer-search-status");
+        var empty = document.getElementById("golfer-empty-state");
+
+        function updateDirectory() {
+          var term = search ? search.value.trim().toLowerCase() : "";
+          var visible = 0;
+          cards.forEach(function (card) {
+            var text = card.getAttribute("data-search-text") || card.textContent || "";
+            var match = !term || text.toLowerCase().indexOf(term) !== -1;
+            card.hidden = !match;
+            if (match) visible += 1;
+          });
+          if (status) status.textContent = visible === 1 ? "1 public golfer" : visible + " public golfers";
+          if (empty) empty.hidden = visible !== 0;
+        }
+
+        if (search) search.addEventListener("input", updateDirectory);
+        updateDirectory();
+      }());
+    </script>
   </body>
 </html>
