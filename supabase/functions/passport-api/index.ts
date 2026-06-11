@@ -250,6 +250,18 @@ function cleanEntryKind(value: unknown) {
   return ["rounds", "memories", "achievements", "tournaments", "photos"].includes(text) ? text : "";
 }
 
+function cleanCourseVerificationStatus(value: unknown) {
+  const text = cleanString(value, "manual");
+  return ["manual", "ai_suggested", "verified", "needs_review"].includes(text) ? text : "manual";
+}
+
+function cleanCourseVerificationSource(value: unknown) {
+  const text = cleanString(value, "manual_admin");
+  return ["google_places", "manual_admin", "imported", "unknown"].includes(text)
+    ? text
+    : "manual_admin";
+}
+
 function stringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.map((item) => cleanString(item)).filter(Boolean).slice(0, 12);
@@ -485,8 +497,8 @@ async function upsertCourse(body: Record<string, unknown>) {
       country: cleanString(body.country, "United States"),
       latitude: cleanNumber(body.latitude),
       longitude: cleanNumber(body.longitude),
-      verification_status: cleanString(body.verification_status, "manual"),
-      verification_source: cleanString(body.verification_source, "manual_admin"),
+      verification_status: cleanCourseVerificationStatus(body.verification_status),
+      verification_source: cleanCourseVerificationSource(body.verification_source),
     })
     .select("*")
     .single();

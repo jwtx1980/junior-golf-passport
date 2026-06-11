@@ -48,6 +48,10 @@
     courseName: document.getElementById("course-name"),
     courseCity: document.getElementById("course-city"),
     courseState: document.getElementById("course-state"),
+    courseLatitude: document.getElementById("course-latitude"),
+    courseLongitude: document.getElementById("course-longitude"),
+    courseVerificationStatus: document.getElementById("course-verification-status"),
+    courseVerificationSource: document.getElementById("course-verification-source"),
     entryDate: document.getElementById("entry-date"),
     roundScore: document.getElementById("round-score"),
     roundHoles: document.getElementById("round-holes"),
@@ -165,6 +169,19 @@
       .slice(0, 80) || "photo";
   }
 
+  function optionalNumber(value) {
+    if (value === null || value === undefined || value === "") return null;
+    var number = Number(value);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function courseStatusText(course) {
+    if (!course) return "";
+    var status = String(course.verification_status || "manual").replace(/_/g, " ");
+    var hasPin = Number.isFinite(Number(course.latitude)) && Number.isFinite(Number(course.longitude));
+    return hasPin ? status + " pin" : status;
+  }
+
   function selectedGolfer() {
     var golfers = state.me && Array.isArray(state.me.golfers) ? state.me.golfers : [];
     return golfers.find(function (row) {
@@ -191,6 +208,8 @@
       elements.courseName,
       elements.courseCity,
       elements.courseState,
+      elements.courseLatitude,
+      elements.courseLongitude,
       elements.entryDate,
       elements.roundScore,
       elements.roundHoles,
@@ -206,6 +225,8 @@
     });
     if (elements.entryType) elements.entryType.value = "memory";
     if (elements.visibility) elements.visibility.value = "private";
+    if (elements.courseVerificationStatus) elements.courseVerificationStatus.value = "manual";
+    if (elements.courseVerificationSource) elements.courseVerificationSource.value = "manual_admin";
     if (elements.approved) elements.approved.checked = false;
     setEditMode(null);
   }
@@ -241,6 +262,7 @@
           detail: item.story,
           date: item.created_at,
           course: item.courses && item.courses.name,
+          courseMeta: courseStatusText(item.courses),
           visibility: item.visibility,
           approved: item.is_approved
         };
@@ -255,6 +277,7 @@
           detail: item.story || item.notes,
           date: item.played_on || item.created_at,
           course: item.courses && item.courses.name,
+          courseMeta: courseStatusText(item.courses),
           visibility: item.visibility,
           approved: item.is_approved
         };
@@ -269,6 +292,7 @@
           detail: item.story || item.value,
           date: item.achieved_on || item.created_at,
           course: item.courses && item.courses.name,
+          courseMeta: courseStatusText(item.courses),
           visibility: item.visibility,
           approved: item.is_approved
         };
@@ -283,6 +307,7 @@
           detail: [item.division, item.finish, item.story].filter(Boolean).join(" - "),
           date: item.played_on || item.created_at,
           course: item.courses && item.courses.name,
+          courseMeta: courseStatusText(item.courses),
           visibility: item.visibility,
           approved: item.is_approved
         };
@@ -322,6 +347,7 @@
         '<span class="card-kicker">' + escapeHtml(row.type.replace(/_/g, " ")) + '</span>',
         '<h3>' + escapeHtml(row.title || "Untitled entry") + '</h3>',
         row.course ? '<p>' + escapeHtml(row.course) + '</p>' : '',
+        row.courseMeta ? '<p>' + escapeHtml(row.courseMeta) + '</p>' : '',
         row.detail ? '<p>' + escapeHtml(row.detail) + '</p>' : '',
         '</div>',
         '<div class="entry-actions">',
@@ -391,6 +417,10 @@
     elements.courseName.value = course.name || "";
     elements.courseCity.value = course.city || "";
     elements.courseState.value = course.state || "";
+    elements.courseLatitude.value = course.latitude || "";
+    elements.courseLongitude.value = course.longitude || "";
+    elements.courseVerificationStatus.value = course.verification_status || "manual";
+    elements.courseVerificationSource.value = course.verification_source || "manual_admin";
   }
 
   function editRow(row) {
@@ -534,6 +564,10 @@
       elements.courseName.value = draft.course.name || "";
       elements.courseCity.value = draft.course.city || "";
       elements.courseState.value = draft.course.state || "";
+      elements.courseLatitude.value = "";
+      elements.courseLongitude.value = "";
+      elements.courseVerificationStatus.value = "needs_review";
+      elements.courseVerificationSource.value = "unknown";
     }
     if (draft.round) {
       elements.entryDate.value = draft.round.played_on || "";
@@ -580,12 +614,16 @@
     var coursePayload = await api("/courses", {
       method: "POST",
       body: {
-        name: elements.courseName.value.trim(),
-        city: elements.courseCity.value.trim(),
-        state: elements.courseState.value.trim(),
-        country: "United States"
-      }
-    });
+          name: elements.courseName.value.trim(),
+          city: elements.courseCity.value.trim(),
+          state: elements.courseState.value.trim(),
+          country: "United States",
+          latitude: optionalNumber(elements.courseLatitude.value),
+          longitude: optionalNumber(elements.courseLongitude.value),
+          verification_status: elements.courseVerificationStatus.value,
+          verification_source: elements.courseVerificationSource.value
+        }
+      });
     return coursePayload.course.id;
   }
 

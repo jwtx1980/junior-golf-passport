@@ -585,10 +585,16 @@ Build:
   visibility, approval, metadata save, and dashboard/public signed URL reads
 - edit/delete saved entries and photos: dashboard can edit review fields,
   captions, visibility, and approval, and can delete entries and stored photos
+- manual course verification fields: dashboard can capture latitude, longitude,
+  verification status, and verification source when creating course-backed
+  entries
+- live public map data: Kara's map now hydrates from approved Supabase rounds and
+  course coordinates, with the original built-in map list as fallback
 
 Then add:
 
 - real Kara/Jamie accounts and golfer memberships
 - first-login password update test with Kara's temporary password
-- course lookup/verification through a maps or geocoding API
+- automated course lookup/verification through Google Places or another maps or
+  geocoding API
 - subscription/payment only after the product flow is proven

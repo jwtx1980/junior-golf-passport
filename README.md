@@ -37,7 +37,7 @@ Current stack:
 - Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
 - Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
-- Course verification: manual course entry now; maps/geocoding verification later
+- Course verification: manual coordinates and verification status now; maps/geocoding lookup later
 
 OpenAI keys should never be placed in public browser code. The browser should send rough notes to an authenticated backend function, receive structured data and a story draft, and save only after parent review.
 

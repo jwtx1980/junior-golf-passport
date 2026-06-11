@@ -26,6 +26,12 @@
     return [course.city, course.state].filter(Boolean).join(", ");
   }
 
+  function courseVerificationLabel(course) {
+    var hasPin = Number.isFinite(Number(course.latitude)) && Number.isFinite(Number(course.longitude));
+    var status = String(course.verification_status || "manual").replace(/_/g, " ");
+    return hasPin ? status + " pin" : status;
+  }
+
   function renderCourseCards(rounds) {
     var grid = document.querySelector(".course-card-grid");
     if (!grid || !rounds.length) return;
@@ -45,6 +51,7 @@
         "<span>" + escapeHtml(stateCode) + "</span>",
         "<h3>" + escapeHtml(course.name) + "</h3>",
         "<p>" + escapeHtml(coursePlace(course)) + "</p>",
+        '<p class="course-verification">' + escapeHtml(courseVerificationLabel(course)) + "</p>",
         "</article>"
       ].join("");
     }).join("");

@@ -546,6 +546,13 @@ main {
   margin-bottom: 0;
 }
 
+.course-verification {
+  color: var(--green-dark);
+  font-size: 0.86rem;
+  font-weight: 850;
+  text-transform: capitalize;
+}
+
 .timeline article {
   border-left: 6px solid var(--green);
 }

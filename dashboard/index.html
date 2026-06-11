@@ -164,6 +164,36 @@
             </label>
             <div class="form-row">
               <label>
+                <span>Latitude</span>
+                <input id="course-latitude" type="number" step="any" inputmode="decimal" placeholder="42.4631">
+              </label>
+              <label>
+                <span>Longitude</span>
+                <input id="course-longitude" type="number" step="any" inputmode="decimal" placeholder="-70.9736">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Verification</span>
+                <select id="course-verification-status">
+                  <option value="manual">Manual</option>
+                  <option value="verified">Verified</option>
+                  <option value="needs_review">Needs review</option>
+                  <option value="ai_suggested">AI suggested</option>
+                </select>
+              </label>
+              <label>
+                <span>Source</span>
+                <select id="course-verification-source">
+                  <option value="manual_admin">Manual admin</option>
+                  <option value="google_places">Google Places</option>
+                  <option value="imported">Imported</option>
+                  <option value="unknown">Unknown</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
                 <span>Played / achieved on</span>
                 <input id="entry-date" type="date">
               </label>
