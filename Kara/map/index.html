@@ -304,6 +304,7 @@
     let liveCourses = [];
     let userCourses = loadUserCourses();
     let selectedCourseId = seedCourses[0].id;
+    let selectedStateCode = null;
 
     const elements = {
       stateCount: document.getElementById("stateCount"),
@@ -351,6 +352,7 @@
       };
       userCourses.push(course);
       selectedCourseId = course.id;
+      selectedStateCode = course.state;
       saveUserCourses();
       clearForm();
       render();
@@ -364,6 +366,7 @@
       userCourses = [];
       saveUserCourses();
       selectedCourseId = seedCourses[0].id;
+      selectedStateCode = seedCourses[0].state;
       render();
     });
 
@@ -395,9 +398,10 @@
               if (!course.name || !course.state || unique[key]) return false;
               unique[key] = true;
               return true;
-            });
+          });
           if (liveCourses.length) {
             selectedCourseId = liveCourses[0].id;
+            selectedStateCode = liveCourses[0].state;
             render();
           }
         })
@@ -442,7 +446,7 @@
       const courses = getAllCourses();
       const stateCounts = getStateCounts(courses);
       const pinnedCourses = courses.filter(hasCoordinates);
-      if (!courses.some((course) => course.id === selectedCourseId)) selectedCourseId = courses[0]?.id || null;
+      if (selectedCourseId && !courses.some((course) => course.id === selectedCourseId)) selectedCourseId = null;
 
       elements.stateCount.textContent = Object.keys(stateCounts).length;
       elements.courseCount.textContent = courses.length;
@@ -460,7 +464,7 @@
         const path = document.createElementNS(svgNS, "path");
         const count = stateCounts[state.code] || 0;
         path.setAttribute("d", state.d);
-        path.setAttribute("class", `state ${stateClass(count)}${stateHasSelectedCourse(state.code) ? " is-selected" : ""}`);
+        path.setAttribute("class", `state ${stateClass(count)}${stateIsSelected(state.code) ? " is-selected" : ""}`);
         path.setAttribute("data-state", state.code);
         path.setAttribute("aria-label", `${state.name}: ${count} ${count === 1 ? "course" : "courses"}`);
         path.addEventListener("click", () => selectStateCourse(state.code));
@@ -536,15 +540,18 @@
 
     function selectCourse(courseId, scrollToMap) {
       selectedCourseId = courseId;
+      const selected = getAllCourses().find((course) => course.id === courseId);
+      selectedStateCode = selected?.state || null;
       render();
       notifyParent({ courseId });
       if (scrollToMap) elements.map.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function selectStateCourse(stateCode) {
-      const match = getAllCourses().find((course) => course.state === stateCode);
-      notifyParent({ state: stateCode, courseId: match?.id || "" });
-      if (match) selectCourse(match.id, false);
+      selectedStateCode = stateCode;
+      selectedCourseId = null;
+      render();
+      notifyParent({ state: stateCode });
     }
 
     function notifyParent(payload) {
@@ -552,7 +559,8 @@
       window.parent.postMessage({ source: "jgp-map", ...payload }, "*");
     }
 
-    function stateHasSelectedCourse(stateCode) {
+    function stateIsSelected(stateCode) {
+      if (selectedStateCode === stateCode) return true;
       const selected = getAllCourses().find((course) => course.id === selectedCourseId);
       return selected?.state === stateCode;
     }

@@ -343,7 +343,7 @@
       ? courses.filter(function (course) { return normalizeStateCode(course.state) === profileState.selectedState; })
       : courses;
     if (!visibleCourses.some(function (course) { return courseKey(course) === profileState.selectedCourseKey; })) {
-      profileState.selectedCourseKey = visibleCourses[0] ? courseKey(visibleCourses[0]) : "";
+      profileState.selectedCourseKey = profileState.selectedState ? "" : (visibleCourses[0] ? courseKey(visibleCourses[0]) : "");
     }
 
     grid.innerHTML = visibleCourses.map(function (course) {
@@ -365,9 +365,25 @@
   function renderSelectedCoursePanel(courses, data, golfer) {
     var panel = document.getElementById("course-story-panel");
     if (!panel) return;
+    if (profileState.selectedState && !profileState.selectedCourseKey) {
+      var filteredCourses = courses.filter(function (item) {
+        return normalizeStateCode(item.state) === profileState.selectedState;
+      });
+      panel.innerHTML = [
+        '<div class="selected-course-heading">',
+        '<span>' + escapeHtml(profileState.selectedState) + '</span>',
+        '<div>',
+        '<p class="eyebrow">State selected</p>',
+        '<h3>' + escapeHtml(profileState.selectedState) + ' course list</h3>',
+        '<p>' + escapeHtml(filteredCourses.length + " course" + (filteredCourses.length === 1 ? "" : "s") + " found. Choose a course to open stories and photos.") + '</p>',
+        '</div>',
+        '</div>'
+      ].join("");
+      return;
+    }
     var course = courses.find(function (item) {
       return courseKey(item) === profileState.selectedCourseKey;
-    }) || courses[0];
+    }) || (!profileState.selectedState ? courses[0] : null);
     if (!course) {
       panel.innerHTML = "";
       return;
@@ -446,7 +462,8 @@
         var doc = frame.contentDocument;
         if (!doc || !doc.documentElement || doc.documentElement.dataset.jgpBridgeBound === "true") return;
         doc.documentElement.dataset.jgpBridgeBound = "true";
-        doc.addEventListener("click", function () {
+        doc.addEventListener("click", function (event) {
+          if (event.target && event.target.closest && event.target.closest("[data-state]")) return;
           window.setTimeout(selectCourseFromMapFrame, 80);
         });
       } catch (error) {
@@ -1411,6 +1428,8 @@
     if (event.data.state) {
       profileState.selectedState = normalizeStateCode(event.data.state);
       profileState.selectedCourseKey = "";
+      renderCourseNavigation();
+      return;
     }
     if (event.data.courseId) {
       profileState.selectedCourseKey = String(event.data.courseId);
