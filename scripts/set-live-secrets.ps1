@@ -13,6 +13,7 @@ Do not commit real keys.
 $OpenAIKey = ""
 $GooglePlacesKey = ""
 $OpenAIModel = "gpt-5.4-mini"
+$AiDailyLimit = "25"
 
 $ProjectRef = "znstslovujtpmydnrcxf"
 $FeaturesUrl = "https://znstslovujtpmydnrcxf.functions.supabase.co/passport-api/features"
@@ -49,7 +50,8 @@ if (-not $OpenAIKey) {
 
 $secretsToSet = @(
   "OPENAI_API_KEY=$OpenAIKey",
-  "OPENAI_MODEL=$OpenAIModel"
+  "OPENAI_MODEL=$OpenAIModel",
+  "JGP_AI_DAILY_LIMIT=$AiDailyLimit"
 )
 
 if (-not $GooglePlacesKey -or $GooglePlacesKey -eq "PASTE_GOOGLE_PLACES_KEY_HERE") {

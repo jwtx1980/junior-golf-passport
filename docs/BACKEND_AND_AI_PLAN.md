@@ -596,6 +596,8 @@ Build:
 - Kara seeded public golfer/profile data: public golfer and starter passport data done
 - auth dashboard: started
 - password-change enforcement: backend/dashboard support started
+- temporary-password UX lock: dashboard disables normal editing and AI tools
+  until the signed-in user replaces the temporary password
 - account bootstrap tooling: local script can create/update real Auth users,
   profile roles, AI entitlement, temporary-password flags, and golfer
   memberships once Kara/Jamie emails are known
@@ -617,6 +619,8 @@ Build:
 - built-in paid/entitled AI flow: Edge Function route exists, checks
   `has_ai_access`, calls OpenAI from the server, and `/features` reports
   built-in AI configured
+- built-in AI cost guard: Edge Function limits built-in drafting to 25 requests
+  per account per UTC day by default, configurable with `JGP_AI_DAILY_LIMIT`
 - OpenAI course-name extraction: built-in and copy-prompt AI can now return a
   `course_lookup_query`; dashboard saves AI-filled course details as
   `ai_suggested` rather than verified

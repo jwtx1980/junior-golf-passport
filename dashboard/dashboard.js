@@ -17,6 +17,7 @@
     features: {
       loaded: false,
       built_in_ai_configured: false,
+      built_in_ai_daily_limit: 25,
       course_lookup_configured: false
     }
   };
@@ -438,7 +439,9 @@
         "ready",
         "Ready",
         "Built-in AI",
-        "This account has AI access and the OpenAI backend secret is configured."
+        "This account has AI access. Built-in drafting is capped at " +
+          state.features.built_in_ai_daily_limit +
+          " drafts per day."
       )
       : setupChecklistRow(
         "needs",
@@ -486,6 +489,31 @@
         ? ""
         : "Add GOOGLE_PLACES_API_KEY in Supabase secrets to enable course lookup.";
     }
+  }
+
+  function setDashboardLocked(locked) {
+    if (!elements.appPanel) return;
+    var allowedIds = {
+      "new-password": true,
+      "update-password-button": true,
+      "sign-out-button": true
+    };
+
+    Array.from(elements.appPanel.querySelectorAll("button,input,select,textarea"))
+      .forEach(function (control) {
+        if (allowedIds[control.id]) return;
+
+        if (locked) {
+          if (!control.disabled) control.dataset.lockedDisabled = "true";
+          control.disabled = true;
+          return;
+        }
+
+        if (control.dataset.lockedDisabled === "true") {
+          control.disabled = false;
+          delete control.dataset.lockedDisabled;
+        }
+      });
   }
 
   function renderProfileEditor() {
@@ -718,6 +746,7 @@
     if (!signedIn) return;
 
     var profile = state.me.profile;
+    setDashboardLocked(false);
     renderFeatureControls(profile);
     renderSetupChecklist(profile);
     setText(
@@ -744,6 +773,7 @@
     renderProfileEditor();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
+    setDashboardLocked(profile.must_change_password);
   }
 
   async function refreshMe() {
@@ -858,6 +888,7 @@
       state.features = {
         loaded: true,
         built_in_ai_configured: Boolean(features.built_in_ai_configured),
+        built_in_ai_daily_limit: Number(features.built_in_ai_daily_limit) || 25,
         course_lookup_configured: Boolean(features.course_lookup_configured)
       };
       render();

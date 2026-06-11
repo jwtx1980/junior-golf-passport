@@ -43,6 +43,7 @@ Manual commands, if needed:
 ```powershell
 npx supabase secrets set OPENAI_API_KEY="sk-..." --project-ref znstslovujtpmydnrcxf
 npx supabase secrets set OPENAI_MODEL="gpt-5.4-mini" --project-ref znstslovujtpmydnrcxf
+npx supabase secrets set JGP_AI_DAILY_LIMIT="25" --project-ref znstslovujtpmydnrcxf
 npx supabase secrets set GOOGLE_PLACES_API_KEY="..." --project-ref znstslovujtpmydnrcxf
 ```
 
@@ -98,7 +99,9 @@ not be exposed as a public search box without quota controls.
 
 OpenAI cost note checked June 11, 2026: use a mini model for rough-note drafting
 and set a monthly budget/alert in the OpenAI dashboard before opening built-in AI
-to more users.
+to more users. The Edge Function also enforces a default `JGP_AI_DAILY_LIMIT` of
+25 built-in drafts per account per UTC day; the free copy-prompt flow is not
+limited because it does not call our OpenAI key.
 
 ## Verification Gates
 

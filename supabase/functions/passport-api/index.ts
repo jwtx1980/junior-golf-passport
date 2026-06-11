@@ -141,6 +141,17 @@ function env(name: string) {
   return value;
 }
 
+function aiDailyLimit() {
+  const configured = Number(optionalEnv("JGP_AI_DAILY_LIMIT"));
+  return Number.isFinite(configured) && configured > 0 ? Math.floor(configured) : 25;
+}
+
+function utcDayStartIso() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    .toISOString();
+}
+
 function adminClient() {
   return createClient(
     optionalEnv("JGP_SUPABASE_URL") || env("SUPABASE_URL"),
@@ -381,6 +392,7 @@ async function handlePasswordUpdated(req: Request) {
 function handleFeatures() {
   return jsonResponse(200, {
     built_in_ai_configured: Boolean(optionalEnv("OPENAI_API_KEY")),
+    built_in_ai_daily_limit: aiDailyLimit(),
     course_lookup_configured: Boolean(
       optionalEnv("GOOGLE_PLACES_API_KEY") || optionalEnv("GOOGLE_MAPS_API_KEY"),
     ),
@@ -1138,6 +1150,23 @@ async function handleDraftEntry(req: Request) {
 
   const startedAt = new Date().toISOString();
   const model = optionalEnv("OPENAI_MODEL") || "gpt-5.4-mini";
+  const dailyLimit = aiDailyLimit();
+  const { count: usedToday, error: limitError } = await adminClient()
+    .from("ai_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("request_type", "draft_entry")
+    .neq("status", "failed")
+    .gte("created_at", utcDayStartIso());
+
+  if (limitError) throw new ApiError(500, limitError.message);
+  if ((usedToday || 0) >= dailyLimit) {
+    throw new ApiError(
+      429,
+      `Built-in AI daily limit reached (${dailyLimit}/day). Use Your Own AI is still free.`,
+    );
+  }
+
   let aiRequestId: string | null = null;
 
   const insert = await adminClient()

@@ -117,6 +117,8 @@ Optional secrets:
 `OPENAI_API_KEY` is required before built-in AI works. `GOOGLE_PLACES_API_KEY`
 enables dashboard course lookup and verified map pins through Google Places.
 Google Places is optional for launch because manual coordinates already work.
+Built-in AI drafting is capped server-side at 25 drafts per account per UTC day
+by default. Set `JGP_AI_DAILY_LIMIT` as a Supabase secret to change that cap.
 
 The free `Use Your Own AI` flow does not require an OpenAI key because users copy
 the generated prompt into their own AI tool and paste JSON back into the
