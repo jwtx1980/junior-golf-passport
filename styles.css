@@ -766,6 +766,48 @@ main {
   margin-top: 7px;
 }
 
+.workflow-strip {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.workflow-strip div {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 14px;
+}
+
+.workflow-strip div + div {
+  border-left: 1px solid var(--line);
+}
+
+.workflow-strip strong {
+  align-items: center;
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green-dark);
+  display: inline-flex;
+  font-size: 0.82rem;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.workflow-strip span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
 .notice-panel {
   align-items: end;
   background: var(--sky);
@@ -1069,6 +1111,7 @@ footer nav {
   .goal-list,
   .dashboard-hero,
   .dashboard-snapshot,
+  .workflow-strip,
   .dashboard-shell,
   .ai-flow-grid,
   .editor-grid,
@@ -1080,6 +1123,11 @@ footer nav {
   .passport-strip div {
     border-right: 0;
     padding: 18px 24px;
+  }
+
+  .workflow-strip div + div {
+    border-left: 0;
+    border-top: 1px solid var(--line);
   }
 
   .dashboard-nav {

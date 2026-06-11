@@ -72,6 +72,13 @@
           <div><strong>0</strong><span>Verified pins</span></div>
         </section>
 
+        <section class="workflow-strip" aria-label="Dashboard workflow">
+          <div><strong>1</strong><span>Write or paste a rough note</span></div>
+          <div><strong>2</strong><span>Fill the review fields manually or with a prompt</span></div>
+          <div><strong>3</strong><span>Save private first</span></div>
+          <div><strong>4</strong><span>Approve only what belongs on the passport</span></div>
+        </section>
+
         <section class="notice-panel" id="password-panel" hidden>
           <div>
             <p class="eyebrow">Password update required</p>
@@ -268,7 +275,10 @@
               <input id="entry-approved" type="checkbox">
               <span>Approved for public passport if visibility is public or unlisted</span>
             </label>
-            <button class="button primary" id="save-entry-button" type="button">Save Entry</button>
+            <div class="button-row">
+              <button class="button primary" id="save-entry-button" type="button">Save Entry</button>
+              <button class="button secondary" id="clear-entry-button" type="button">Clear</button>
+            </div>
             <p id="dashboard-status" role="status" aria-live="polite"></p>
           </section>
         </section>
@@ -305,7 +315,10 @@
                 <span>Approved for public passport</span>
               </label>
             </div>
-            <button class="button primary" id="upload-photo-button" type="button">Upload Photo</button>
+            <div class="button-row">
+              <button class="button primary" id="upload-photo-button" type="button">Upload Photo</button>
+              <button class="button secondary" id="clear-photo-button" type="button">Clear Photo</button>
+            </div>
           </div>
         </section>
 

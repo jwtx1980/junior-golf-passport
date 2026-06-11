@@ -601,6 +601,9 @@ Build:
 - feature readiness: dashboard reads a safe `/features` endpoint so built-in AI
   and course lookup controls are disabled with setup hints until the required
   Supabase secrets are present
+- dashboard onboarding: signed-in users see a compact manual-first workflow,
+  clearer empty states, and clear/cancel controls while adding or editing
+  entries and photos
 - live public map data: Kara's map now hydrates from approved Supabase rounds and
   course coordinates, with the original built-in map list as fallback
 

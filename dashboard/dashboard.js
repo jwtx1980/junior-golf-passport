@@ -81,6 +81,8 @@
     photoApproved: document.getElementById("photo-approved"),
     uploadPhoto: document.getElementById("upload-photo-button"),
     saveEntry: document.getElementById("save-entry-button"),
+    clearEntry: document.getElementById("clear-entry-button"),
+    clearPhoto: document.getElementById("clear-photo-button"),
     dashboardStatus: document.getElementById("dashboard-status"),
     apiStatus: document.getElementById("api-status"),
     entryList: document.getElementById("entry-list"),
@@ -344,8 +346,14 @@
     if (elements.saveEntry) {
       elements.saveEntry.textContent = edit && edit.kind !== "photos" ? "Update Entry" : "Save Entry";
     }
+    if (elements.clearEntry) {
+      elements.clearEntry.textContent = edit && edit.kind !== "photos" ? "Cancel Edit" : "Clear";
+    }
     if (elements.uploadPhoto) {
       elements.uploadPhoto.textContent = edit && edit.kind === "photos" ? "Update Photo" : "Upload Photo";
+    }
+    if (elements.clearPhoto) {
+      elements.clearPhoto.textContent = edit && edit.kind === "photos" ? "Cancel Edit" : "Clear Photo";
     }
   }
 
@@ -396,7 +404,8 @@
     if (!elements.entryList) return;
     if (!state.selectedGolferId) {
       renderSnapshot();
-      elements.entryList.innerHTML = '<p class="empty-state">Choose a golfer to load saved entries.</p>';
+      elements.entryList.innerHTML =
+        '<p class="empty-state">Create a golfer profile first, then save the first private memory.</p>';
       return;
     }
     if (!state.entries) {
@@ -488,7 +497,8 @@
 
     if (!rows.length) {
       renderSnapshot();
-      elements.entryList.innerHTML = '<p class="empty-state">No saved entries yet.</p>';
+      elements.entryList.innerHTML =
+        '<p class="empty-state">No saved entries yet. Start with a course, round, achievement, tournament, or memory and save it private.</p>';
       return;
     }
 
@@ -1076,6 +1086,14 @@
   bind(elements.lookupCourse, lookupCourse, setLookupStatus);
   bind(elements.saveEntry, saveEntry);
   bind(elements.uploadPhoto, uploadPhoto);
+  bind(elements.clearEntry, function () {
+    clearEntryForm();
+    setStatus("Entry form cleared.");
+  });
+  bind(elements.clearPhoto, function () {
+    clearPhotoForm();
+    setStatus("Photo form cleared.");
+  });
 
   bind(elements.generatePrompt, function () {
     elements.generatedPrompt.value = freeAiPrompt(elements.note.value.trim());
