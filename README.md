@@ -19,6 +19,7 @@ http://127.0.0.1:8766/
 ## Pages
 
 - `/` - Kara-first public homepage
+- `/golfers/` - public golfer directory, currently listing Kara Walker
 - `/Kara/` - Kara Walker's public passport
 - `/Kara/map/` - interactive golfed states map
 - `/passport/?golfer=slug` - generic public passport page for any approved

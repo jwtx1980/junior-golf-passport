@@ -112,11 +112,27 @@
     }).join("");
   }
 
-  function renderAchievements(achievements, golfer) {
+  function renderAchievements(achievements, golfer, courses) {
     var grid = document.querySelector(".achievement-grid");
     if (!grid) return;
 
     if (!achievements.length) {
+      if (courses && courses.length) {
+        var states = uniqueBy(courses, function (course) {
+          return course.state;
+        });
+        var pinned = courses.filter(function (course) {
+          return Number.isFinite(Number(course.latitude)) && Number.isFinite(Number(course.longitude));
+        });
+        grid.innerHTML = [
+          '<article><span>' + escapeHtml(String(states.length)) + '</span><strong>States played</strong><p>' +
+            escapeHtml(states.map(function (course) { return course.state; }).filter(Boolean).join(", ")) +
+            ' are stamped on the map.</p></article>',
+          '<article><span>' + escapeHtml(String(courses.length)) + '</span><strong>Courses played</strong><p>Current approved course log total.</p></article>',
+          '<article><span>' + escapeHtml(String(pinned.length)) + '</span><strong>Mapped pins</strong><p>Verified course locations are ready for the map.</p></article>'
+        ].join("");
+        return;
+      }
       grid.innerHTML = emptyCard("Milestones, personal bests, and firsts will appear here once approved.");
       return;
     }
@@ -304,7 +320,7 @@
     renderCourseCards(courses, golfer);
     renderMapNotes(courses, golfer);
     renderMemories(normalized.memories, golfer);
-    renderAchievements(normalized.achievements, golfer);
+    renderAchievements(normalized.achievements, golfer, courses);
     renderTournaments(normalized.tournaments, golfer);
     renderPhotos(normalized.photos, golfer);
     renderGoals(normalized.goals, golfer);

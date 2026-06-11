@@ -22,149 +22,126 @@
         <span>Junior Golf Passport</span>
       </a>
       <nav aria-label="Primary">
+        <a href="/golfers/">Golfers</a>
         <a href="#map">Map</a>
-        <a href="#courses">Courses</a>
-        <a href="#rounds">Rounds</a>
-        <a href="#goals">Goals</a>
+        <a href="#course-history">Course History</a>
+        <a href="/dashboard/">Sign In</a>
       </nav>
     </header>
 
     <main>
-      <section class="profile-hero">
+      <section class="profile-hero profile-masthead">
         <div class="profile-card passport-card">
           <div class="profile-photo" aria-hidden="true">K</div>
           <div class="profile-summary">
-            <p class="eyebrow">Kara Walker's Junior Golf Passport</p>
             <h1>Kara Walker</h1>
-            <p class="profile-meta">Courses played, memories made, milestones earned.</p>
+            <p class="profile-meta">Age 13</p>
+            <p class="profile-location">Paris, Texas</p>
             <p class="profile-bio">
-              Kara's passport is a living record of where golf has taken her:
-              the local courses, the destination rounds, the milestones, the
-              tournament days, and the goals still in front of her.
+              Courses played, memories made, milestones earned.
             </p>
             <div class="profile-actions">
               <button class="button primary" id="share-button" type="button">Share Page</button>
-              <a class="button secondary" href="/Kara/map/">Open Map</a>
+              <a class="button secondary" href="/dashboard/">Sign In to Edit</a>
             </div>
             <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
           </div>
         </div>
+      </section>
+
+      <section class="passport-map-band" id="map" aria-label="Kara's golf map">
+        <iframe
+          class="map-frame profile-map-frame"
+          src="/Kara/map/"
+          title="Kara Walker interactive golfed states map"
+          loading="lazy"
+        ></iframe>
         <div class="profile-stats">
           <div><strong>9</strong><span>Courses played</span></div>
           <div><strong>3</strong><span>States stamped</span></div>
-          <div><strong>9</strong><span>Verified pins</span></div>
-          <div><strong>50</strong><span>State goal</span></div>
+          <div><strong>9</strong><span>Mapped pins</span></div>
+          <div><strong>3</strong><span>Saved memories</span></div>
         </div>
       </section>
 
-      <section class="profile-section" id="map">
-        <div class="section-heading">
-          <p class="eyebrow">Map of states and courses</p>
-          <h2>Every stamp starts with a real course.</h2>
-          <p>
-            Kara's current map includes Texas, Mississippi, and Hawaii. Course
-            pins are tied to verified locations rather than guessed from notes.
-          </p>
-        </div>
-        <div class="course-map-layout">
-          <iframe
-            class="map-frame"
-            src="/Kara/map/"
-            title="Kara Walker interactive golfed states map"
-            loading="lazy"
-          ></iframe>
-          <aside class="map-notes">
-            <article>
-              <strong>Texas</strong>
-              <span>7 courses</span>
-              <p>East Texas rounds in Paris, Daingerfield, Pittsburg, Longview, Bullard, Tyler, and Kemp.</p>
-            </article>
-            <article>
-              <strong>Mississippi</strong>
-              <span>Grand Bear Golf Club</span>
-              <p>A Gulf Coast-area passport stamp in Saucier.</p>
-            </article>
-            <article>
-              <strong>Hawaii</strong>
-              <span>Kona Country Club</span>
-              <p>A destination round in Kailua-Kona and a favorite map pin.</p>
-            </article>
-            <a class="button primary" href="/Kara/map/">Open Full Interactive Map</a>
-          </aside>
-        </div>
-      </section>
-
-      <section class="profile-section" id="courses">
-        <div class="section-heading">
-          <p class="eyebrow">Course passport</p>
-          <h2>Courses Kara has played.</h2>
-        </div>
-        <div class="course-card-grid">
-          <article><span>HI</span><h3>Kona Country Club</h3><p>Kailua-Kona, Hawaii</p></article>
-          <article><span>MS</span><h3>Grand Bear Golf Club</h3><p>Saucier, Mississippi</p></article>
-          <article><span>TX</span><h3>Pine Ridge Golf Course</h3><p>Paris, Texas</p></article>
-          <article><span>TX</span><h3>Daingerfield Country Club</h3><p>Daingerfield, Texas</p></article>
-          <article><span>TX</span><h3>Princedale Country Club</h3><p>Pittsburg, Texas</p></article>
-          <article><span>TX</span><h3>Crossing Creeks Country Club</h3><p>Longview, Texas</p></article>
-          <article><span>TX</span><h3>Eagle's Bluff Country Club</h3><p>Bullard, Texas</p></article>
-          <article><span>TX</span><h3>Hollytree Country Club</h3><p>Tyler, Texas</p></article>
-          <article><span>TX</span><h3>The Championship Course at Cedar Creek Country Club</h3><p>Kemp, Texas</p></article>
-        </div>
-      </section>
-
-      <section class="profile-section timeline-section" id="rounds">
-        <div class="section-heading">
-          <p class="eyebrow">Favorite rounds</p>
-          <h2>Memories worth saving.</h2>
-        </div>
-        <div class="timeline">
-          <article>
-            <span class="timeline-date">Destination stamp</span>
-            <h3>Kona Country Club</h3>
-            <p>Kara added Hawaii to the passport with a round in Kailua-Kona, one of the map pins that makes the journey feel bigger than a scorecard.</p>
-          </article>
-          <article>
-            <span class="timeline-date">Road-trip stamp</span>
-            <h3>Grand Bear Golf Club</h3>
-            <p>Grand Bear added Mississippi to Kara's course collection and gave the passport another state outside the Texas home base.</p>
-          </article>
-          <article>
-            <span class="timeline-date">Home-state collection</span>
-            <h3>East Texas course run</h3>
-            <p>Seven Texas courses now sit together as the first regional chapter of Kara's golf passport.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="profile-section" id="achievements">
-        <div class="section-heading">
-          <p class="eyebrow">Achievements</p>
-          <h2>Milestones Kara can keep building on.</h2>
-        </div>
-        <div class="achievement-grid">
-          <article><span>3</span><strong>States played</strong><p>Texas, Mississippi, and Hawaii are stamped on the map.</p></article>
-          <article><span>9</span><strong>Courses played</strong><p>Current verified course log total.</p></article>
-          <article><span>7</span><strong>Texas courses</strong><p>The first regional collection in the passport.</p></article>
-          <article><span>HI</span><strong>Destination round</strong><p>Kona Country Club added a memorable island stamp.</p></article>
-          <article><span>MS</span><strong>New-state round</strong><p>Grand Bear Golf Club added Mississippi.</p></article>
-          <article><span>PB</span><strong>Personal best tracker</strong><p>Ready to record low rounds, firsts, and score milestones.</p></article>
-        </div>
-      </section>
-
-      <section class="profile-section" id="tournaments">
-        <div class="section-heading">
-          <p class="eyebrow">Tournament history</p>
-          <h2>Results will live here as Kara's competitive record grows.</h2>
-        </div>
-        <div class="tournament-list">
-          <article>
-            <div>
-              <h3>Next tournament entry</h3>
-              <p>Event name, date, course, division, score, finish, notes, and result link.</p>
+      <section class="profile-content-layout" id="course-history">
+        <div class="profile-main-column">
+          <section class="profile-section compact-profile-section" id="courses">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Course history</p>
+              <h2>Courses Kara has played.</h2>
             </div>
-            <div class="result">Ready</div>
-          </article>
+            <div class="course-chip-row" aria-label="Course filters">
+              <a href="#courses">Pine Ridge</a>
+              <a href="#courses">Kona</a>
+              <a href="#courses">Grand Bear</a>
+              <a href="#courses">Texas</a>
+            </div>
+            <div class="course-card-grid course-history-grid">
+              <article><span>HI</span><h3>Kona Country Club</h3><p>Kailua-Kona, Hawaii</p></article>
+              <article><span>MS</span><h3>Grand Bear Golf Club</h3><p>Saucier, Mississippi</p></article>
+              <article><span>TX</span><h3>Pine Ridge Golf Course</h3><p>Paris, Texas</p></article>
+            </div>
+          </section>
+
+          <section class="profile-section compact-profile-section timeline-section" id="rounds">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Stories</p>
+              <h2>Memories worth saving.</h2>
+            </div>
+            <div class="timeline">
+              <article>
+                <span class="timeline-date">Destination stamp</span>
+                <h3>Kona Country Club</h3>
+                <p>Kara added Hawaii to the passport with a round in Kailua-Kona, one of the map pins that makes the journey feel bigger than a scorecard.</p>
+              </article>
+              <article>
+                <span class="timeline-date">Road-trip stamp</span>
+                <h3>Grand Bear Golf Club</h3>
+                <p>Grand Bear added Mississippi to Kara's course collection and gave the passport another state outside the Texas home base.</p>
+              </article>
+              <article>
+                <span class="timeline-date">Home-state collection</span>
+                <h3>East Texas course run</h3>
+                <p>Seven Texas courses now sit together as the first regional chapter of Kara's golf passport.</p>
+              </article>
+            </div>
+          </section>
         </div>
+        <aside class="profile-side-column">
+          <section class="profile-section compact-profile-section" id="achievements">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Achievements</p>
+              <h2>Milestones</h2>
+            </div>
+            <div class="achievement-grid achievement-ribbon-grid">
+              <article><span>3</span><strong>States played</strong><p>Texas, Mississippi, and Hawaii are stamped on the map.</p></article>
+              <article><span>9</span><strong>Courses played</strong><p>Current verified course log total.</p></article>
+              <article><span>PB</span><strong>Personal best tracker</strong><p>Ready to record low rounds, firsts, and score milestones.</p></article>
+            </div>
+          </section>
+
+          <section class="profile-section compact-profile-section" id="goals">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">Goals</p>
+              <h2>Next targets</h2>
+            </div>
+            <div class="goal-list compact-goal-list">
+              <article>
+                <strong>Play all 50 states</strong>
+                <span>3 of 50 stamped</span>
+              </article>
+              <article>
+                <strong>Add more round notes and photos</strong>
+                <span>Turn the course log into a richer scrapbook</span>
+              </article>
+              <article>
+                <strong>Track scoring milestones</strong>
+                <span>Personal bests, firsts, and tournament results</span>
+              </article>
+            </div>
+          </section>
+        </aside>
       </section>
 
       <section class="profile-section" id="photos">
@@ -196,33 +173,13 @@
           </article>
         </div>
       </section>
-
-      <section class="profile-section" id="goals">
-        <div class="section-heading">
-          <p class="eyebrow">Goals</p>
-          <h2>Where the passport goes next.</h2>
-        </div>
-        <div class="goal-list">
-          <article>
-            <strong>Play all 50 states</strong>
-            <span>3 of 50 stamped</span>
-          </article>
-          <article>
-            <strong>Add more round notes and photos</strong>
-            <span>Turn the course log into a richer scrapbook</span>
-          </article>
-          <article>
-            <strong>Track scoring milestones</strong>
-            <span>Personal bests, firsts, and tournament results</span>
-          </article>
-        </div>
-      </section>
     </main>
 
     <footer>
       <p>&copy; 2026 Junior Golf Passport. Kara's page is parent-managed.</p>
       <nav aria-label="Footer">
         <a href="/">Home</a>
+        <a href="/golfers/">Golfers</a>
         <a href="/#about">About Junior Golf Passport</a>
         <a href="/privacy/">Privacy</a>
         <a href="/terms/">Terms</a>

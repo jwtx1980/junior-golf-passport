@@ -455,9 +455,92 @@ main {
   overflow: visible;
 }
 
+.directory-page,
+.profile-page main {
+  margin: 0 auto;
+  max-width: 1180px;
+}
+
+.directory-page {
+  padding: 72px 24px 88px;
+}
+
+.directory-hero {
+  margin-bottom: 28px;
+  max-width: 760px;
+}
+
+.directory-hero h1 {
+  color: var(--ink);
+  font-size: clamp(2.7rem, 6vw, 5rem);
+}
+
+.directory-hero p {
+  color: var(--muted);
+  font-size: 1.12rem;
+  max-width: 680px;
+}
+
+.golfer-directory {
+  display: grid;
+  gap: 14px;
+  max-width: 780px;
+}
+
+.golfer-card {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 18px;
+  text-decoration: none;
+}
+
+.golfer-card:hover {
+  border-color: rgba(31, 107, 76, 0.45);
+  box-shadow: 0 14px 32px rgba(23, 34, 29, 0.1);
+}
+
+.golfer-avatar {
+  align-items: center;
+  background: linear-gradient(135deg, var(--green), var(--gold));
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 950;
+  height: 68px;
+  justify-content: center;
+  width: 68px;
+}
+
+.golfer-card strong,
+.golfer-card small,
+.golfer-card em {
+  display: block;
+}
+
+.golfer-card small {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.golfer-card em {
+  color: var(--green-dark);
+  font-style: normal;
+  font-weight: 900;
+}
+
 .profile-hero {
   display: grid;
   gap: 16px;
+}
+
+.profile-masthead {
+  padding: 58px 24px 18px;
 }
 
 .profile-card {
@@ -494,8 +577,38 @@ main {
 
 .profile-summary h1 {
   color: var(--ink);
-  font-size: clamp(3rem, 6vw, 5.4rem);
-  margin-bottom: 12px;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  margin-bottom: 6px;
+}
+
+.profile-location {
+  color: var(--green-dark);
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.passport-map-band {
+  margin: 0 24px 28px;
+  position: relative;
+}
+
+.profile-map-frame {
+  border-radius: 8px;
+  box-shadow: none;
+  height: 430px;
+}
+
+.passport-map-band .profile-stats {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(219, 229, 220, 0.9);
+  border-radius: 8px;
+  bottom: 18px;
+  box-shadow: 0 16px 38px rgba(23, 34, 29, 0.14);
+  left: 18px;
+  max-width: 620px;
+  padding: 10px;
+  position: absolute;
+  right: 18px;
 }
 
 .profile-stats {
@@ -510,6 +623,47 @@ main {
   border-radius: 8px;
   color: #ffffff;
   padding: 16px;
+}
+
+.profile-content-layout {
+  align-items: start;
+  display: grid;
+  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  padding: 0 24px;
+}
+
+.profile-main-column,
+.profile-side-column {
+  display: grid;
+  gap: 24px;
+}
+
+.profile-side-column {
+  position: sticky;
+  top: 88px;
+}
+
+.compact-profile-section {
+  margin: 0;
+  padding: 0;
+}
+
+.course-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 18px;
+}
+
+.course-chip-row a {
+  background: var(--green);
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 900;
+  padding: 7px 12px;
+  text-decoration: none;
 }
 
 .profile-stats strong {
@@ -545,6 +699,10 @@ main {
 
 .course-card-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.course-history-grid {
+  grid-template-columns: 1fr;
 }
 
 .course-card-grid article {
@@ -598,6 +756,10 @@ main {
 
 .achievement-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.achievement-ribbon-grid {
+  grid-template-columns: 1fr;
 }
 
 .achievement-grid span {
@@ -673,6 +835,10 @@ main {
 
 .goal-list {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.compact-goal-list {
+  grid-template-columns: 1fr;
 }
 
 .goal-list strong,
@@ -1250,6 +1416,7 @@ footer nav {
   .achievement-grid,
   .memory-grid,
   .goal-list,
+  .profile-content-layout,
   .dashboard-hero,
   .dashboard-snapshot,
   .workflow-strip,
@@ -1281,6 +1448,16 @@ footer nav {
 
   .dashboard-nav .brand-mark {
     margin-bottom: 0;
+  }
+
+  .profile-side-column {
+    position: static;
+  }
+
+  .passport-map-band .profile-stats {
+    margin-top: 12px;
+    max-width: none;
+    position: static;
   }
 }
 
@@ -1336,13 +1513,33 @@ footer nav {
     width: 104px;
   }
 
+  .profile-masthead {
+    padding: 28px 16px 14px;
+  }
+
+  .passport-map-band,
+  .profile-content-layout {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .profile-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .map-frame,
+  .profile-map-frame,
   .map-frame.small {
+    height: 360px;
+  }
+
+  .map-frame:not(.profile-map-frame) {
     height: 480px;
+  }
+
+  .golfer-card {
+    grid-template-columns: 1fr;
   }
 
   .form-row {
