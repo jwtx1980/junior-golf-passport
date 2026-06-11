@@ -35,6 +35,7 @@ Current stack:
 
 - Auth: Supabase Auth with email/password sign in and email magic-link support
 - Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
+- Goals: public/private goal tracking for passport milestones
 - Dashboard: private entry creation/editing, password-change enforcement, and a passport snapshot of saved/public/draft/pinned content
 - Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
@@ -88,6 +89,7 @@ POST /rounds
 POST /memories
 POST /achievements
 POST /tournaments
+POST /goals
 POST /photos
 PATCH /entries/:kind/:id
 DELETE /entries/:kind/:id

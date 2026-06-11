@@ -283,6 +283,7 @@ memories
 achievements
 tournaments
 photos
+goals
 ai_requests
 ```
 
@@ -450,6 +451,25 @@ Fields:
 - `uploaded_by`
 - `created_at`
 
+### goals
+
+Stores passport goals and milestone targets.
+
+Fields:
+
+- `id`
+- `golfer_id`
+- `title`
+- `description`
+- `progress_label`
+- `status`
+- `visibility`
+- `is_approved`
+- `sort_order`
+- `created_by`
+- `created_at`
+- `updated_at`
+
 ### ai_requests
 
 Stores direct built-in AI request history.
@@ -490,6 +510,7 @@ POST /rounds
 POST /memories
 POST /achievements
 POST /tournaments
+POST /goals
 POST /photos
 PATCH /entries/:kind/:id
 DELETE /entries/:kind/:id
@@ -581,8 +602,9 @@ Build:
 - protected dashboard entry log: dashboard can load recent rounds, memories,
   achievements, tournaments, and photos for the selected golfer
 - public page reading approved data: started for Kara courses, memories,
-  achievements, tournaments, and photos; private photo files stay in Supabase
-  Storage and are exposed through short-lived signed URLs from the Edge Function
+  achievements, tournaments, goals, and photos; private photo files stay in
+  Supabase Storage and are exposed through short-lived signed URLs from the Edge
+  Function
 - free copy-prompt AI flow: prompt generation, pasted JSON validation, review,
   and save path started
 - built-in paid/entitled AI flow: Edge Function route exists and checks

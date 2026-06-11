@@ -127,6 +127,21 @@
     }).join("");
   }
 
+  function renderGoals(goals) {
+    var list = document.querySelector(".goal-list");
+    if (!list || !goals.length) return;
+
+    list.innerHTML = goals.map(function (goal) {
+      return [
+        "<article>",
+        "<strong>" + escapeHtml(goal.title) + "</strong>",
+        "<span>" + escapeHtml(goal.progress_label || goal.description || goal.status || "Active") + "</span>",
+        goal.description && goal.progress_label ? "<p>" + escapeHtml(goal.description) + "</p>" : "",
+        "</article>"
+      ].join("");
+    }).join("");
+  }
+
   function renderStats(rounds, memories) {
     var stats = document.querySelector(".profile-stats");
     if (!stats || !rounds.length) return;
@@ -162,12 +177,14 @@
         var achievements = Array.isArray(data.achievements) ? data.achievements : [];
         var tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
         var photos = Array.isArray(data.photos) ? data.photos : [];
+        var goals = Array.isArray(data.goals) ? data.goals : [];
         renderStats(rounds, memories);
         renderCourseCards(rounds);
         renderMemories(memories);
         renderAchievements(achievements);
         renderTournaments(tournaments);
         renderPhotos(photos);
+        renderGoals(goals);
       })
       .catch(function () {
         // Keep the static passport visible if the live API is unavailable.

@@ -268,7 +268,9 @@ function cleanLinkedType(value: unknown) {
 
 function cleanEntryKind(value: unknown) {
   const text = cleanString(value);
-  return ["rounds", "memories", "achievements", "tournaments", "photos"].includes(text) ? text : "";
+  return ["rounds", "memories", "achievements", "tournaments", "photos", "goals"].includes(text)
+    ? text
+    : "";
 }
 
 function cleanCourseVerificationStatus(value: unknown) {
@@ -281,6 +283,11 @@ function cleanCourseVerificationSource(value: unknown) {
   return ["google_places", "manual_admin", "imported", "unknown"].includes(text)
     ? text
     : "manual_admin";
+}
+
+function cleanGoalStatus(value: unknown) {
+  const text = cleanString(value, "active");
+  return ["active", "paused", "completed"].includes(text) ? text : "active";
 }
 
 function stringArray(value: unknown) {
@@ -387,7 +394,7 @@ async function handlePublicGolfer(slug: string) {
   if (error) throw new ApiError(500, error.message);
   if (!golfer) throw new ApiError(404, "Golfer not found");
 
-  const [rounds, memories, achievements, tournaments, photos] = await Promise.all([
+  const [rounds, memories, achievements, tournaments, photos, goals] = await Promise.all([
     adminClient()
       .from("rounds")
       .select("*,courses(*)")
@@ -423,9 +430,17 @@ async function handlePublicGolfer(slug: string) {
       .eq("is_approved", true)
       .in("visibility", ["public", "unlisted"])
       .order("created_at", { ascending: false }),
+    adminClient()
+      .from("goals")
+      .select("*")
+      .eq("golfer_id", golfer.id)
+      .eq("is_approved", true)
+      .in("visibility", ["public", "unlisted"])
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false }),
   ]);
 
-  for (const result of [rounds, memories, achievements, tournaments, photos]) {
+  for (const result of [rounds, memories, achievements, tournaments, photos, goals]) {
     if (result.error) throw new ApiError(500, result.error.message);
   }
 
@@ -436,6 +451,7 @@ async function handlePublicGolfer(slug: string) {
     achievements: achievements.data || [],
     tournaments: tournaments.data || [],
     photos: await addSignedPhotoUrls(photos.data || []),
+    goals: goals.data || [],
   });
 }
 
@@ -473,7 +489,7 @@ async function handleDashboardEntries(req: Request, golferId: string) {
   if (!golferId) throw new ApiError(400, "golfer_id is required");
   await requireEditableGolfer(user.id, golferId);
 
-  const [rounds, memories, achievements, tournaments, photos] = await Promise.all([
+  const [rounds, memories, achievements, tournaments, photos, goals] = await Promise.all([
     adminClient()
       .from("rounds")
       .select("*,courses(*)")
@@ -504,9 +520,16 @@ async function handleDashboardEntries(req: Request, golferId: string) {
       .eq("golfer_id", golferId)
       .order("created_at", { ascending: false })
       .limit(30),
+    adminClient()
+      .from("goals")
+      .select("*")
+      .eq("golfer_id", golferId)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false })
+      .limit(30),
   ]);
 
-  for (const result of [rounds, memories, achievements, tournaments, photos]) {
+  for (const result of [rounds, memories, achievements, tournaments, photos, goals]) {
     if (result.error) throw new ApiError(500, result.error.message);
   }
 
@@ -516,6 +539,7 @@ async function handleDashboardEntries(req: Request, golferId: string) {
     achievements: achievements.data || [],
     tournaments: tournaments.data || [],
     photos: await addSignedPhotoUrls(photos.data || []),
+    goals: goals.data || [],
   });
 }
 
@@ -770,6 +794,36 @@ async function handleCreateTournament(req: Request) {
   return jsonResponse(201, { tournament: data });
 }
 
+async function handleCreateGoal(req: Request) {
+  const { user } = await requireReadyUser(req);
+  const body = await readJson(req);
+  const golferId = cleanString(body.golfer_id);
+  if (!golferId) throw new ApiError(400, "golfer_id is required");
+  await requireEditableGolfer(user.id, golferId);
+
+  const title = cleanString(body.title);
+  if (!title) throw new ApiError(400, "Title is required");
+
+  const { data, error } = await adminClient()
+    .from("goals")
+    .insert({
+      golfer_id: golferId,
+      title,
+      description: cleanNullableString(body.description),
+      progress_label: cleanNullableString(body.progress_label),
+      status: cleanGoalStatus(body.status),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+      sort_order: cleanNumber(body.sort_order) || 0,
+      created_by: user.id,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new ApiError(500, error.message);
+  return jsonResponse(201, { goal: data });
+}
+
 async function handleCreatePhoto(req: Request) {
   const { user } = await requireReadyUser(req);
   const body = await readJson(req);
@@ -896,6 +950,19 @@ function updatePayload(kind: string, body: Record<string, unknown>) {
       is_approved: cleanBoolean(body.is_approved),
     };
   }
+  if (kind === "goals") {
+    const title = cleanString(body.title);
+    if (!title) throw new ApiError(400, "Title is required");
+    return {
+      title,
+      description: cleanNullableString(body.description),
+      progress_label: cleanNullableString(body.progress_label),
+      status: cleanGoalStatus(body.status),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+      sort_order: cleanNumber(body.sort_order) || 0,
+    };
+  }
   throw new ApiError(404, "Entry type not found");
 }
 
@@ -904,7 +971,7 @@ async function handleUpdateEntry(req: Request, kind: string, id: string) {
   const body = await readJson(req);
   const payload = updatePayload(current.entryKind, body);
 
-  if (current.entryKind === "photos") {
+  if (current.entryKind === "photos" || current.entryKind === "goals") {
     const { data, error } = await adminClient()
       .from(current.entryKind)
       .update(payload)
@@ -913,8 +980,11 @@ async function handleUpdateEntry(req: Request, kind: string, id: string) {
       .single();
 
     if (error) throw new ApiError(500, error.message);
-    const signed = await addSignedPhotoUrls([data as Record<string, unknown>]);
-    return jsonResponse(200, { entry: signed[0] });
+    if (current.entryKind === "photos") {
+      const signed = await addSignedPhotoUrls([data as Record<string, unknown>]);
+      return jsonResponse(200, { entry: signed[0] });
+    }
+    return jsonResponse(200, { entry: data });
   }
 
   const { data, error } = await adminClient()
@@ -1147,6 +1217,7 @@ async function route(req: Request) {
   if (req.method === "POST" && pathname === "/memories") return handleCreateMemory(req);
   if (req.method === "POST" && pathname === "/achievements") return handleCreateAchievement(req);
   if (req.method === "POST" && pathname === "/tournaments") return handleCreateTournament(req);
+  if (req.method === "POST" && pathname === "/goals") return handleCreateGoal(req);
   if (req.method === "POST" && pathname === "/photos") return handleCreatePhoto(req);
   if (req.method === "POST" && pathname === "/ai/parse-pasted-result") {
     return handleParsePastedResult(req);

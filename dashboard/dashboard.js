@@ -73,6 +73,8 @@
     tournamentDivision: document.getElementById("tournament-division"),
     tournamentFinish: document.getElementById("tournament-finish"),
     tournamentResultUrl: document.getElementById("tournament-result-url"),
+    goalProgress: document.getElementById("goal-progress"),
+    goalStatus: document.getElementById("goal-status"),
     visibility: document.getElementById("entry-visibility"),
     approved: document.getElementById("entry-approved"),
     photoFile: document.getElementById("photo-file"),
@@ -266,6 +268,7 @@
       .concat(state.entries.rounds || [])
       .concat(state.entries.achievements || [])
       .concat(state.entries.tournaments || [])
+      .concat(state.entries.goals || [])
       .concat(state.entries.photos || []);
   }
 
@@ -378,7 +381,8 @@
       elements.tournamentName,
       elements.tournamentDivision,
       elements.tournamentFinish,
-      elements.tournamentResultUrl
+      elements.tournamentResultUrl,
+      elements.goalProgress
     ].forEach(function (field) {
       if (field) field.value = "";
     });
@@ -386,6 +390,7 @@
     if (elements.visibility) elements.visibility.value = "private";
     if (elements.courseVerificationStatus) elements.courseVerificationStatus.value = "manual";
     if (elements.courseVerificationSource) elements.courseVerificationSource.value = "manual_admin";
+    if (elements.goalStatus) elements.goalStatus.value = "active";
     if (elements.approved) elements.approved.checked = false;
     setEditMode(null);
     hideLookupResults();
@@ -476,6 +481,19 @@
           approved: item.is_approved
         };
       }))
+      .concat((state.entries.goals || []).map(function (item) {
+        return {
+          id: item.id,
+          kind: "goals",
+          raw: item,
+          type: "goal",
+          title: item.title,
+          detail: [item.progress_label, item.description].filter(Boolean).join(" - "),
+          date: item.updated_at || item.created_at,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
+      }))
       .concat((state.entries.photos || []).map(function (item) {
         return {
           id: item.id,
@@ -498,7 +516,7 @@
     if (!rows.length) {
       renderSnapshot();
       elements.entryList.innerHTML =
-        '<p class="empty-state">No saved entries yet. Start with a course, round, achievement, tournament, or memory and save it private.</p>';
+        '<p class="empty-state">No saved entries yet. Start with a course, round, achievement, tournament, goal, or memory and save it private.</p>';
       return;
     }
 
@@ -641,6 +659,11 @@
       elements.tournamentDivision.value = item.division || "";
       elements.tournamentFinish.value = item.finish || "";
       elements.tournamentResultUrl.value = item.result_url || "";
+    } else if (row.kind === "goals") {
+      elements.entryTitle.value = item.title || "";
+      elements.entryStory.value = item.description || "";
+      elements.goalProgress.value = item.progress_label || "";
+      elements.goalStatus.value = item.status || "active";
     }
 
     setEditMode({ kind: row.kind, id: row.id, row: row });
@@ -918,7 +941,7 @@
 
     setStatus("Saving entry...");
     var entryType = elements.entryType.value;
-    var courseId = await createCourseIfNeeded();
+    var courseId = entryType === "goal" ? null : await createCourseIfNeeded();
     var base = baseEntryPayload(courseId);
 
     if (entryType === "round") {
@@ -965,6 +988,21 @@
         await api("/entries/tournaments/" + state.currentEdit.id, { method: "PATCH", body: tournamentBody });
       } else {
         await api("/tournaments", { method: "POST", body: tournamentBody });
+      }
+    } else if (entryType === "goal") {
+      var goalBody = {
+        golfer_id: state.selectedGolferId,
+        title: elements.entryTitle.value.trim(),
+        description: elements.entryStory.value.trim(),
+        progress_label: elements.goalProgress.value.trim(),
+        status: elements.goalStatus.value,
+        visibility: elements.visibility.value,
+        is_approved: elements.approved.checked
+      };
+      if (state.currentEdit && state.currentEdit.kind === "goals") {
+        await api("/entries/goals/" + state.currentEdit.id, { method: "PATCH", body: goalBody });
+      } else {
+        await api("/goals", { method: "POST", body: goalBody });
       }
     } else {
       var memoryBody = {
