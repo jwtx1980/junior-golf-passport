@@ -228,57 +228,59 @@
               <span>Title</span>
               <input id="entry-title" type="text" placeholder="Massachusetts passport stamp">
             </label>
-            <div class="form-row">
+            <div class="entry-field-group" data-entry-group="course">
+              <div class="form-row">
+                <label>
+                  <span>Course</span>
+                  <input id="course-name" type="text" placeholder="Gannon Municipal Golf Course">
+                </label>
+                <label>
+                  <span>City</span>
+                  <input id="course-city" type="text" placeholder="Lynn">
+                </label>
+              </div>
               <label>
-                <span>Course</span>
-                <input id="course-name" type="text" placeholder="Gannon Municipal Golf Course">
+                <span>State</span>
+                <input id="course-state" type="text" placeholder="Massachusetts">
               </label>
-              <label>
-                <span>City</span>
-                <input id="course-city" type="text" placeholder="Lynn">
-              </label>
+              <input id="course-source-place-id" type="hidden">
+              <div class="course-lookup-actions">
+                <button class="button secondary small-button" id="lookup-course-button" type="button">Find Course</button>
+                <p class="tiny-status" id="course-lookup-status" role="status" aria-live="polite"></p>
+              </div>
+              <div class="course-lookup-results" id="course-lookup-results" hidden></div>
+              <div class="form-row">
+                <label>
+                  <span>Latitude</span>
+                  <input id="course-latitude" type="number" step="any" inputmode="decimal" placeholder="42.4631">
+                </label>
+                <label>
+                  <span>Longitude</span>
+                  <input id="course-longitude" type="number" step="any" inputmode="decimal" placeholder="-70.9736">
+                </label>
+              </div>
+              <div class="form-row">
+                <label>
+                  <span>Verification</span>
+                  <select id="course-verification-status">
+                    <option value="manual">Manual</option>
+                    <option value="verified">Verified</option>
+                    <option value="needs_review">Needs review</option>
+                    <option value="ai_suggested">AI suggested</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Source</span>
+                  <select id="course-verification-source">
+                    <option value="manual_admin">Manual admin</option>
+                    <option value="google_places">Google Places</option>
+                    <option value="imported">Imported</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </label>
+              </div>
             </div>
-            <label>
-              <span>State</span>
-              <input id="course-state" type="text" placeholder="Massachusetts">
-            </label>
-            <input id="course-source-place-id" type="hidden">
-            <div class="course-lookup-actions">
-              <button class="button secondary small-button" id="lookup-course-button" type="button">Find Course</button>
-              <p class="tiny-status" id="course-lookup-status" role="status" aria-live="polite"></p>
-            </div>
-            <div class="course-lookup-results" id="course-lookup-results" hidden></div>
-            <div class="form-row">
-              <label>
-                <span>Latitude</span>
-                <input id="course-latitude" type="number" step="any" inputmode="decimal" placeholder="42.4631">
-              </label>
-              <label>
-                <span>Longitude</span>
-                <input id="course-longitude" type="number" step="any" inputmode="decimal" placeholder="-70.9736">
-              </label>
-            </div>
-            <div class="form-row">
-              <label>
-                <span>Verification</span>
-                <select id="course-verification-status">
-                  <option value="manual">Manual</option>
-                  <option value="verified">Verified</option>
-                  <option value="needs_review">Needs review</option>
-                  <option value="ai_suggested">AI suggested</option>
-                </select>
-              </label>
-              <label>
-                <span>Source</span>
-                <select id="course-verification-source">
-                  <option value="manual_admin">Manual admin</option>
-                  <option value="google_places">Google Places</option>
-                  <option value="imported">Imported</option>
-                  <option value="unknown">Unknown</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="played">
               <label>
                 <span>Played / achieved on</span>
                 <input id="entry-date" type="date">
@@ -288,7 +290,7 @@
                 <input id="round-score" type="number" inputmode="numeric" placeholder="84">
               </label>
             </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="round">
               <label>
                 <span>Holes</span>
                 <input id="round-holes" type="number" inputmode="numeric" placeholder="18">
@@ -298,7 +300,7 @@
                 <input id="round-highlight" type="text" placeholder="Strong drive on 7">
               </label>
             </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="achievement">
               <label>
                 <span>Achievement type</span>
                 <input id="achievement-type" type="text" placeholder="Personal best">
@@ -308,7 +310,7 @@
                 <input id="achievement-value" type="text" placeholder="Broke 90">
               </label>
             </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="tournament">
               <label>
                 <span>Tournament name</span>
                 <input id="tournament-name" type="text" placeholder="Junior Open">
@@ -318,7 +320,7 @@
                 <input id="tournament-division" type="text" placeholder="Girls 13-15">
               </label>
             </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="tournament">
               <label>
                 <span>Finish</span>
                 <input id="tournament-finish" type="text" placeholder="2nd place">
@@ -328,7 +330,7 @@
                 <input id="tournament-result-url" type="url" placeholder="https://">
               </label>
             </div>
-            <div class="form-row">
+            <div class="form-row entry-field-group" data-entry-group="goal">
               <label>
                 <span>Goal progress</span>
                 <input id="goal-progress" type="text" placeholder="3 of 50 stamped">

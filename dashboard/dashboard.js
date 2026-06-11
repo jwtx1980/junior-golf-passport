@@ -104,7 +104,8 @@
     entryList: document.getElementById("entry-list"),
     snapshot: document.getElementById("dashboard-snapshot"),
     setupChecklist: document.getElementById("setup-checklist"),
-    setupChecklistItems: document.getElementById("setup-checklist-items")
+    setupChecklistItems: document.getElementById("setup-checklist-items"),
+    entryFieldGroups: Array.from(document.querySelectorAll("[data-entry-group]"))
   };
 
   function setText(node, text) {
@@ -545,6 +546,24 @@
     }
   }
 
+  function entryGroupsForType(entryType) {
+    if (entryType === "goal") return ["goal"];
+    if (entryType === "tournament") return ["course", "played", "tournament"];
+    if (entryType === "achievement") return ["course", "played", "achievement"];
+    if (entryType === "round" || entryType === "course_played") {
+      return ["course", "played", "round"];
+    }
+    return ["course"];
+  }
+
+  function updateEntryFieldVisibility() {
+    var entryType = elements.entryType ? elements.entryType.value : "memory";
+    var visibleGroups = entryGroupsForType(entryType);
+    elements.entryFieldGroups.forEach(function (group) {
+      group.hidden = !visibleGroups.includes(group.getAttribute("data-entry-group"));
+    });
+  }
+
   function renderProfileEditor() {
     var row = selectedGolfer();
     var golfer = row && row.golfers;
@@ -614,6 +633,7 @@
     if (elements.goalStatus) elements.goalStatus.value = "active";
     if (elements.approved) elements.approved.checked = false;
     setText(elements.aiDraftStatus, "");
+    updateEntryFieldVisibility();
     setEditMode(null);
     hideLookupResults();
     setLookupStatus("");
@@ -810,6 +830,7 @@
     }
     renderSetupChecklist(profile);
     renderProfileEditor();
+    updateEntryFieldVisibility();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
     setDashboardLocked(profile.must_change_password);
@@ -865,6 +886,7 @@
     elements.entryType.value = row.type || "memory";
     elements.visibility.value = item.visibility || "private";
     elements.approved.checked = Boolean(item.is_approved);
+    updateEntryFieldVisibility();
     courseToFields(item);
 
     if (row.kind === "memories") {
@@ -1108,6 +1130,7 @@
       draftNotes.push("Questions: " + draft.questions.join(" "));
     }
     setText(elements.aiDraftStatus, draftNotes.join(" "));
+    updateEntryFieldVisibility();
   }
 
   async function parsePastedResult() {
@@ -1450,6 +1473,10 @@
       state.golferSlugEdited = true;
       elements.golferSlug.value = normalizeSlug(elements.golferSlug.value);
     });
+  }
+
+  if (elements.entryType) {
+    elements.entryType.addEventListener("change", updateEntryFieldVisibility);
   }
 
   bind(elements.signOut, async function () {

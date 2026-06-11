@@ -645,6 +645,8 @@ Build:
 - first-passport onboarding: the create-passport form pre-fills from the account
   display name, auto-generates the public link name, and uses passport-first
   language for new free users
+- context-aware review form: dashboard shows only the field groups relevant to
+  the selected entry type so manual logging feels less overwhelming
 - dashboard launch readiness: signed-in users see a setup checklist that shows
   account status, selected golfer status, public content readiness, free
   copy-prompt AI availability, built-in AI key readiness, and course lookup key
