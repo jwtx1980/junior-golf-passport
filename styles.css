@@ -1107,6 +1107,41 @@ main {
   font-size: 1.45rem;
 }
 
+.quick-ribbon-suggestions[hidden] {
+  display: none;
+}
+
+.quick-ribbon-suggestions {
+  background: var(--green-soft);
+  border: 1px solid rgba(47, 109, 60, 0.18);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.quick-ribbon-suggestions > span {
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.quick-ribbon-suggestions div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-ribbon-suggestions strong {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  padding: 6px 10px;
+}
+
 .quick-check {
   align-content: center;
   color: var(--muted);

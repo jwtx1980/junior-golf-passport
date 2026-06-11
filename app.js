@@ -15,7 +15,9 @@
     publicPassport: null,
     selectedState: "",
     selectedCourseKey: "",
-    editingEntry: null
+    editingEntry: null,
+    baseReviewTags: [],
+    reviewTags: []
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -44,6 +46,7 @@
     reviewState: document.getElementById("quick-review-state"),
     reviewTitle: document.getElementById("quick-review-title"),
     reviewStory: document.getElementById("quick-review-story"),
+    ribbons: document.getElementById("quick-ribbon-suggestions"),
     reviewCaption: document.getElementById("quick-review-caption"),
     reviewVisibility: document.getElementById("quick-review-visibility"),
     reviewApproved: document.getElementById("quick-review-approved"),
@@ -186,6 +189,18 @@
 
   function emptyCard(message) {
     return '<p class="empty-state">' + escapeHtml(message) + "</p>";
+  }
+
+  function uniqueStrings(items) {
+    var seen = {};
+    return (items || []).map(function (item) {
+      return String(item || "").trim();
+    }).filter(function (item) {
+      var key = item.toLowerCase();
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
   }
 
   function golferFirstName(golfer) {
@@ -786,6 +801,9 @@
     if (quick.reviewCaption) quick.reviewCaption.value = "";
     profileState.courseCandidate = null;
     profileState.editingEntry = null;
+    profileState.baseReviewTags = [];
+    profileState.reviewTags = [];
+    renderRibbonSuggestions([]);
     if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
     setHidden(quick.backdrop, false);
@@ -840,6 +858,8 @@
     if (quick.reviewTitle) quick.reviewTitle.value = entryRecordTitle(entry.kind, entry.record, course);
     if (quick.reviewStory) quick.reviewStory.value = entryRecordStory(entry.kind, entry.record);
     if (quick.reviewCaption) quick.reviewCaption.value = "";
+    profileState.baseReviewTags = Array.isArray(entry.record.tags) ? entry.record.tags : [];
+    renderRibbonSuggestions(inferredRibbonTags({ tags: profileState.baseReviewTags }, course, entryRecordStory(entry.kind, entry.record)));
     if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "private";
     if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
@@ -877,6 +897,73 @@
       comparable(candidate.state) === comparable(quick.reviewState.value);
   }
 
+  function hasExistingState(state) {
+    if (!profileState.publicPassport || !state) return false;
+    var code = normalizeStateCode(state);
+    return collectCourses(profileState.publicPassport).some(function (course) {
+      return normalizeStateCode(course.state) === code;
+    });
+  }
+
+  function inferredRibbonTags(draft, course, story) {
+    var text = [
+      quick.reviewTitle ? quick.reviewTitle.value : "",
+      story,
+      quick.note ? quick.note.value : "",
+      draft && Array.isArray(draft.tags) ? draft.tags.join(" ") : ""
+    ].join(" ").toLowerCase();
+    var tags = draft && Array.isArray(draft.tags) ? draft.tags.slice() : [];
+
+    if (/first\s+birdie|1st\s+birdie/.test(text)) tags.push("first birdie");
+    if (/first\s+eagle|1st\s+eagle/.test(text)) tags.push("first eagle");
+    if (/break(?:ing)?\s*100|broke\s*100/.test(text)) tags.push("broke 100");
+    if (/break(?:ing)?\s*90|broke\s*90/.test(text)) tags.push("broke 90");
+    if (/break(?:ing)?\s*80|broke\s*80/.test(text)) tags.push("broke 80");
+    if (/personal\s+best|\bpb\b|lowest\s+round|low\s+round/.test(text)) tags.push("personal best");
+    if (/tournament|\b2nd\b|second place|first place|won\b|winner|medal/.test(text)) tags.push("tournament moment");
+    if (/great drive|memorable drive|strong drive/.test(text)) tags.push("memorable drive");
+    if (course && course.state && !hasExistingState(course.state)) {
+      tags.push("new state");
+    }
+
+    return uniqueStrings(tags);
+  }
+
+  function renderRibbonSuggestions(tags) {
+    profileState.reviewTags = uniqueStrings(tags);
+    if (!quick.ribbons) return;
+    if (!profileState.reviewTags.length) {
+      quick.ribbons.hidden = true;
+      quick.ribbons.innerHTML = "";
+      return;
+    }
+    quick.ribbons.hidden = false;
+    quick.ribbons.innerHTML = [
+      '<span>Ribbon suggestions</span>',
+      '<div>',
+      profileState.reviewTags.map(function (tag) {
+        return '<strong>' + escapeHtml(tag) + '</strong>';
+      }).join(""),
+      '</div>'
+    ].join("");
+  }
+
+  function currentReviewCourse() {
+    return {
+      name: quick.reviewCourse ? quick.reviewCourse.value : "",
+      city: quick.reviewCity ? quick.reviewCity.value : "",
+      state: quick.reviewState ? quick.reviewState.value : ""
+    };
+  }
+
+  function refreshRibbonSuggestionsFromReview() {
+    renderRibbonSuggestions(inferredRibbonTags(
+      { tags: profileState.baseReviewTags },
+      currentReviewCourse(),
+      quick.reviewStory ? quick.reviewStory.value : ""
+    ));
+  }
+
   async function prepareReview(draft) {
     var noteCourse = coursePartsFromText(quick.course ? quick.course.value : "");
     var draftCourse = draft && draft.course && draft.course.name ? draft.course : null;
@@ -897,6 +984,8 @@
         : ((course.name || "").trim() ? (course.name || "").trim() + " memory" : story.slice(0, 70));
     }
     quick.reviewStory.value = story;
+    profileState.baseReviewTags = draft && Array.isArray(draft.tags) ? draft.tags : [];
+    renderRibbonSuggestions(inferredRibbonTags(draft, course, story));
     quick.reviewCaption.value = quick.reviewCaption.value || "";
     quick.reviewVisibility.value = "private";
     quick.reviewApproved.checked = false;
@@ -1030,7 +1119,7 @@
         entry_type: courseId ? "course_played" : "memory",
         story: quick.reviewStory.value.trim(),
         raw_note: quick.note.value.trim(),
-        tags: [],
+        tags: profileState.reviewTags,
         visibility: quick.reviewVisibility.value,
         is_approved: quick.reviewApproved.checked
       }
@@ -1057,7 +1146,7 @@
         entry_type: record.entry_type || "memory",
         story: quick.reviewStory.value.trim(),
         raw_note: record.raw_note || "",
-        tags: Array.isArray(record.tags) ? record.tags : []
+        tags: uniqueStrings((Array.isArray(record.tags) ? record.tags : []).concat(profileState.reviewTags))
       });
     }
     if (entry.kind === "rounds") {
@@ -1168,6 +1257,10 @@
         });
       });
     }
+    [quick.reviewTitle, quick.reviewStory, quick.reviewCourse, quick.reviewCity, quick.reviewState].forEach(function (field) {
+      if (!field) return;
+      field.addEventListener("input", refreshRibbonSuggestionsFromReview);
+    });
     if (quick.saveReview) {
       quick.saveReview.addEventListener("click", function () {
         saveQuickReview().catch(function (error) {
