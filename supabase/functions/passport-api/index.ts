@@ -346,6 +346,16 @@ function normalizePlaceCandidate(place: Record<string, unknown>): CourseLookupCa
   };
 }
 
+function googlePlacesErrorMessage(message: string) {
+  if (/places\.googleapis\.com|Places API \(New\)|disabled|not been used/i.test(message)) {
+    return "Google Places key is saved, but Places API (New) is not enabled for that Google Cloud project yet. Enable places.googleapis.com in Google Cloud, wait a few minutes, then try Find Course again.";
+  }
+  if (/API key|permission|referer|referrer|credential|denied/i.test(message)) {
+    return "Google Places rejected the API key. Check that the key is unrestricted for this server call or allowed to use Places API (New).";
+  }
+  return message || "Course lookup failed";
+}
+
 async function addSignedPhotoUrls<T extends Record<string, unknown>>(
   photos: T[],
   expiresIn = 60 * 60,
@@ -714,7 +724,7 @@ async function handleLookupCourse(req: Request) {
     const message = typeof payload?.error?.message === "string"
       ? payload.error.message
       : "Course lookup failed";
-    throw new ApiError(502, message);
+    throw new ApiError(502, googlePlacesErrorMessage(message));
   }
 
   const places: unknown[] = Array.isArray(payload.places) ? payload.places : [];
