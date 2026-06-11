@@ -598,6 +598,8 @@ Build:
 - password-change enforcement: backend/dashboard support started
 - temporary-password UX lock: dashboard disables normal editing and AI tools
   until the signed-in user replaces the temporary password
+- account settings: signed-in users can update their dashboard display name and
+  replace their password after the first-login requirement is complete
 - account bootstrap tooling: local script can create/update real Auth users,
   profile roles, AI entitlement, temporary-password flags, and golfer
   memberships once Kara/Jamie emails are known
@@ -652,5 +654,7 @@ Then add:
 - real Kara/Jamie accounts and golfer memberships with
   `scripts/bootstrap-live-accounts.ps1`
 - first-login password update test with Kara's temporary password
-- Google Places secret and live lookup verification
+- Google Places API (New) enablement and live lookup verification; the secret is
+  saved, but Google currently reports `places.googleapis.com` disabled for the
+  key's project
 - subscription/payment only after the product flow is proven

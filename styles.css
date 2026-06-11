@@ -702,7 +702,8 @@ main {
 .editor-panel textarea,
 .editor-panel input,
 .editor-panel select,
-.notice-panel input {
+.notice-panel input,
+.account-settings-panel input {
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -728,7 +729,8 @@ main {
 }
 
 .dashboard-toolbar,
-.notice-panel {
+.notice-panel,
+.account-settings-panel {
   align-items: center;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -738,6 +740,27 @@ main {
   justify-content: space-between;
   margin-bottom: 18px;
   padding: 20px;
+}
+
+.account-settings-panel {
+  align-items: end;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(200px, 0.7fr) minmax(240px, 0.9fr) minmax(180px, auto);
+}
+
+.account-settings-panel h2 {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+}
+
+.account-settings-panel label {
+  display: grid;
+  gap: 7px;
+  font-weight: 850;
+}
+
+.account-settings-actions {
+  display: grid;
+  gap: 8px;
 }
 
 .dashboard-snapshot {
@@ -1192,7 +1215,8 @@ footer nav {
   .ai-flow-grid,
   .editor-grid,
   .photo-upload-panel,
-  .notice-panel {
+  .notice-panel,
+  .account-settings-panel {
     grid-template-columns: 1fr;
   }
 
@@ -1252,6 +1276,7 @@ footer nav {
   .dashboard-top,
   .dashboard-toolbar,
   .notice-panel,
+  .account-settings-panel,
   .quiet-about {
     align-items: stretch;
     flex-direction: column;

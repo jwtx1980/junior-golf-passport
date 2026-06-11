@@ -104,6 +104,25 @@
           <button class="button primary" id="update-password-button" type="button">Update Password</button>
         </section>
 
+        <section class="account-settings-panel" id="account-settings-panel" aria-label="Account settings">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h2>Keep your sign-in details current.</h2>
+          </div>
+          <label>
+            <span>Display name</span>
+            <input id="account-display-name" type="text" autocomplete="name">
+          </label>
+          <label>
+            <span>New password</span>
+            <input id="account-new-password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current password">
+          </label>
+          <div class="account-settings-actions">
+            <button class="button secondary" id="save-account-button" type="button">Save Account</button>
+            <p class="tiny-status" id="account-settings-status" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
         <section class="editor-grid">
           <aside class="editor-panel">
             <p class="eyebrow">Passport</p>

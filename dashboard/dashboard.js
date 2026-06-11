@@ -37,6 +37,10 @@
     passwordPanel: document.getElementById("password-panel"),
     newPassword: document.getElementById("new-password"),
     updatePassword: document.getElementById("update-password-button"),
+    accountDisplayName: document.getElementById("account-display-name"),
+    accountNewPassword: document.getElementById("account-new-password"),
+    saveAccount: document.getElementById("save-account-button"),
+    accountSettingsStatus: document.getElementById("account-settings-status"),
     golferSelect: document.getElementById("golfer-select"),
     createGolferPanel: document.getElementById("create-golfer-panel"),
     golferName: document.getElementById("golfer-name"),
@@ -116,6 +120,10 @@
 
   function setAuthStatus(message) {
     setText(elements.authStatus, message);
+  }
+
+  function setAccountStatus(message) {
+    setText(elements.accountSettingsStatus, message);
   }
 
   function escapeHtml(value) {
@@ -516,6 +524,15 @@
       });
   }
 
+  function renderAccountSettings(profile) {
+    if (elements.accountDisplayName) {
+      elements.accountDisplayName.value = profile.display_name || "";
+    }
+    if (elements.accountNewPassword) {
+      elements.accountNewPassword.value = "";
+    }
+  }
+
   function renderProfileEditor() {
     var row = selectedGolfer();
     var golfer = row && row.golfers;
@@ -748,6 +765,7 @@
     var profile = state.me.profile;
     setDashboardLocked(false);
     renderFeatureControls(profile);
+    renderAccountSettings(profile);
     setText(
       elements.accountSummary,
       [
@@ -960,6 +978,29 @@
     elements.newPassword.value = "";
     await refreshMe();
     setStatus("Password updated.");
+  }
+
+  async function saveAccount() {
+    var displayName = elements.accountDisplayName.value.trim();
+    var newPassword = elements.accountNewPassword.value;
+    if (!displayName) throw new Error("Display name is required.");
+    if (newPassword && newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters.");
+    }
+
+    setAccountStatus("Saving account...");
+    if (newPassword) {
+      var update = await client.auth.updateUser({ password: newPassword });
+      if (update.error) throw update.error;
+    }
+
+    await api("/me", {
+      method: "PATCH",
+      body: { display_name: displayName }
+    });
+    if (elements.accountNewPassword) elements.accountNewPassword.value = "";
+    await refreshMe();
+    setAccountStatus(newPassword ? "Account and password saved." : "Account saved.");
   }
 
   async function createGolfer() {
@@ -1350,6 +1391,7 @@
   bind(elements.signUp, signUp, setAuthStatus);
   bind(elements.magicLink, sendMagicLink, setAuthStatus);
   bind(elements.updatePassword, updatePassword);
+  bind(elements.saveAccount, saveAccount, setAccountStatus);
   bind(elements.createGolfer, createGolfer);
   bind(elements.saveProfile, saveProfile);
   bind(elements.parseResult, parsePastedResult);

@@ -38,6 +38,11 @@ live course lookup. The easiest local path is:
 That script prompts for `OPENAI_API_KEY`, optionally prompts for
 `GOOGLE_PLACES_API_KEY`, sets `OPENAI_MODEL`, and checks `/features`.
 
+Google course lookup also requires **Places API (New)** to be enabled in the
+same Google Cloud project as the API key. If lookup returns a Google error that
+`places.googleapis.com` has not been used or is disabled, enable that API in
+Google Cloud and wait a few minutes for it to propagate.
+
 Manual commands, if needed:
 
 ```powershell

@@ -389,6 +389,23 @@ async function handlePasswordUpdated(req: Request) {
   return jsonResponse(200, { profile: data });
 }
 
+async function handleUpdateMe(req: Request) {
+  const { user } = await requireReadyUser(req);
+  const body = await readJson(req);
+  const displayName = cleanString(body.display_name);
+  if (!displayName) throw new ApiError(400, "Display name is required");
+
+  const { data, error } = await adminClient()
+    .from("profiles")
+    .update({ display_name: displayName })
+    .eq("id", user.id)
+    .select("id,email,display_name,role,has_ai_access,must_change_password")
+    .single();
+
+  if (error) throw new ApiError(500, error.message);
+  return jsonResponse(200, { profile: data });
+}
+
 function handleFeatures() {
   return jsonResponse(200, {
     built_in_ai_configured: Boolean(optionalEnv("OPENAI_API_KEY")),
@@ -1250,6 +1267,7 @@ async function route(req: Request) {
 
   if (req.method === "GET" && pathname === "/features") return handleFeatures();
   if (req.method === "GET" && pathname === "/me") return handleMe(req);
+  if (req.method === "PATCH" && pathname === "/me") return handleUpdateMe(req);
   if (req.method === "POST" && pathname === "/me/password-updated") {
     return handlePasswordUpdated(req);
   }
