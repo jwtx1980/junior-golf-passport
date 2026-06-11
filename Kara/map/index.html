@@ -380,10 +380,14 @@
           return response.json();
         })
         .then((data) => {
-          const rounds = Array.isArray(data.rounds) ? data.rounds : [];
+          const records = []
+            .concat(Array.isArray(data.rounds) ? data.rounds : [])
+            .concat(Array.isArray(data.memories) ? data.memories : [])
+            .concat(Array.isArray(data.achievements) ? data.achievements : [])
+            .concat(Array.isArray(data.tournaments) ? data.tournaments : []);
           const unique = {};
-          liveCourses = rounds
-            .map((round) => round.courses)
+          liveCourses = records
+            .map((record) => record.courses)
             .filter(Boolean)
             .map(normalizeApiCourse)
             .filter((course) => {
@@ -533,12 +537,19 @@
     function selectCourse(courseId, scrollToMap) {
       selectedCourseId = courseId;
       render();
+      notifyParent({ courseId });
       if (scrollToMap) elements.map.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function selectStateCourse(stateCode) {
       const match = getAllCourses().find((course) => course.state === stateCode);
+      notifyParent({ state: stateCode, courseId: match?.id || "" });
       if (match) selectCourse(match.id, false);
+    }
+
+    function notifyParent(payload) {
+      if (!window.parent || window.parent === window) return;
+      window.parent.postMessage({ source: "jgp-map", ...payload }, "*");
     }
 
     function stateHasSelectedCourse(stateCode) {

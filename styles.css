@@ -656,14 +656,21 @@ main {
   margin: 14px 0 18px;
 }
 
-.course-chip-row a {
+.course-chip-row a,
+.course-chip-row button {
   background: var(--green);
+  border: 1px solid transparent;
   border-radius: 999px;
   color: #ffffff;
+  cursor: pointer;
   font-size: 0.86rem;
   font-weight: 900;
   padding: 7px 12px;
   text-decoration: none;
+}
+
+.course-chip-row button.is-active {
+  background: var(--ink);
 }
 
 .profile-stats strong {
@@ -711,6 +718,11 @@ main {
   grid-template-columns: auto minmax(0, 1fr);
 }
 
+.course-card-grid article.is-selected {
+  border-color: rgba(47, 109, 60, 0.52);
+  box-shadow: 0 12px 28px rgba(47, 109, 60, 0.12);
+}
+
 .course-card-grid article span {
   align-items: center;
   background: var(--green-soft);
@@ -741,6 +753,94 @@ main {
   font-size: 0.86rem;
   font-weight: 850;
   text-transform: capitalize;
+}
+
+.course-select-button {
+  background: transparent;
+  border: 0;
+  color: var(--green-dark);
+  cursor: pointer;
+  font-weight: 900;
+  margin-top: 4px;
+  padding: 0;
+  text-align: left;
+}
+
+.selected-course-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.selected-course-heading {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 52px minmax(0, 1fr);
+}
+
+.selected-course-heading > span {
+  align-items: center;
+  background: var(--green);
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 950;
+  height: 46px;
+  justify-content: center;
+}
+
+.selected-course-heading h3,
+.selected-course-heading p {
+  margin-bottom: 0;
+}
+
+.course-story-list {
+  display: grid;
+  gap: 10px;
+}
+
+.course-story-list article {
+  border-left: 4px solid var(--green);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.course-story-list h4 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+
+.course-story-list p {
+  margin-bottom: 0;
+}
+
+.selected-course-photos {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.selected-course-photos figure {
+  margin: 0;
+}
+
+.selected-course-photos img {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.selected-course-photos figcaption {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 760;
+  margin-top: 6px;
 }
 
 .timeline article {
@@ -1650,6 +1750,7 @@ footer nav {
   .photo-upload-panel,
   .notice-panel,
   .passport-utility-panel,
+  .selected-course-photos,
   .account-settings-panel {
     grid-template-columns: 1fr;
   }

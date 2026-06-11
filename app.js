@@ -11,7 +11,10 @@
     me: null,
     editableGolfer: null,
     features: null,
-    courseCandidate: null
+    courseCandidate: null,
+    publicPassport: null,
+    selectedState: "",
+    selectedCourseKey: ""
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -110,6 +113,59 @@
     return [course.city, course.state].filter(Boolean).join(", ");
   }
 
+  var stateCodeByName = {
+    alabama: "AL",
+    alaska: "AK",
+    arizona: "AZ",
+    arkansas: "AR",
+    california: "CA",
+    colorado: "CO",
+    connecticut: "CT",
+    delaware: "DE",
+    florida: "FL",
+    georgia: "GA",
+    hawaii: "HI",
+    idaho: "ID",
+    illinois: "IL",
+    indiana: "IN",
+    iowa: "IA",
+    kansas: "KS",
+    kentucky: "KY",
+    louisiana: "LA",
+    maine: "ME",
+    maryland: "MD",
+    massachusetts: "MA",
+    michigan: "MI",
+    minnesota: "MN",
+    mississippi: "MS",
+    missouri: "MO",
+    montana: "MT",
+    nebraska: "NE",
+    nevada: "NV",
+    "new hampshire": "NH",
+    "new jersey": "NJ",
+    "new mexico": "NM",
+    "new york": "NY",
+    "north carolina": "NC",
+    "north dakota": "ND",
+    ohio: "OH",
+    oklahoma: "OK",
+    oregon: "OR",
+    pennsylvania: "PA",
+    "rhode island": "RI",
+    "south carolina": "SC",
+    "south dakota": "SD",
+    tennessee: "TN",
+    texas: "TX",
+    utah: "UT",
+    vermont: "VT",
+    virginia: "VA",
+    washington: "WA",
+    "west virginia": "WV",
+    wisconsin: "WI",
+    wyoming: "WY"
+  };
+
   function courseVerificationLabel(course) {
     var hasPin = Number.isFinite(Number(course.latitude)) && Number.isFinite(Number(course.longitude));
     var status = String(course.verification_status || "manual").replace(/_/g, " ");
@@ -151,7 +207,95 @@
   }
 
   function stateCode(course) {
-    return String(course && course.state || "GP").slice(0, 2).toUpperCase();
+    return normalizeStateCode(course && course.state);
+  }
+
+  function normalizeStateCode(value) {
+    var text = String(value || "").trim();
+    if (!text) return "GP";
+    if (text.length === 2) return text.toUpperCase();
+    return stateCodeByName[text.toLowerCase()] || text.slice(0, 2).toUpperCase();
+  }
+
+  function courseKey(course) {
+    if (!course) return "";
+    return course.id || [
+      comparable(course.name),
+      comparable(course.city),
+      normalizeStateCode(course.state)
+    ].join("|");
+  }
+
+  function recordMatchesCourse(record, course) {
+    var recordCourseValue = recordCourse(record);
+    return courseKey(recordCourseValue) === courseKey(course);
+  }
+
+  function dateLabel(record) {
+    return record.played_on || record.achieved_on || record.created_at || record.updated_at || "";
+  }
+
+  function entryLabel(kind, record) {
+    if (kind === "rounds") return "Round";
+    if (kind === "achievements") return "Achievement";
+    if (kind === "tournaments") return "Tournament";
+    if (record && record.entry_type === "course_played") return "Passport stamp";
+    return "Memory";
+  }
+
+  function courseEntries(course, data) {
+    var groups = [
+      { kind: "memories", records: data.memories || [] },
+      { kind: "rounds", records: data.rounds || [] },
+      { kind: "achievements", records: data.achievements || [] },
+      { kind: "tournaments", records: data.tournaments || [] }
+    ];
+    return groups.reduce(function (entries, group) {
+      group.records.forEach(function (record) {
+        if (!recordMatchesCourse(record, course)) return;
+        entries.push({
+          kind: group.kind,
+          record: record,
+          label: entryLabel(group.kind, record),
+          title: record.title || record.event_name || record.courses && record.courses.name || course.name,
+          story: record.story || record.notes || record.value || record.finish || "",
+          date: dateLabel(record)
+        });
+      });
+      return entries;
+    }, []).sort(function (a, b) {
+      return String(b.date || "").localeCompare(String(a.date || ""));
+    });
+  }
+
+  function photosForEntries(entries, data) {
+    var entryIds = entries.map(function (entry) {
+      return entry.record && entry.record.id;
+    }).filter(Boolean);
+    return (data.photos || []).filter(function (photo) {
+      return photo.linked_type && photo.linked_id && entryIds.includes(photo.linked_id);
+    });
+  }
+
+  function renderStateFilters(courses) {
+    var row = document.querySelector(".course-chip-row");
+    if (!row) return;
+    var states = uniqueBy(courses, function (course) {
+      return normalizeStateCode(course.state);
+    }).sort(function (a, b) {
+      return normalizeStateCode(a.state).localeCompare(normalizeStateCode(b.state));
+    });
+    if (!states.length) {
+      row.innerHTML = "";
+      return;
+    }
+    row.innerHTML = [
+      '<button type="button" class="' + (profileState.selectedState ? "" : "is-active") + '" data-state-filter="">All</button>'
+    ].concat(states.map(function (course) {
+      var code = normalizeStateCode(course.state);
+      return '<button type="button" class="' + (profileState.selectedState === code ? "is-active" : "") +
+        '" data-state-filter="' + escapeHtml(code) + '">' + escapeHtml(code) + '</button>';
+    })).join("");
   }
 
   function renderCourseCards(courses, golfer) {
@@ -163,16 +307,116 @@
       return;
     }
 
-    grid.innerHTML = courses.map(function (course) {
+    renderStateFilters(courses);
+    var visibleCourses = profileState.selectedState
+      ? courses.filter(function (course) { return normalizeStateCode(course.state) === profileState.selectedState; })
+      : courses;
+    if (!visibleCourses.some(function (course) { return courseKey(course) === profileState.selectedCourseKey; })) {
+      profileState.selectedCourseKey = visibleCourses[0] ? courseKey(visibleCourses[0]) : "";
+    }
+
+    grid.innerHTML = visibleCourses.map(function (course) {
+      var selected = courseKey(course) === profileState.selectedCourseKey;
       return [
-        "<article>",
+        '<article class="' + (selected ? "is-selected" : "") + '">',
         "<span>" + escapeHtml(stateCode(course)) + "</span>",
+        "<div>",
         "<h3>" + escapeHtml(course.name) + "</h3>",
         "<p>" + escapeHtml(coursePlace(course)) + "</p>",
         '<p class="course-verification">' + escapeHtml(courseVerificationLabel(course)) + "</p>",
+        '<button class="course-select-button" type="button" data-course-key="' + escapeHtml(courseKey(course)) + '">View Stories</button>',
+        "</div>",
         "</article>"
       ].join("");
     }).join("");
+  }
+
+  function renderSelectedCoursePanel(courses, data, golfer) {
+    var panel = document.getElementById("course-story-panel");
+    if (!panel) return;
+    var course = courses.find(function (item) {
+      return courseKey(item) === profileState.selectedCourseKey;
+    }) || courses[0];
+    if (!course) {
+      panel.innerHTML = "";
+      return;
+    }
+    var entries = courseEntries(course, data);
+    var photos = photosForEntries(entries, data);
+    panel.innerHTML = [
+      '<div class="selected-course-heading">',
+      '<span>' + escapeHtml(stateCode(course)) + '</span>',
+      '<div>',
+      '<p class="eyebrow">Selected course</p>',
+      '<h3>' + escapeHtml(course.name) + '</h3>',
+      '<p>' + escapeHtml(coursePlace(course) || "Course location pending") + '</p>',
+      '</div>',
+      '</div>',
+      entries.length
+        ? '<div class="course-story-list">' + entries.map(function (entry) {
+          return [
+            '<article>',
+            '<span class="timeline-date">' + escapeHtml(entry.label + (entry.date ? " - " + entry.date.slice(0, 10) : "")) + '</span>',
+            '<h4>' + escapeHtml(entry.title) + '</h4>',
+            entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : '<p>Saved to this course.</p>',
+            '</article>'
+          ].join("");
+        }).join("") + '</div>'
+        : '<p class="empty-state">No public story is attached to this course yet. ' + escapeHtml(golferFirstName(golfer)) + "'s private notes can be approved when they are ready.</p>",
+      photos.length
+        ? '<div class="selected-course-photos">' + photos.slice(0, 3).map(function (photo) {
+          var caption = photo.caption || "Course photo";
+          return photo.signed_url
+            ? '<figure><img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption) + '"><figcaption>' + escapeHtml(caption) + '</figcaption></figure>'
+            : "";
+        }).join("") + '</div>'
+        : ""
+    ].join("");
+  }
+
+  function renderCourseNavigation() {
+    var data = profileState.publicPassport;
+    if (!data) return;
+    var courses = collectCourses(data);
+    renderCourseCards(courses, data.golfer || {});
+    renderSelectedCoursePanel(courses, data, data.golfer || {});
+  }
+
+  function selectCourseFromMapFrame() {
+    var frame = document.querySelector(".profile-map-frame");
+    if (!frame || !frame.contentDocument || !profileState.publicPassport) return;
+    var selected = frame.contentDocument.querySelector(".course.is-selected");
+    if (!selected) return;
+    var name = selected.querySelector("strong") ? selected.querySelector("strong").textContent.trim() : "";
+    var state = selected.querySelector(".badge") ? selected.querySelector(".badge").textContent.trim() : "";
+    var courses = collectCourses(profileState.publicPassport);
+    var match = courses.find(function (course) {
+      return comparable(course.name) === comparable(name) &&
+        (!state || normalizeStateCode(course.state) === normalizeStateCode(state));
+    });
+    if (!match) return;
+    profileState.selectedState = normalizeStateCode(match.state);
+    profileState.selectedCourseKey = courseKey(match);
+    renderCourseNavigation();
+  }
+
+  function bindMapFrameBridge() {
+    var frame = document.querySelector(".profile-map-frame");
+    if (!frame) return;
+    function attach() {
+      try {
+        var doc = frame.contentDocument;
+        if (!doc || !doc.documentElement || doc.documentElement.dataset.jgpBridgeBound === "true") return;
+        doc.documentElement.dataset.jgpBridgeBound = "true";
+        doc.addEventListener("click", function () {
+          window.setTimeout(selectCourseFromMapFrame, 80);
+        });
+      } catch (error) {
+        // The iframe is same-origin on this site; if that changes, postMessage remains the fallback.
+      }
+    }
+    frame.addEventListener("load", attach);
+    attach();
   }
 
   function renderMemories(memories, golfer) {
@@ -756,10 +1000,15 @@
       goals: Array.isArray(data.goals) ? data.goals : []
     };
     var courses = collectCourses(normalized);
+    profileState.publicPassport = normalized;
+    if (!courses.some(function (course) { return courseKey(course) === profileState.selectedCourseKey; })) {
+      profileState.selectedCourseKey = courses[0] ? courseKey(courses[0]) : "";
+    }
 
     renderGolferProfile(golfer);
     renderStats(normalized);
     renderCourseCards(courses, golfer);
+    renderSelectedCoursePanel(courses, normalized, golfer);
     renderMapNotes(courses, golfer);
     renderMemories(normalized.memories, golfer);
     renderAchievements(normalized.achievements, golfer, courses);
@@ -833,7 +1082,44 @@
     });
   }
 
+  document.addEventListener("click", function (event) {
+    var stateButton = event.target.closest("[data-state-filter]");
+    if (stateButton) {
+      profileState.selectedState = stateButton.getAttribute("data-state-filter") || "";
+      profileState.selectedCourseKey = "";
+      renderCourseNavigation();
+      return;
+    }
+
+    var courseButton = event.target.closest("[data-course-key]");
+    if (courseButton) {
+      profileState.selectedCourseKey = courseButton.getAttribute("data-course-key") || "";
+      renderCourseNavigation();
+      var panel = document.getElementById("course-story-panel");
+      if (panel) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
+
+  window.addEventListener("message", function (event) {
+    if (!event.data || event.data.source !== "jgp-map") return;
+    if (event.data.state) {
+      profileState.selectedState = normalizeStateCode(event.data.state);
+      profileState.selectedCourseKey = "";
+    }
+    if (event.data.courseId) {
+      profileState.selectedCourseKey = String(event.data.courseId);
+      if (profileState.publicPassport) {
+        var matchingCourse = collectCourses(profileState.publicPassport).find(function (course) {
+          return courseKey(course) === profileState.selectedCourseKey;
+        });
+        if (matchingCourse) profileState.selectedState = normalizeStateCode(matchingCourse.state);
+      }
+    }
+    renderCourseNavigation();
+  });
+
   bindQuickAdd();
+  bindMapFrameBridge();
   loadPublicPassport();
   loadProfileAuth();
 })();
