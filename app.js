@@ -14,7 +14,8 @@
     courseCandidate: null,
     publicPassport: null,
     selectedState: "",
-    selectedCourseKey: ""
+    selectedCourseKey: "",
+    editingEntry: null
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -41,6 +42,7 @@
     reviewCourse: document.getElementById("quick-review-course"),
     reviewCity: document.getElementById("quick-review-city"),
     reviewState: document.getElementById("quick-review-state"),
+    reviewTitle: document.getElementById("quick-review-title"),
     reviewStory: document.getElementById("quick-review-story"),
     reviewCaption: document.getElementById("quick-review-caption"),
     reviewVisibility: document.getElementById("quick-review-visibility"),
@@ -298,6 +300,10 @@
     })).join("");
   }
 
+  function editableKind(kind) {
+    return ["memories", "rounds", "achievements", "tournaments"].includes(kind);
+  }
+
   function renderCourseCards(courses, golfer) {
     var grid = document.querySelector(".course-card-grid");
     if (!grid) return;
@@ -354,9 +360,16 @@
       '</div>',
       entries.length
         ? '<div class="course-story-list">' + entries.map(function (entry) {
+          var editButton = canEditCurrentGolfer() && editableKind(entry.kind)
+            ? '<button class="course-entry-edit" type="button" data-edit-entry="' +
+              escapeHtml(entry.kind + ":" + entry.record.id) + '">Edit</button>'
+            : "";
           return [
             '<article>',
+            '<div class="course-story-actions">',
             '<span class="timeline-date">' + escapeHtml(entry.label + (entry.date ? " - " + entry.date.slice(0, 10) : "")) + '</span>',
+            editButton,
+            '</div>',
             '<h4>' + escapeHtml(entry.title) + '</h4>',
             entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : '<p>Saved to this course.</p>',
             '</article>'
@@ -649,6 +662,7 @@
     var canEdit = canEditCurrentGolfer();
     setHidden(quick.open, !canEdit);
     setHidden(quick.signIn, canEdit);
+    renderCourseNavigation();
   }
 
   async function loadProfileAuth() {
@@ -740,8 +754,11 @@
   function openQuickAdd() {
     if (!canEditCurrentGolfer()) return;
     if (quick.date && !quick.date.value) quick.date.value = todayIso();
+    if (quick.reviewTitle) quick.reviewTitle.value = "";
     if (quick.reviewCaption) quick.reviewCaption.value = "";
     profileState.courseCandidate = null;
+    profileState.editingEntry = null;
+    if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
     setHidden(quick.backdrop, false);
     showQuickPanel("compose");
@@ -750,7 +767,55 @@
 
   function closeQuickAdd() {
     setHidden(quick.backdrop, true);
+    profileState.editingEntry = null;
+    if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
+  }
+
+  function entryRecordTitle(kind, record, course) {
+    if (!record) return course && course.name ? course.name + " memory" : "Golf memory";
+    if (kind === "tournaments") return record.event_name || record.title || "Tournament result";
+    return record.title || record.event_name || course && course.name || "Golf memory";
+  }
+
+  function entryRecordStory(kind, record) {
+    if (!record) return "";
+    return record.story || record.notes || record.value || record.finish || "";
+  }
+
+  function findPublicEntry(key) {
+    var data = profileState.publicPassport;
+    if (!data || !key) return null;
+    var parts = key.split(":");
+    var kind = parts[0];
+    var id = parts.slice(1).join(":");
+    var collection = data[kind] || [];
+    var record = collection.find(function (item) {
+      return item.id === id;
+    });
+    if (!record) return null;
+    return { kind: kind, record: record, course: recordCourse(record) };
+  }
+
+  function openEntryEdit(entryKey) {
+    if (!canEditCurrentGolfer()) return;
+    var entry = findPublicEntry(entryKey);
+    if (!entry || !editableKind(entry.kind)) return;
+    var course = entry.course || {};
+    profileState.editingEntry = entry;
+    profileState.courseCandidate = null;
+    setHidden(quick.backdrop, false);
+    showQuickPanel("review");
+    if (quick.reviewCourse) quick.reviewCourse.value = course.name || "";
+    if (quick.reviewCity) quick.reviewCity.value = course.city || "";
+    if (quick.reviewState) quick.reviewState.value = course.state || "";
+    if (quick.reviewTitle) quick.reviewTitle.value = entryRecordTitle(entry.kind, entry.record, course);
+    if (quick.reviewStory) quick.reviewStory.value = entryRecordStory(entry.kind, entry.record);
+    if (quick.reviewCaption) quick.reviewCaption.value = "";
+    if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "private";
+    if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
+    if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
+    setQuickStatus("Editing an existing passport entry.");
   }
 
   async function lookupBestCourse(course) {
@@ -798,6 +863,11 @@
     quick.reviewCourse.value = candidate && candidate.name ? candidate.name : (course.name || "");
     quick.reviewCity.value = candidate && candidate.city ? candidate.city : (course.city || "");
     quick.reviewState.value = candidate && candidate.state ? candidate.state : (course.state || "");
+    if (quick.reviewTitle) {
+      quick.reviewTitle.value = draft && draft.title
+        ? draft.title
+        : ((course.name || "").trim() ? (course.name || "").trim() + " memory" : story.slice(0, 70));
+    }
     quick.reviewStory.value = story;
     quick.reviewCaption.value = quick.reviewCaption.value || "";
     quick.reviewVisibility.value = "private";
@@ -836,6 +906,14 @@
   async function createCourseFromReview() {
     var name = quick.reviewCourse.value.trim();
     if (!name) return null;
+    if (profileState.editingEntry && profileState.editingEntry.course) {
+      var existingCourse = profileState.editingEntry.course;
+      var unchanged =
+        comparable(existingCourse.name) === comparable(quick.reviewCourse.value) &&
+        comparable(existingCourse.city) === comparable(quick.reviewCity.value) &&
+        comparable(normalizeStateCode(existingCourse.state)) === comparable(normalizeStateCode(quick.reviewState.value));
+      if (unchanged) return existingCourse.id || null;
+    }
     var candidate = candidateStillMatches(profileState.courseCandidate) ? profileState.courseCandidate : null;
     var payload = await api("/courses", {
       method: "POST",
@@ -855,6 +933,7 @@
   }
 
   function memoryTitle() {
+    if (quick.reviewTitle && quick.reviewTitle.value.trim()) return quick.reviewTitle.value.trim();
     if (quick.reviewCourse.value.trim()) return quick.reviewCourse.value.trim() + " memory";
     var text = quick.reviewStory.value.trim() || "Golf memory";
     return text.slice(0, 70);
@@ -872,6 +951,15 @@
   async function uploadQuickPhoto(memoryId) {
     var file = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
     if (!file) return;
+    var linkedType = "memory";
+    if (profileState.editingEntry) {
+      linkedType = {
+        rounds: "round",
+        memories: "memory",
+        achievements: "achievement",
+        tournaments: "tournament"
+      }[profileState.editingEntry.kind] || "memory";
+    }
     var path = [
       profileState.editableGolfer.id,
       Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
@@ -890,7 +978,7 @@
         golfer_id: profileState.editableGolfer.id,
         storage_path: path,
         caption: quick.reviewCaption.value.trim(),
-        linked_type: "memory",
+        linked_type: linkedType,
         linked_id: memoryId,
         visibility: quick.reviewVisibility.value,
         is_approved: quick.reviewApproved.checked
@@ -901,6 +989,10 @@
   async function saveQuickReview() {
     setQuickStatus("Saving memory...");
     var courseId = await createCourseFromReview();
+    if (profileState.editingEntry) {
+      await updateQuickEntry(courseId);
+      return;
+    }
     var payload = await api("/memories", {
       method: "POST",
       body: {
@@ -917,6 +1009,75 @@
     });
     await uploadQuickPhoto(payload.memory.id);
     setQuickStatus("Saved.");
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 650);
+  }
+
+  function editedEntryPayload(courseId) {
+    var entry = profileState.editingEntry;
+    var record = entry.record;
+    var base = {
+      course_id: courseId,
+      visibility: quick.reviewVisibility.value,
+      is_approved: quick.reviewApproved.checked
+    };
+    if (entry.kind === "memories") {
+      return Object.assign(base, {
+        round_id: record.round_id || null,
+        title: memoryTitle(),
+        entry_type: record.entry_type || "memory",
+        story: quick.reviewStory.value.trim(),
+        raw_note: record.raw_note || "",
+        tags: Array.isArray(record.tags) ? record.tags : []
+      });
+    }
+    if (entry.kind === "rounds") {
+      return Object.assign(base, {
+        played_on: record.played_on || null,
+        score: record.score || null,
+        holes: record.holes || null,
+        tees: record.tees || null,
+        notes: quick.reviewStory.value.trim(),
+        story: quick.reviewStory.value.trim()
+      });
+    }
+    if (entry.kind === "achievements") {
+      return Object.assign(base, {
+        title: memoryTitle(),
+        achievement_type: record.achievement_type || null,
+        achieved_on: record.achieved_on || null,
+        round_id: record.round_id || null,
+        value: record.value || null,
+        story: quick.reviewStory.value.trim()
+      });
+    }
+    if (entry.kind === "tournaments") {
+      return Object.assign(base, {
+        event_name: memoryTitle(),
+        played_on: record.played_on || null,
+        division: record.division || null,
+        score: record.score || null,
+        finish: record.finish || null,
+        result_url: record.result_url || null,
+        story: quick.reviewStory.value.trim()
+      });
+    }
+    return base;
+  }
+
+  async function updateQuickEntry(courseId) {
+    var entry = profileState.editingEntry;
+    if (!entry) return;
+    if (!quick.reviewStory.value.trim()) throw new Error("Story is required.");
+    setQuickStatus("Updating entry...");
+    await api("/entries/" + entry.kind + "/" + entry.record.id, {
+      method: "PATCH",
+      body: editedEntryPayload(courseId)
+    });
+    await uploadQuickPhoto(entry.record.id);
+    setQuickStatus("Updated.");
+    profileState.editingEntry = null;
     window.setTimeout(function () {
       window.location.reload();
     }, 650);
@@ -1097,6 +1258,12 @@
       renderCourseNavigation();
       var panel = document.getElementById("course-story-panel");
       if (panel) panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      return;
+    }
+
+    var editButton = event.target.closest("[data-edit-entry]");
+    if (editButton) {
+      openEntryEdit(editButton.getAttribute("data-edit-entry"));
     }
   });
 

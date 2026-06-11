@@ -810,6 +810,28 @@ main {
   padding: 12px 14px;
 }
 
+.course-story-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.course-entry-edit {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--green-dark);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.course-entry-edit:hover {
+  border-color: rgba(47, 109, 60, 0.45);
+}
+
 .course-story-list h4 {
   font-size: 1.05rem;
   margin-bottom: 6px;
