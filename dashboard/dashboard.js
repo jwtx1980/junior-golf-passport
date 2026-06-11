@@ -95,7 +95,9 @@
     dashboardStatus: document.getElementById("dashboard-status"),
     apiStatus: document.getElementById("api-status"),
     entryList: document.getElementById("entry-list"),
-    snapshot: document.getElementById("dashboard-snapshot")
+    snapshot: document.getElementById("dashboard-snapshot"),
+    setupChecklist: document.getElementById("setup-checklist"),
+    setupChecklistItems: document.getElementById("setup-checklist-items")
   };
 
   function setText(node, text) {
@@ -325,6 +327,145 @@
       state.features.built_in_ai_configured ? "Built-in AI ready" : "Built-in AI needs OpenAI key",
       state.features.course_lookup_configured ? "Course lookup ready" : "Course lookup needs Google key"
     ].join(" | ");
+  }
+
+  function setupStatusClass(status) {
+    return "setup-status setup-status-" + status;
+  }
+
+  function setupChecklistRow(status, label, title, detail) {
+    return [
+      '<article class="setup-checklist-item">',
+      '<span class="' + setupStatusClass(status) + '">' + escapeHtml(label) + '</span>',
+      '<div>',
+      '<h3>' + escapeHtml(title) + '</h3>',
+      '<p>' + escapeHtml(detail) + '</p>',
+      '</div>',
+      '</article>'
+    ].join("");
+  }
+
+  function renderSetupChecklist(profile) {
+    if (!elements.setupChecklistItems) return;
+
+    var row = selectedGolfer();
+    var golfer = row && row.golfers;
+    var entries = entryCollections();
+    var publicReadyCount = entries.filter(function (entry) {
+      return entry.is_approved && ["public", "unlisted"].includes(entry.visibility);
+    }).length;
+    var hasEntriesLoaded = Boolean(state.entries);
+    var aiConfigured = Boolean(state.features.built_in_ai_configured);
+    var lookupConfigured = Boolean(state.features.course_lookup_configured);
+    var accountName = profile.display_name || profile.email || "this account";
+    var rows = [];
+
+    rows.push(profile.must_change_password
+      ? setupChecklistRow(
+        "needs",
+        "Needs action",
+        "Temporary password",
+        "Update the password before normal editing is allowed."
+      )
+      : setupChecklistRow(
+        "ready",
+        "Ready",
+        "Signed-in account",
+        accountName + " can use the dashboard as " + profile.role + "."
+      ));
+
+    rows.push(golfer
+      ? setupChecklistRow(
+        golfer.visibility === "private" ? "needs" : "ready",
+        golfer.visibility === "private" ? "Private" : "Ready",
+        "Golfer passport",
+        golfer.display_name + " is selected with " + golfer.visibility + " profile visibility."
+      )
+      : setupChecklistRow(
+        "needs",
+        "Needs profile",
+        "Golfer passport",
+        "Create or assign a golfer profile before saving entries."
+      ));
+
+    rows.push(!golfer || !hasEntriesLoaded
+      ? setupChecklistRow(
+        "waiting",
+        "Loading",
+        "Public content",
+        "Saved entries will appear here after a golfer profile loads."
+      )
+      : publicReadyCount > 0
+      ? setupChecklistRow(
+        "ready",
+        "Ready",
+        "Public content",
+        publicReadyCount + " approved public or unlisted item" + (publicReadyCount === 1 ? "" : "s") + " can appear on the passport."
+      )
+      : setupChecklistRow(
+        "needs",
+        "Needs entry",
+        "Public content",
+        "Save an entry, then approve it with public or unlisted visibility when it belongs on the passport."
+      ));
+
+    rows.push(setupChecklistRow(
+      "ready",
+      "Free",
+      "Use Your Own AI",
+      "The copy-prompt flow is available without calling Junior Golf Passport's OpenAI account."
+    ));
+
+    rows.push(!state.features.loaded
+      ? setupChecklistRow(
+        "waiting",
+        "Checking",
+        "Built-in AI",
+        "Feature readiness is loading from the backend."
+      )
+      : !profile.has_ai_access
+      ? setupChecklistRow(
+        "waiting",
+        "Manual only",
+        "Built-in AI",
+        "This account can still use manual logging and the free copy-prompt flow."
+      )
+      : aiConfigured
+      ? setupChecklistRow(
+        "ready",
+        "Ready",
+        "Built-in AI",
+        "This account has AI access and the OpenAI backend secret is configured."
+      )
+      : setupChecklistRow(
+        "needs",
+        "Needs key",
+        "Built-in AI",
+        "Add OPENAI_API_KEY as a Supabase secret to enable the Draft With AI button."
+      ));
+
+    rows.push(!state.features.loaded
+      ? setupChecklistRow(
+        "waiting",
+        "Checking",
+        "Course lookup",
+        "Feature readiness is loading from the backend."
+      )
+      : lookupConfigured
+      ? setupChecklistRow(
+        "ready",
+        "Ready",
+        "Course lookup",
+        "Google Places lookup can verify course pins from the dashboard."
+      )
+      : setupChecklistRow(
+        "needs",
+        "Needs key",
+        "Course lookup",
+        "Manual course entry still works. Add GOOGLE_PLACES_API_KEY in Supabase secrets for verified lookup."
+      ));
+
+    elements.setupChecklistItems.innerHTML = rows.join("");
   }
 
   function renderFeatureControls(profile) {
@@ -574,6 +715,7 @@
 
     var profile = state.me.profile;
     renderFeatureControls(profile);
+    renderSetupChecklist(profile);
     setText(
       elements.accountSummary,
       [

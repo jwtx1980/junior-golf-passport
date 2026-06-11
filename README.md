@@ -43,6 +43,9 @@ Current stack:
 
 OpenAI keys should never be placed in public browser code. The browser should send rough notes to an authenticated backend function, receive structured data and a story draft, and save only after parent review.
 
+For the remaining launch steps, real account setup, secrets, and verification
+gates, see [docs/LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md).
+
 ## Supabase Backend
 
 This repo is linked to the dedicated Junior Golf Passport Supabase project:
