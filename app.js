@@ -127,6 +127,17 @@
     }).join("");
   }
 
+  function renderGolferProfile(golfer) {
+    if (!golfer) return;
+    var name = document.querySelector(".profile-summary h1");
+    var meta = document.querySelector(".profile-meta");
+    var bio = document.querySelector(".profile-summary .profile-bio");
+
+    if (name && golfer.display_name) name.textContent = golfer.display_name;
+    if (meta && golfer.headline) meta.textContent = golfer.headline;
+    if (bio && golfer.bio) bio.textContent = golfer.bio;
+  }
+
   function renderGoals(goals) {
     var list = document.querySelector(".goal-list");
     if (!list || !goals.length) return;
@@ -172,6 +183,7 @@
         return response.json();
       })
       .then(function (data) {
+        renderGolferProfile(data.golfer);
         var rounds = Array.isArray(data.rounds) ? data.rounds : [];
         var memories = Array.isArray(data.memories) ? data.memories : [];
         var achievements = Array.isArray(data.achievements) ? data.achievements : [];

@@ -465,7 +465,7 @@ async function dashboardGolfers(userId: string, profile: Profile) {
   if (profile.role === "admin") {
     const { data, error } = await adminClient()
       .from("golfers")
-      .select("id,slug,display_name,headline,visibility")
+      .select("id,slug,display_name,headline,bio,home_state,visibility")
       .order("display_name", { ascending: true });
 
     if (error) throw new ApiError(500, error.message);
@@ -477,7 +477,7 @@ async function dashboardGolfers(userId: string, profile: Profile) {
 
   const { data, error } = await adminClient()
     .from("golfer_members")
-    .select("member_role,golfers(id,slug,display_name,headline,visibility)")
+    .select("member_role,golfers(id,slug,display_name,headline,bio,home_state,visibility)")
     .eq("user_id", userId);
 
   if (error) throw new ApiError(500, error.message);
@@ -584,6 +584,33 @@ async function handleCreateGolfer(req: Request) {
   if (membership.error) throw new ApiError(500, membership.error.message);
 
   return jsonResponse(201, { golfer });
+}
+
+async function handleUpdateGolfer(req: Request, golferId: string) {
+  const { user } = await requireReadyUser(req);
+  const id = cleanString(golferId);
+  if (!id) throw new ApiError(400, "golfer_id is required");
+  await requireEditableGolfer(user.id, id);
+
+  const body = await readJson(req);
+  const displayName = cleanString(body.display_name);
+  if (!displayName) throw new ApiError(400, "Golfer name is required");
+
+  const { data, error } = await adminClient()
+    .from("golfers")
+    .update({
+      display_name: displayName,
+      headline: cleanNullableString(body.headline),
+      bio: cleanNullableString(body.bio),
+      home_state: cleanNullableString(body.home_state),
+      visibility: cleanVisibility(body.visibility),
+    })
+    .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw new ApiError(500, error.message);
+  return jsonResponse(200, { golfer: data });
 }
 
 async function upsertCourse(body: Record<string, unknown>) {
@@ -1197,6 +1224,8 @@ async function route(req: Request) {
     return handleDashboardEntries(req, dashboardEntriesMatch[1]);
   }
   if (req.method === "POST" && pathname === "/golfers") return handleCreateGolfer(req);
+  const golferMatch = pathname.match(/^\/golfers\/([^/]+)$/);
+  if (req.method === "PATCH" && golferMatch) return handleUpdateGolfer(req, golferMatch[1]);
 
   const publicGolferMatch = pathname.match(/^\/golfers\/([^/]+)\/public$/);
   if (req.method === "GET" && publicGolferMatch) {

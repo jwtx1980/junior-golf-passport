@@ -505,6 +505,8 @@ GET  /features
 GET  /golfers/:slug/public
 GET  /dashboard/golfers
 GET  /dashboard/golfers/:id/entries
+POST /golfers
+PATCH /golfers/:id
 POST /courses
 POST /rounds
 POST /memories
@@ -597,6 +599,8 @@ Build:
 - admin access: account-level admins can now load and edit all golfer profiles
   through the Edge Function and RLS helper, even before a golfer-specific
   membership exists
+- golfer profile management: assigned users can update public-facing golfer
+  name, headline, bio, home state, and visibility from the dashboard
 - manual course/round/memory forms: dashboard can save courses, memories, course
   stamps, rounds, achievements, and tournaments
 - protected dashboard entry log: dashboard can load recent rounds, memories,

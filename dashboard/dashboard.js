@@ -41,6 +41,13 @@
     golferName: document.getElementById("golfer-name"),
     golferSlug: document.getElementById("golfer-slug"),
     createGolfer: document.getElementById("create-golfer-button"),
+    profileEditPanel: document.getElementById("profile-edit-panel"),
+    profileName: document.getElementById("profile-name"),
+    profileHeadline: document.getElementById("profile-headline"),
+    profileBio: document.getElementById("profile-bio"),
+    profileHomeState: document.getElementById("profile-home-state"),
+    profileVisibility: document.getElementById("profile-visibility"),
+    saveProfile: document.getElementById("save-profile-button"),
     note: document.getElementById("rough-note"),
     generatedPrompt: document.getElementById("generated-prompt"),
     generatePrompt: document.getElementById("generate-prompt-button"),
@@ -337,6 +344,19 @@
     }
   }
 
+  function renderProfileEditor() {
+    var row = selectedGolfer();
+    var golfer = row && row.golfers;
+    setHidden(elements.profileEditPanel, !golfer);
+    if (!golfer) return;
+
+    elements.profileName.value = golfer.display_name || "";
+    elements.profileHeadline.value = golfer.headline || "";
+    elements.profileBio.value = golfer.bio || "";
+    elements.profileHomeState.value = golfer.home_state || "";
+    elements.profileVisibility.value = golfer.visibility || "public";
+  }
+
   function selectedGolfer() {
     var golfers = state.me && Array.isArray(state.me.golfers) ? state.me.golfers : [];
     return golfers.find(function (row) {
@@ -575,6 +595,7 @@
     }
     elements.golferSelect.value = state.selectedGolferId;
     setHidden(elements.createGolferPanel, golfers.length > 0);
+    renderProfileEditor();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
   }
@@ -777,6 +798,26 @@
     state.selectedGolferId = payload.golfer.id;
     await refreshMe();
     setStatus("Golfer profile created.");
+  }
+
+  async function saveProfile() {
+    var row = selectedGolfer();
+    var golfer = row && row.golfers;
+    if (!golfer) throw new Error("Choose a golfer profile first.");
+
+    setStatus("Saving public profile...");
+    await api("/golfers/" + golfer.id, {
+      method: "PATCH",
+      body: {
+        display_name: elements.profileName.value.trim(),
+        headline: elements.profileHeadline.value.trim(),
+        bio: elements.profileBio.value.trim(),
+        home_state: elements.profileHomeState.value.trim(),
+        visibility: elements.profileVisibility.value
+      }
+    });
+    await refreshMe();
+    setStatus("Public profile saved.");
   }
 
   function applyDraft(draft) {
@@ -1119,6 +1160,7 @@
   bind(elements.magicLink, sendMagicLink, setAuthStatus);
   bind(elements.updatePassword, updatePassword);
   bind(elements.createGolfer, createGolfer);
+  bind(elements.saveProfile, saveProfile);
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
   bind(elements.lookupCourse, lookupCourse, setLookupStatus);
@@ -1156,6 +1198,7 @@
     elements.golferSelect.addEventListener("change", function () {
       state.selectedGolferId = elements.golferSelect.value;
       state.entries = null;
+      renderProfileEditor();
       renderEntries();
       loadEntries().catch(function (error) {
         setStatus(error.message);

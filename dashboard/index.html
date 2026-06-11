@@ -112,6 +112,37 @@
               <button class="button primary" id="create-golfer-button" type="button">Create Golfer</button>
             </div>
 
+            <div class="stacked-fields" id="profile-edit-panel" hidden>
+              <h3>Public profile</h3>
+              <label>
+                <span>Golfer name</span>
+                <input id="profile-name" type="text" placeholder="Kara Walker">
+              </label>
+              <label>
+                <span>Headline</span>
+                <input id="profile-headline" type="text" placeholder="Courses played, memories made, milestones earned.">
+              </label>
+              <label>
+                <span>Bio</span>
+                <textarea id="profile-bio" rows="4" placeholder="A short public intro for this passport."></textarea>
+              </label>
+              <div class="form-row">
+                <label>
+                  <span>Home state</span>
+                  <input id="profile-home-state" type="text" placeholder="Texas">
+                </label>
+                <label>
+                  <span>Profile visibility</span>
+                  <select id="profile-visibility">
+                    <option value="public">Public</option>
+                    <option value="unlisted">Unlisted</option>
+                    <option value="private">Private</option>
+                  </select>
+                </label>
+              </div>
+              <button class="button secondary" id="save-profile-button" type="button">Save Profile</button>
+            </div>
+
             <label>
               <span>Rough note</span>
               <textarea id="rough-note" rows="8" placeholder="Played Gannon Municipal in Lynn MA. Kara hit a great drive on 7..."></textarea>

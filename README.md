@@ -83,6 +83,7 @@ GET  /golfers/:slug/public
 GET  /dashboard/golfers
 GET  /dashboard/golfers/:id/entries
 POST /golfers
+PATCH /golfers/:id
 POST /courses
 POST /courses/lookup
 POST /rounds
