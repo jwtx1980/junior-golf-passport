@@ -49,6 +49,7 @@
           <div class="button-row">
             <button class="button primary" id="sign-in-button" type="button">Sign In</button>
             <button class="button secondary" id="sign-up-button" type="button">Create Account</button>
+            <button class="button secondary" id="magic-link-button" type="button">Email Magic Link</button>
           </div>
           <p id="auth-status" role="status" aria-live="polite"></p>
         </form>
@@ -63,6 +64,13 @@
           </div>
           <button class="button secondary" id="sign-out-button" type="button">Sign Out</button>
         </div>
+
+        <section class="dashboard-snapshot" id="dashboard-snapshot" aria-label="Passport snapshot">
+          <div><strong>0</strong><span>Saved entries</span></div>
+          <div><strong>0</strong><span>Public ready</span></div>
+          <div><strong>0</strong><span>Draft/private</span></div>
+          <div><strong>0</strong><span>Verified pins</span></div>
+        </section>
 
         <section class="notice-panel" id="password-panel" hidden>
           <div>

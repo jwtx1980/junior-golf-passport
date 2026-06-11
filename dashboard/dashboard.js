@@ -24,6 +24,7 @@
     authStatus: document.getElementById("auth-status"),
     signIn: document.getElementById("sign-in-button"),
     signUp: document.getElementById("sign-up-button"),
+    magicLink: document.getElementById("magic-link-button"),
     signOut: document.getElementById("sign-out-button"),
     accountSummary: document.getElementById("account-summary"),
     passwordPanel: document.getElementById("password-panel"),
@@ -72,7 +73,8 @@
     saveEntry: document.getElementById("save-entry-button"),
     dashboardStatus: document.getElementById("dashboard-status"),
     apiStatus: document.getElementById("api-status"),
-    entryList: document.getElementById("entry-list")
+    entryList: document.getElementById("entry-list"),
+    snapshot: document.getElementById("dashboard-snapshot")
   };
 
   function setText(node, text) {
@@ -175,11 +177,70 @@
     return Number.isFinite(number) ? number : null;
   }
 
+  function comparableText(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function comparableNumber(value) {
+    var number = optionalNumber(value);
+    return number === null ? "" : String(number);
+  }
+
   function courseStatusText(course) {
     if (!course) return "";
     var status = String(course.verification_status || "manual").replace(/_/g, " ");
     var hasPin = Number.isFinite(Number(course.latitude)) && Number.isFinite(Number(course.longitude));
     return hasPin ? status + " pin" : status;
+  }
+
+  function entryCollections() {
+    if (!state.entries) return [];
+    return []
+      .concat(state.entries.memories || [])
+      .concat(state.entries.rounds || [])
+      .concat(state.entries.achievements || [])
+      .concat(state.entries.tournaments || [])
+      .concat(state.entries.photos || []);
+  }
+
+  function courseBackedEntries() {
+    if (!state.entries) return [];
+    return []
+      .concat(state.entries.memories || [])
+      .concat(state.entries.rounds || [])
+      .concat(state.entries.achievements || [])
+      .concat(state.entries.tournaments || []);
+  }
+
+  function renderSnapshot() {
+    if (!elements.snapshot) return;
+    var entries = entryCollections();
+    var publicReady = entries.filter(function (entry) {
+      return entry.is_approved && ["public", "unlisted"].includes(entry.visibility);
+    });
+    var drafts = entries.filter(function (entry) {
+      return !entry.is_approved || entry.visibility === "private";
+    });
+    var verifiedCourseIds = {};
+    courseBackedEntries().forEach(function (entry) {
+      var course = entry.courses;
+      if (
+        course &&
+        course.id &&
+        course.verification_status === "verified" &&
+        Number.isFinite(Number(course.latitude)) &&
+        Number.isFinite(Number(course.longitude))
+      ) {
+        verifiedCourseIds[course.id] = true;
+      }
+    });
+
+    elements.snapshot.innerHTML = [
+      "<div><strong>" + entries.length + "</strong><span>Saved entries</span></div>",
+      "<div><strong>" + publicReady.length + "</strong><span>Public ready</span></div>",
+      "<div><strong>" + drafts.length + "</strong><span>Draft/private</span></div>",
+      "<div><strong>" + Object.keys(verifiedCourseIds).length + "</strong><span>Verified pins</span></div>"
+    ].join("");
   }
 
   function selectedGolfer() {
@@ -242,10 +303,12 @@
   function renderEntries() {
     if (!elements.entryList) return;
     if (!state.selectedGolferId) {
+      renderSnapshot();
       elements.entryList.innerHTML = '<p class="empty-state">Choose a golfer to load saved entries.</p>';
       return;
     }
     if (!state.entries) {
+      renderSnapshot();
       elements.entryList.innerHTML = '<p class="empty-state">Loading saved entries...</p>';
       return;
     }
@@ -332,10 +395,12 @@
     });
 
     if (!rows.length) {
+      renderSnapshot();
       elements.entryList.innerHTML = '<p class="empty-state">No saved entries yet.</p>';
       return;
     }
 
+    renderSnapshot();
     elements.entryList.innerHTML = rows.slice(0, 24).map(function (row) {
       var rowKey = row.kind + ":" + row.id;
       state.renderedRows[rowKey] = row;
@@ -430,7 +495,7 @@
       elements.photoCaption.value = row.raw.caption || "";
       elements.photoVisibility.value = row.raw.visibility || "private";
       elements.photoApproved.checked = Boolean(row.raw.is_approved);
-      setEditMode({ kind: row.kind, id: row.id });
+      setEditMode({ kind: row.kind, id: row.id, row: row });
       setStatus("Editing photo details. Update the caption, visibility, or approval.");
       return;
     }
@@ -472,7 +537,7 @@
       elements.tournamentResultUrl.value = item.result_url || "";
     }
 
-    setEditMode({ kind: row.kind, id: row.id });
+    setEditMode({ kind: row.kind, id: row.id, row: row });
     setStatus("Editing saved entry. Update the review fields and click Update Entry.");
   }
 
@@ -521,6 +586,20 @@
     } else {
       setAuthStatus("Account created. Check email confirmation settings if sign-in is required.");
     }
+  }
+
+  async function sendMagicLink() {
+    var email = elements.email.value.trim();
+    if (!email) throw new Error("Email is required.");
+    setAuthStatus("Sending magic link...");
+    var result = await client.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: window.location.origin + "/dashboard/"
+      }
+    });
+    if (result.error) throw result.error;
+    setAuthStatus("Magic link sent. Check that email inbox.");
   }
 
   async function updatePassword() {
@@ -609,21 +688,43 @@
     setStatus("AI draft ready. Review before saving.");
   }
 
+  function editedCourseStillMatches() {
+    var row = state.currentEdit && state.currentEdit.row;
+    var course = row && row.raw && row.raw.courses;
+    if (!course || !course.id) return null;
+
+    var formStatus = elements.courseVerificationStatus.value || "manual";
+    var formSource = elements.courseVerificationSource.value || "manual_admin";
+    var matches =
+      comparableText(elements.courseName.value) === comparableText(course.name) &&
+      comparableText(elements.courseCity.value) === comparableText(course.city) &&
+      comparableText(elements.courseState.value) === comparableText(course.state) &&
+      comparableNumber(elements.courseLatitude.value) === comparableNumber(course.latitude) &&
+      comparableNumber(elements.courseLongitude.value) === comparableNumber(course.longitude) &&
+      formStatus === (course.verification_status || "manual") &&
+      formSource === (course.verification_source || "manual_admin");
+
+    return matches ? course.id : null;
+  }
+
   async function createCourseIfNeeded() {
     if (!elements.courseName.value.trim()) return null;
+    var existingCourseId = editedCourseStillMatches();
+    if (existingCourseId) return existingCourseId;
+
     var coursePayload = await api("/courses", {
       method: "POST",
       body: {
-          name: elements.courseName.value.trim(),
-          city: elements.courseCity.value.trim(),
-          state: elements.courseState.value.trim(),
-          country: "United States",
-          latitude: optionalNumber(elements.courseLatitude.value),
-          longitude: optionalNumber(elements.courseLongitude.value),
-          verification_status: elements.courseVerificationStatus.value,
-          verification_source: elements.courseVerificationSource.value
-        }
-      });
+        name: elements.courseName.value.trim(),
+        city: elements.courseCity.value.trim(),
+        state: elements.courseState.value.trim(),
+        country: "United States",
+        latitude: optionalNumber(elements.courseLatitude.value),
+        longitude: optionalNumber(elements.courseLongitude.value),
+        verification_status: elements.courseVerificationStatus.value,
+        verification_source: elements.courseVerificationSource.value
+      }
+    });
     return coursePayload.course.id;
   }
 
@@ -803,6 +904,7 @@
 
   bind(elements.signIn, signIn, setAuthStatus);
   bind(elements.signUp, signUp, setAuthStatus);
+  bind(elements.magicLink, sendMagicLink, setAuthStatus);
   bind(elements.updatePassword, updatePassword);
   bind(elements.createGolfer, createGolfer);
   bind(elements.parseResult, parsePastedResult);

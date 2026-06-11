@@ -735,6 +735,32 @@ main {
   padding: 20px;
 }
 
+.dashboard-snapshot {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 18px;
+}
+
+.dashboard-snapshot div {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.dashboard-snapshot strong {
+  display: block;
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.dashboard-snapshot span {
+  color: var(--muted);
+  display: block;
+  margin-top: 7px;
+}
+
 .notice-panel {
   align-items: end;
   background: var(--sky);
@@ -1001,6 +1027,7 @@ footer nav {
   .memory-grid,
   .goal-list,
   .dashboard-hero,
+  .dashboard-snapshot,
   .dashboard-shell,
   .ai-flow-grid,
   .editor-grid,

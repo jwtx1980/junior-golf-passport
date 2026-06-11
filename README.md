@@ -33,8 +33,9 @@ Editing belongs in the authenticated `/dashboard/`.
 
 Current stack:
 
-- Auth: Supabase Auth with email/password sign in
+- Auth: Supabase Auth with email/password sign in and email magic-link support
 - Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
+- Dashboard: private entry creation/editing, password-change enforcement, and a passport snapshot of saved/public/draft/pinned content
 - Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
 - Course verification: manual coordinates and verification status now; maps/geocoding lookup later
