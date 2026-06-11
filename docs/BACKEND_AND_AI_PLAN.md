@@ -16,8 +16,10 @@ The public site should show approved passport content:
 - photos and memories
 - goals
 
-The private dashboard should be where all editing happens. Public visitors
-should never edit the passport.
+The golfer page is the main product surface. Public visitors can view approved
+passport content. A signed-in user with permission can edit that same golfer
+page through a clean `Quick Add` flow. The dashboard should become an account
+and admin utility, not the primary editing workspace.
 
 ## Account Model
 
@@ -84,6 +86,34 @@ A free user should be able to:
 - review entries before publishing
 
 Manual logging should not call OpenAI and should not require a subscription.
+
+## Golfer Page Editing Flow
+
+The first real editing experience should live on the golfer page, not in a
+jumbled dashboard. For Kara, that means:
+
+- public page: `/Kara/`
+- signed-in edit entry point: a single `+ Quick Add` button
+- dashboard: login/account/admin utility only
+
+Quick Add should open a modal with the small set of fields that make a memory:
+
+- date
+- course search/location
+- story note
+- optional photo
+
+From there the user chooses one of three paths:
+
+- `Save Manually`: review the note and save without AI cost.
+- `Draft with AI`: entitled users call the secure backend AI function.
+- `Use My Own AI`: free users copy a generated prompt, paste the AI JSON back,
+  and then review before saving.
+
+The review step should stay compact: location, story, photo/caption, visibility,
+and approval. Achievements such as first birdie, first eagle, breaking 90, or
+new state stamps should become ribbons/badges when recognized, not a giant form
+full of mocked-up fields.
 
 ## Free Bring-Your-Own-AI Prompt Flow
 

@@ -2,6 +2,49 @@
   var shareButton = document.getElementById("share-button");
   var shareStatus = document.getElementById("share-status");
   var config = window.JGP_CONFIG;
+  var supabaseFactory = window.supabase;
+  var authClient = config && supabaseFactory
+    ? supabaseFactory.createClient(config.supabaseUrl, config.supabaseAnonKey)
+    : null;
+  var profileState = {
+    session: null,
+    me: null,
+    editableGolfer: null,
+    features: null,
+    courseCandidate: null
+  };
+  var quick = {
+    open: document.getElementById("quick-add-open"),
+    signIn: document.getElementById("profile-sign-in-link"),
+    backdrop: document.getElementById("quick-add-backdrop"),
+    close: document.getElementById("quick-add-close"),
+    compose: document.getElementById("quick-add-compose"),
+    ownAiPanel: document.getElementById("quick-own-ai-panel"),
+    reviewPanel: document.getElementById("quick-review-panel"),
+    date: document.getElementById("quick-add-date"),
+    course: document.getElementById("quick-add-course"),
+    note: document.getElementById("quick-add-note"),
+    photo: document.getElementById("quick-add-photo"),
+    photoPreview: document.getElementById("quick-photo-preview"),
+    saveManual: document.getElementById("quick-save-manual"),
+    draftAi: document.getElementById("quick-draft-ai"),
+    ownAi: document.getElementById("quick-own-ai"),
+    prompt: document.getElementById("quick-ai-prompt"),
+    copyPrompt: document.getElementById("quick-copy-prompt"),
+    aiResult: document.getElementById("quick-ai-result"),
+    parseAi: document.getElementById("quick-parse-ai"),
+    backCompose: document.getElementById("quick-back-compose"),
+    editCompose: document.getElementById("quick-edit-compose"),
+    reviewCourse: document.getElementById("quick-review-course"),
+    reviewCity: document.getElementById("quick-review-city"),
+    reviewState: document.getElementById("quick-review-state"),
+    reviewStory: document.getElementById("quick-review-story"),
+    reviewCaption: document.getElementById("quick-review-caption"),
+    reviewVisibility: document.getElementById("quick-review-visibility"),
+    reviewApproved: document.getElementById("quick-review-approved"),
+    saveReview: document.getElementById("quick-save-review"),
+    status: document.getElementById("quick-add-status")
+  };
 
   function uniqueBy(items, keyFn) {
     var seen = {};
@@ -20,6 +63,47 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
+  }
+
+  function setText(node, value) {
+    if (node) node.textContent = value || "";
+  }
+
+  function setHidden(node, hidden) {
+    if (node) node.hidden = Boolean(hidden);
+  }
+
+  function setQuickStatus(message) {
+    setText(quick.status, message);
+  }
+
+  function authHeaders() {
+    return {
+      Authorization: "Bearer " + profileState.session.access_token,
+      "Content-Type": "application/json"
+    };
+  }
+
+  async function api(path, options) {
+    var response = await fetch(config.passportApiBaseUrl + path, {
+      method: options && options.method ? options.method : "GET",
+      headers: authHeaders(),
+      body: options && options.body ? JSON.stringify(options.body) : undefined
+    });
+    var payload = await response.json().catch(function () {
+      return {};
+    });
+    if (!response.ok) throw new Error(payload.error || "Request failed");
+    return payload;
+  }
+
+  async function publicApi(path) {
+    var response = await fetch(config.passportApiBaseUrl + path);
+    var payload = await response.json().catch(function () {
+      return {};
+    });
+    if (!response.ok) throw new Error(payload.error || "API request failed");
+    return payload;
   }
 
   function coursePlace(course) {
@@ -302,6 +386,364 @@
     return params.get("golfer") || params.get("slug") || "";
   }
 
+  function currentGolferRow() {
+    var slug = currentPassportSlug();
+    var rows = profileState.me && Array.isArray(profileState.me.golfers) ? profileState.me.golfers : [];
+    return rows.find(function (row) {
+      return row.golfers && row.golfers.slug === slug;
+    });
+  }
+
+  function canEditCurrentGolfer() {
+    if (!profileState.me || !profileState.me.profile) return false;
+    if (profileState.me.profile.must_change_password) return false;
+    if (profileState.me.profile.role === "admin") return Boolean(profileState.editableGolfer);
+    return Boolean(currentGolferRow());
+  }
+
+  function renderEditControls() {
+    var canEdit = canEditCurrentGolfer();
+    setHidden(quick.open, !canEdit);
+    setHidden(quick.signIn, canEdit);
+  }
+
+  async function loadProfileAuth() {
+    if (!authClient || !config || !document.body.classList.contains("profile-page")) return;
+    var sessionResult = await authClient.auth.getSession();
+    profileState.session = sessionResult.data.session;
+    if (!profileState.session) {
+      renderEditControls();
+      return;
+    }
+    try {
+      profileState.me = await api("/me");
+      profileState.features = await publicApi("/features").catch(function () {
+        return null;
+      });
+      var row = currentGolferRow();
+      profileState.editableGolfer = row && row.golfers ? row.golfers : null;
+      if (!profileState.editableGolfer && profileState.me.profile && profileState.me.profile.role === "admin") {
+        var slug = currentPassportSlug();
+        var adminRows = profileState.me.golfers || [];
+        var adminRow = adminRows.find(function (item) {
+          return item.golfers && item.golfers.slug === slug;
+        });
+        profileState.editableGolfer = adminRow && adminRow.golfers ? adminRow.golfers : null;
+      }
+      renderEditControls();
+    } catch (error) {
+      renderEditControls();
+    }
+  }
+
+  function todayIso() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function coursePartsFromText(value) {
+    var parts = String(value || "").split(",").map(function (part) {
+      return part.trim();
+    }).filter(Boolean);
+    return {
+      name: parts[0] || String(value || "").trim(),
+      city: parts[1] || "",
+      state: parts[2] || ""
+    };
+  }
+
+  function quickDraftSourceNote() {
+    var context = [];
+    if (quick.date && quick.date.value) context.push("Date: " + quick.date.value);
+    if (quick.course && quick.course.value.trim()) context.push("Course: " + quick.course.value.trim());
+    var note = quick.note ? quick.note.value.trim() : "";
+    return context.concat(note ? ["Story note: " + note] : []).join("\n");
+  }
+
+  function freeAiPrompt(note) {
+    return [
+      "You are helping turn a junior golfer's rough golf note into a structured Junior Golf Passport entry.",
+      "",
+      "Return only valid JSON. Do not include markdown. Do not include comments.",
+      "If you are unsure about a value, use null and add a question in the questions array.",
+      "Do not invent scores, dates, exact course identities, or locations.",
+      "",
+      "Rough note:",
+      '"""',
+      note,
+      '"""',
+      "",
+      "Return JSON with this shape:",
+      "{",
+      '  "entry_type": "course_played | round | achievement | tournament | memory",',
+      '  "title": "short title",',
+      '  "course": { "name": "course name or null", "city": "city or null", "state": "state or null", "country": "country or null" },',
+      '  "story": "polished public-friendly story draft",',
+      '  "tags": ["tag one", "tag two"],',
+      '  "visibility": "private",',
+      '  "course_lookup_query": "course name city state country for later map verification, or null",',
+      '  "confidence": "high | medium | low",',
+      '  "questions": ["question one if needed"]',
+      "}"
+    ].join("\n");
+  }
+
+  function showQuickPanel(panel) {
+    setHidden(quick.compose, panel !== "compose");
+    setHidden(quick.ownAiPanel, panel !== "own-ai");
+    setHidden(quick.reviewPanel, panel !== "review");
+  }
+
+  function openQuickAdd() {
+    if (!canEditCurrentGolfer()) return;
+    if (quick.date && !quick.date.value) quick.date.value = todayIso();
+    if (quick.reviewCaption) quick.reviewCaption.value = "";
+    profileState.courseCandidate = null;
+    setQuickStatus("");
+    setHidden(quick.backdrop, false);
+    showQuickPanel("compose");
+    if (quick.note) quick.note.focus();
+  }
+
+  function closeQuickAdd() {
+    setHidden(quick.backdrop, true);
+    setQuickStatus("");
+  }
+
+  async function lookupBestCourse(course) {
+    var name = course && course.name ? course.name : "";
+    if (!name) return null;
+    try {
+      var payload = await api("/courses/lookup", {
+        method: "POST",
+        body: {
+          golfer_id: profileState.editableGolfer.id,
+          name: name,
+          city: course.city || "",
+          state: course.state || "",
+          country: "United States"
+        }
+      });
+      return payload.candidates && payload.candidates[0] ? payload.candidates[0] : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function comparable(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function candidateStillMatches(candidate) {
+    if (!candidate) return false;
+    return comparable(candidate.name) === comparable(quick.reviewCourse.value) &&
+      comparable(candidate.city) === comparable(quick.reviewCity.value) &&
+      comparable(candidate.state) === comparable(quick.reviewState.value);
+  }
+
+  async function prepareReview(draft) {
+    var noteCourse = coursePartsFromText(quick.course ? quick.course.value : "");
+    var draftCourse = draft && draft.course && draft.course.name ? draft.course : null;
+    var course = draftCourse || noteCourse;
+    var story = draft && draft.story ? draft.story : (quick.note ? quick.note.value.trim() : "");
+    if (!story) {
+      throw new Error("Add a story before reviewing.");
+    }
+    var candidate = await lookupBestCourse(course);
+    profileState.courseCandidate = candidate;
+
+    quick.reviewCourse.value = candidate && candidate.name ? candidate.name : (course.name || "");
+    quick.reviewCity.value = candidate && candidate.city ? candidate.city : (course.city || "");
+    quick.reviewState.value = candidate && candidate.state ? candidate.state : (course.state || "");
+    quick.reviewStory.value = story;
+    quick.reviewCaption.value = quick.reviewCaption.value || "";
+    quick.reviewVisibility.value = "private";
+    quick.reviewApproved.checked = false;
+    setQuickStatus(candidate ? "Course verified with Google Places." : "Review the story before saving.");
+    showQuickPanel("review");
+  }
+
+  async function draftWithBuiltInAi() {
+    if (!profileState.features || !profileState.features.built_in_ai_configured) {
+      throw new Error("Built-in AI is not configured.");
+    }
+    if (!profileState.me.profile.has_ai_access) {
+      throw new Error("This account does not have built-in AI access.");
+    }
+    setQuickStatus("Drafting with AI...");
+    var payload = await api("/ai/draft-entry", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        note: quickDraftSourceNote()
+      }
+    });
+    await prepareReview(payload.draft || {});
+  }
+
+  async function parseOwnAiResult() {
+    setQuickStatus("Parsing AI result...");
+    var payload = await api("/ai/parse-pasted-result", {
+      method: "POST",
+      body: { result: quick.aiResult.value }
+    });
+    await prepareReview(payload.draft || {});
+  }
+
+  async function createCourseFromReview() {
+    var name = quick.reviewCourse.value.trim();
+    if (!name) return null;
+    var candidate = candidateStillMatches(profileState.courseCandidate) ? profileState.courseCandidate : null;
+    var payload = await api("/courses", {
+      method: "POST",
+      body: {
+        name: name,
+        city: quick.reviewCity.value.trim(),
+        state: quick.reviewState.value.trim(),
+        country: "United States",
+        latitude: candidate ? candidate.latitude : null,
+        longitude: candidate ? candidate.longitude : null,
+        verification_status: candidate ? "verified" : "manual",
+        verification_source: candidate ? "google_places" : "manual_admin",
+        source_place_id: candidate ? candidate.source_place_id : ""
+      }
+    });
+    return payload.course.id;
+  }
+
+  function memoryTitle() {
+    if (quick.reviewCourse.value.trim()) return quick.reviewCourse.value.trim() + " memory";
+    var text = quick.reviewStory.value.trim() || "Golf memory";
+    return text.slice(0, 70);
+  }
+
+  function safeFileName(value) {
+    return String(value || "photo")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "photo";
+  }
+
+  async function uploadQuickPhoto(memoryId) {
+    var file = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
+    if (!file) return;
+    var path = [
+      profileState.editableGolfer.id,
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+    ].join("/");
+    var upload = await authClient.storage
+      .from("passport-photos")
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+    await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        storage_path: path,
+        caption: quick.reviewCaption.value.trim(),
+        linked_type: "memory",
+        linked_id: memoryId,
+        visibility: quick.reviewVisibility.value,
+        is_approved: quick.reviewApproved.checked
+      }
+    });
+  }
+
+  async function saveQuickReview() {
+    setQuickStatus("Saving memory...");
+    var courseId = await createCourseFromReview();
+    var payload = await api("/memories", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        course_id: courseId,
+        title: memoryTitle(),
+        entry_type: courseId ? "course_played" : "memory",
+        story: quick.reviewStory.value.trim(),
+        raw_note: quick.note.value.trim(),
+        tags: [],
+        visibility: quick.reviewVisibility.value,
+        is_approved: quick.reviewApproved.checked
+      }
+    });
+    await uploadQuickPhoto(payload.memory.id);
+    setQuickStatus("Saved.");
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 650);
+  }
+
+  function bindQuickAdd() {
+    if (!quick.open) return;
+    quick.open.addEventListener("click", openQuickAdd);
+    if (quick.close) quick.close.addEventListener("click", closeQuickAdd);
+    if (quick.backdrop) {
+      quick.backdrop.addEventListener("click", function (event) {
+        if (event.target === quick.backdrop) closeQuickAdd();
+      });
+    }
+    if (quick.photo) {
+      quick.photo.addEventListener("change", function () {
+        var file = quick.photo.files && quick.photo.files[0];
+        setText(quick.photoPreview, file ? file.name : "Add an optional photo");
+        if (quick.photoPreview) {
+          quick.photoPreview.style.backgroundImage = file ? "url(" + URL.createObjectURL(file) + ")" : "";
+          quick.photoPreview.classList.toggle("has-image", Boolean(file));
+        }
+      });
+    }
+    if (quick.saveManual) {
+      quick.saveManual.addEventListener("click", function () {
+        prepareReview({}).catch(function (error) {
+          setQuickStatus(error.message);
+        });
+      });
+    }
+    if (quick.draftAi) {
+      quick.draftAi.addEventListener("click", function () {
+        draftWithBuiltInAi().catch(function (error) {
+          setQuickStatus(error.message);
+        });
+      });
+    }
+    if (quick.ownAi) {
+      quick.ownAi.addEventListener("click", function () {
+        quick.prompt.value = freeAiPrompt(quickDraftSourceNote());
+        showQuickPanel("own-ai");
+      });
+    }
+    if (quick.copyPrompt) {
+      quick.copyPrompt.addEventListener("click", function () {
+        navigator.clipboard.writeText(quick.prompt.value).then(function () {
+          setQuickStatus("Prompt copied.");
+        }).catch(function () {
+          setQuickStatus("Copy failed. Select and copy the prompt manually.");
+        });
+      });
+    }
+    if (quick.backCompose) quick.backCompose.addEventListener("click", function () { showQuickPanel("compose"); });
+    if (quick.editCompose) quick.editCompose.addEventListener("click", function () { showQuickPanel("compose"); });
+    if (quick.parseAi) {
+      quick.parseAi.addEventListener("click", function () {
+        parseOwnAiResult().catch(function (error) {
+          setQuickStatus(error.message);
+        });
+      });
+    }
+    if (quick.saveReview) {
+      quick.saveReview.addEventListener("click", function () {
+        saveQuickReview().catch(function (error) {
+          setQuickStatus(error.message);
+        });
+      });
+    }
+  }
+
   function renderPublicPassport(data) {
     var golfer = data.golfer || {};
     var normalized = {
@@ -391,5 +833,7 @@
     });
   }
 
+  bindQuickAdd();
   loadPublicPassport();
+  loadProfileAuth();
 })();

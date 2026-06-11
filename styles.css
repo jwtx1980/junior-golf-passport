@@ -841,6 +841,169 @@ main {
   grid-template-columns: 1fr;
 }
 
+.profile-edit-action[hidden],
+.quick-add-backdrop[hidden],
+.quick-add-body[hidden] {
+  display: none;
+}
+
+.quick-add-backdrop {
+  align-items: center;
+  background: rgba(18, 24, 21, 0.64);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 40;
+}
+
+.quick-add-modal {
+  background: var(--paper);
+  border-radius: 8px;
+  box-shadow: 0 28px 80px rgba(9, 16, 13, 0.34);
+  max-height: min(760px, calc(100vh - 40px));
+  max-width: 680px;
+  overflow: auto;
+  width: min(100%, 680px);
+}
+
+.quick-add-header {
+  align-items: center;
+  background: var(--green-dark);
+  color: #ffffff;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  padding: 14px 16px;
+}
+
+.quick-add-header h2 {
+  color: #ffffff;
+  font-size: 1.18rem;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.icon-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.25rem;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.quick-add-header-spacer {
+  width: 38px;
+}
+
+.quick-add-body {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.quick-add-body label {
+  display: grid;
+  gap: 7px;
+  font-weight: 850;
+}
+
+.quick-add-body input,
+.quick-add-body textarea,
+.quick-add-body select {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  min-height: 48px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.quick-add-body textarea {
+  resize: vertical;
+}
+
+.quick-add-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quick-photo-drop {
+  border: 1px dashed #b6c8ba;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.quick-photo-drop input {
+  border: 0;
+  min-height: 0;
+  padding: 0;
+}
+
+.quick-photo-preview {
+  align-items: center;
+  background: var(--green-soft);
+  border-radius: 8px;
+  color: var(--green-dark);
+  display: flex;
+  font-weight: 850;
+  justify-content: center;
+  min-height: 84px;
+  padding: 12px;
+  text-align: center;
+}
+
+.quick-photo-preview.has-image {
+  background-position: center;
+  background-size: cover;
+  color: #ffffff;
+  min-height: 130px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.48);
+}
+
+.quick-add-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quick-review-card {
+  display: grid;
+  gap: 14px;
+}
+
+.quick-review-card h3 {
+  font-size: 1.45rem;
+}
+
+.quick-check {
+  align-content: center;
+  color: var(--muted);
+  display: flex;
+  font-weight: 760;
+  gap: 10px;
+  min-height: 48px;
+}
+
+.quick-check input {
+  min-height: auto;
+  width: auto;
+}
+
+.quick-add-status {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
 .goal-list strong,
 .goal-list span {
   display: block;
@@ -1539,6 +1702,19 @@ footer nav {
   }
 
   .golfer-card {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-add-modal {
+    max-height: calc(100vh - 24px);
+  }
+
+  .quick-add-body {
+    padding: 18px;
+  }
+
+  .quick-add-row,
+  .quick-add-actions {
     grid-template-columns: 1fr;
   }
 

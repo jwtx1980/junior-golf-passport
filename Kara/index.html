@@ -42,7 +42,8 @@
             </p>
             <div class="profile-actions">
               <button class="button primary" id="share-button" type="button">Share Page</button>
-              <a class="button secondary" href="/dashboard/">Sign In to Edit</a>
+              <a class="button secondary" id="profile-sign-in-link" href="/dashboard/">Sign In to Edit</a>
+              <button class="button primary profile-edit-action" id="quick-add-open" type="button" hidden>+ Quick Add</button>
             </div>
             <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
           </div>
@@ -175,6 +176,107 @@
       </section>
     </main>
 
+    <div class="quick-add-backdrop" id="quick-add-backdrop" hidden>
+      <section class="quick-add-modal" role="dialog" aria-modal="true" aria-labelledby="quick-add-title">
+        <header class="quick-add-header">
+          <span class="quick-add-header-spacer" aria-hidden="true"></span>
+          <h2 id="quick-add-title">Quick Add Memory for Kara</h2>
+          <button class="icon-button" id="quick-add-close" type="button" aria-label="Close quick add">&times;</button>
+        </header>
+
+        <div class="quick-add-body" id="quick-add-compose">
+          <div class="quick-add-row">
+            <label>
+              <span>Date</span>
+              <input id="quick-add-date" type="date">
+            </label>
+            <label>
+              <span>Course search</span>
+              <input id="quick-add-course" type="text" placeholder="Pine Ridge Golf Course, Paris, TX">
+            </label>
+          </div>
+          <label>
+            <span>Enter a story</span>
+            <textarea id="quick-add-note" rows="5" placeholder="Describe today's round or memory..."></textarea>
+          </label>
+          <label class="quick-photo-drop">
+            <span>Photo</span>
+            <input id="quick-add-photo" type="file" accept="image/*">
+            <span class="quick-photo-preview" id="quick-photo-preview">Add an optional photo</span>
+          </label>
+          <div class="quick-add-actions">
+            <button class="button secondary" id="quick-save-manual" type="button">Save Manually</button>
+            <button class="button primary" id="quick-draft-ai" type="button">Draft with AI</button>
+            <button class="button secondary" id="quick-own-ai" type="button">Use My Own AI</button>
+          </div>
+        </div>
+
+        <div class="quick-add-body" id="quick-own-ai-panel" hidden>
+          <label>
+            <span>Copy this prompt into your AI tool</span>
+            <textarea id="quick-ai-prompt" rows="7" readonly></textarea>
+          </label>
+          <button class="button secondary" id="quick-copy-prompt" type="button">Copy Prompt</button>
+          <label>
+            <span>Paste the AI JSON result</span>
+            <textarea id="quick-ai-result" rows="7" placeholder="{ &quot;entry_type&quot;: &quot;course_played&quot;, ... }"></textarea>
+          </label>
+          <div class="quick-add-actions">
+            <button class="button secondary" id="quick-back-compose" type="button">Back</button>
+            <button class="button primary" id="quick-parse-ai" type="button">Review AI Draft</button>
+          </div>
+        </div>
+
+        <div class="quick-add-body" id="quick-review-panel" hidden>
+          <div class="quick-review-card">
+            <p class="eyebrow">Review</p>
+            <h3>Save the scrapbook memory.</h3>
+            <div class="quick-add-row">
+              <label>
+                <span>Course</span>
+                <input id="quick-review-course" type="text">
+              </label>
+              <label>
+                <span>City</span>
+                <input id="quick-review-city" type="text">
+              </label>
+            </div>
+            <label>
+              <span>State</span>
+              <input id="quick-review-state" type="text">
+            </label>
+            <label>
+              <span>Story</span>
+              <textarea id="quick-review-story" rows="6"></textarea>
+            </label>
+            <label>
+              <span>Photo caption</span>
+              <input id="quick-review-caption" type="text" placeholder="Optional caption">
+            </label>
+            <div class="quick-add-row">
+              <label>
+                <span>Visibility</span>
+                <select id="quick-review-visibility">
+                  <option value="private">Private</option>
+                  <option value="unlisted">Unlisted</option>
+                  <option value="public">Public</option>
+                </select>
+              </label>
+              <label class="quick-check">
+                <input id="quick-review-approved" type="checkbox">
+                <span>Approved for public passport</span>
+              </label>
+            </div>
+            <p class="quick-add-status" id="quick-add-status" role="status" aria-live="polite"></p>
+            <div class="quick-add-actions">
+              <button class="button secondary" id="quick-edit-compose" type="button">Back</button>
+              <button class="button primary" id="quick-save-review" type="button">Save Memory</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <footer>
       <p>&copy; 2026 Junior Golf Passport. Kara's page is parent-managed.</p>
       <nav aria-label="Footer">
@@ -186,6 +288,7 @@
         <a href="/support/">Support</a>
       </nav>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
     <script src="/app.js"></script>
   </body>
