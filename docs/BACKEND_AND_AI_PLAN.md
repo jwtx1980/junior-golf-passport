@@ -483,6 +483,7 @@ Initial endpoints:
 GET  /me
 GET  /golfers/:slug/public
 GET  /dashboard/golfers
+GET  /dashboard/golfers/:id/entries
 POST /courses
 POST /rounds
 POST /memories
@@ -565,10 +566,22 @@ Build:
 - Kara seeded public golfer/profile data: public golfer and starter passport data done
 - auth dashboard: started
 - password-change enforcement: backend/dashboard support started
-- manual course/round/memory forms: memory/course path started
+- manual course/round/memory forms: dashboard can save courses, memories, course
+  stamps, rounds, achievements, and tournaments
+- protected dashboard entry log: dashboard can load recent rounds, memories,
+  achievements, tournaments, and photos for the selected golfer
 - public page reading approved data: started for Kara courses and memories
+- free copy-prompt AI flow: prompt generation, pasted JSON validation, review,
+  and save path started
+- built-in paid/entitled AI flow: Edge Function route exists and checks
+  `has_ai_access`, but still needs the `OPENAI_API_KEY` Supabase secret before it
+  can be used
 
 Then add:
 
-- free copy-prompt AI flow
-- built-in paid/entitled AI flow
+- real Kara/Jamie accounts and golfer memberships
+- first-login password update test with Kara's temporary password
+- photo upload through Supabase Storage
+- dynamic public achievements, tournaments, and photos
+- course lookup/verification through a maps or geocoding API
+- subscription/payment only after the product flow is proven

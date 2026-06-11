@@ -9,7 +9,8 @@
     session: null,
     me: null,
     selectedGolferId: "",
-    currentDraft: null
+    currentDraft: null,
+    entries: null
   };
 
   var elements = {
@@ -45,11 +46,22 @@
     courseName: document.getElementById("course-name"),
     courseCity: document.getElementById("course-city"),
     courseState: document.getElementById("course-state"),
+    entryDate: document.getElementById("entry-date"),
+    roundScore: document.getElementById("round-score"),
+    roundHoles: document.getElementById("round-holes"),
+    roundHighlight: document.getElementById("round-highlight"),
+    achievementType: document.getElementById("achievement-type"),
+    achievementValue: document.getElementById("achievement-value"),
+    tournamentName: document.getElementById("tournament-name"),
+    tournamentDivision: document.getElementById("tournament-division"),
+    tournamentFinish: document.getElementById("tournament-finish"),
+    tournamentResultUrl: document.getElementById("tournament-result-url"),
     visibility: document.getElementById("entry-visibility"),
     approved: document.getElementById("entry-approved"),
-    saveMemory: document.getElementById("save-memory-button"),
+    saveEntry: document.getElementById("save-entry-button"),
     dashboardStatus: document.getElementById("dashboard-status"),
-    apiStatus: document.getElementById("api-status")
+    apiStatus: document.getElementById("api-status"),
+    entryList: document.getElementById("entry-list")
   };
 
   function setText(node, text) {
@@ -66,6 +78,15 @@
 
   function setAuthStatus(message) {
     setText(elements.authStatus, message);
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function authHeaders() {
@@ -135,6 +156,88 @@
     });
   }
 
+  function renderEntries() {
+    if (!elements.entryList) return;
+    if (!state.selectedGolferId) {
+      elements.entryList.innerHTML = '<p class="empty-state">Choose a golfer to load saved entries.</p>';
+      return;
+    }
+    if (!state.entries) {
+      elements.entryList.innerHTML = '<p class="empty-state">Loading saved entries...</p>';
+      return;
+    }
+
+    var rows = []
+      .concat((state.entries.memories || []).map(function (item) {
+        return {
+          type: item.entry_type || "memory",
+          title: item.title,
+          detail: item.story,
+          date: item.created_at,
+          course: item.courses && item.courses.name,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
+      }))
+      .concat((state.entries.rounds || []).map(function (item) {
+        return {
+          type: "round",
+          title: item.score ? "Round of " + item.score : "Round played",
+          detail: item.story || item.notes,
+          date: item.played_on || item.created_at,
+          course: item.courses && item.courses.name,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
+      }))
+      .concat((state.entries.achievements || []).map(function (item) {
+        return {
+          type: "achievement",
+          title: item.title,
+          detail: item.story || item.value,
+          date: item.achieved_on || item.created_at,
+          course: item.courses && item.courses.name,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
+      }))
+      .concat((state.entries.tournaments || []).map(function (item) {
+        return {
+          type: "tournament",
+          title: item.event_name,
+          detail: [item.division, item.finish, item.story].filter(Boolean).join(" - "),
+          date: item.played_on || item.created_at,
+          course: item.courses && item.courses.name,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
+      }));
+
+    rows.sort(function (a, b) {
+      return String(b.date || "").localeCompare(String(a.date || ""));
+    });
+
+    if (!rows.length) {
+      elements.entryList.innerHTML = '<p class="empty-state">No saved entries yet.</p>';
+      return;
+    }
+
+    elements.entryList.innerHTML = rows.slice(0, 24).map(function (row) {
+      var status = row.visibility + (row.approved ? " / approved" : " / draft");
+      return [
+        '<article class="entry-list-item">',
+        '<div>',
+        '<span class="card-kicker">' + escapeHtml(row.type.replace(/_/g, " ")) + '</span>',
+        '<h3>' + escapeHtml(row.title || "Untitled entry") + '</h3>',
+        row.course ? '<p>' + escapeHtml(row.course) + '</p>' : '',
+        row.detail ? '<p>' + escapeHtml(row.detail) + '</p>' : '',
+        '</div>',
+        '<strong>' + escapeHtml(status) + '</strong>',
+        '</article>'
+      ].join("");
+    }).join("");
+  }
+
   function render() {
     var signedIn = Boolean(state.session && state.me);
     setHidden(elements.authPanel, signedIn);
@@ -165,12 +268,26 @@
     elements.golferSelect.value = state.selectedGolferId;
     setHidden(elements.createGolferPanel, golfers.length > 0);
     setText(elements.apiStatus, config.passportApiBaseUrl);
+    renderEntries();
   }
 
   async function refreshMe() {
     if (!state.session) return;
     state.me = await api("/me");
     render();
+    if (state.selectedGolferId) {
+      await loadEntries();
+    }
+  }
+
+  async function loadEntries() {
+    if (!state.selectedGolferId) {
+      state.entries = null;
+      renderEntries();
+      return;
+    }
+    state.entries = await api("/dashboard/golfers/" + state.selectedGolferId + "/entries");
+    renderEntries();
   }
 
   async function loadSession() {
@@ -262,6 +379,21 @@
       elements.courseCity.value = draft.course.city || "";
       elements.courseState.value = draft.course.state || "";
     }
+    if (draft.round) {
+      elements.entryDate.value = draft.round.played_on || "";
+      elements.roundScore.value = draft.round.score || "";
+      elements.roundHoles.value = draft.round.holes || "";
+      elements.roundHighlight.value = draft.round.highlight || "";
+    }
+    if (draft.achievement) {
+      elements.achievementType.value = draft.achievement.type || "";
+      elements.achievementValue.value = draft.achievement.value || "";
+    }
+    if (draft.tournament) {
+      elements.tournamentName.value = draft.tournament.name || "";
+      elements.tournamentDivision.value = draft.tournament.division || "";
+      elements.tournamentFinish.value = draft.tournament.finish || "";
+    }
   }
 
   async function parsePastedResult() {
@@ -287,43 +419,95 @@
     setStatus("AI draft ready. Review before saving.");
   }
 
-  async function saveMemory() {
+  async function createCourseIfNeeded() {
+    if (!elements.courseName.value.trim()) return null;
+    var coursePayload = await api("/courses", {
+      method: "POST",
+      body: {
+        name: elements.courseName.value.trim(),
+        city: elements.courseCity.value.trim(),
+        state: elements.courseState.value.trim(),
+        country: "United States"
+      }
+    });
+    return coursePayload.course.id;
+  }
+
+  function baseEntryPayload(courseId) {
+    return {
+      golfer_id: state.selectedGolferId,
+      course_id: courseId,
+      visibility: elements.visibility.value,
+      is_approved: elements.approved.checked
+    };
+  }
+
+  async function saveEntry() {
     if (!state.selectedGolferId) {
       throw new Error("Create or select a golfer first.");
     }
 
-    setStatus("Saving memory...");
-    var courseId = null;
-    if (elements.courseName.value.trim()) {
-      var coursePayload = await api("/courses", {
+    setStatus("Saving entry...");
+    var entryType = elements.entryType.value;
+    var courseId = await createCourseIfNeeded();
+    var base = baseEntryPayload(courseId);
+
+    if (entryType === "round") {
+      await api("/rounds", {
         method: "POST",
         body: {
-          name: elements.courseName.value.trim(),
-          city: elements.courseCity.value.trim(),
-          state: elements.courseState.value.trim(),
-          country: "United States"
+          ...base,
+          played_on: elements.entryDate.value,
+          score: elements.roundScore.value,
+          holes: elements.roundHoles.value,
+          tees: elements.roundHighlight.value,
+          notes: elements.note.value.trim(),
+          story: elements.entryStory.value.trim()
         }
       });
-      courseId = coursePayload.course.id;
+    } else if (entryType === "achievement") {
+      await api("/achievements", {
+        method: "POST",
+        body: {
+          ...base,
+          title: elements.entryTitle.value.trim(),
+          achievement_type: elements.achievementType.value.trim(),
+          achieved_on: elements.entryDate.value,
+          value: elements.achievementValue.value.trim(),
+          story: elements.entryStory.value.trim()
+        }
+      });
+    } else if (entryType === "tournament") {
+      await api("/tournaments", {
+        method: "POST",
+        body: {
+          ...base,
+          event_name: elements.tournamentName.value.trim() || elements.entryTitle.value.trim(),
+          played_on: elements.entryDate.value,
+          division: elements.tournamentDivision.value.trim(),
+          score: elements.roundScore.value,
+          finish: elements.tournamentFinish.value.trim(),
+          result_url: elements.tournamentResultUrl.value.trim(),
+          story: elements.entryStory.value.trim()
+        }
+      });
+    } else {
+      await api("/memories", {
+        method: "POST",
+        body: {
+          ...base,
+          title: elements.entryTitle.value.trim(),
+          entry_type: entryType,
+          story: elements.entryStory.value.trim(),
+          raw_note: elements.note.value.trim(),
+          tags: elements.entryTags.value.split(",").map(function (tag) {
+            return tag.trim();
+          }).filter(Boolean)
+        }
+      });
     }
 
-    await api("/memories", {
-      method: "POST",
-      body: {
-        golfer_id: state.selectedGolferId,
-        course_id: courseId,
-        title: elements.entryTitle.value.trim(),
-        entry_type: elements.entryType.value,
-        story: elements.entryStory.value.trim(),
-        raw_note: elements.note.value.trim(),
-        tags: elements.entryTags.value.split(",").map(function (tag) {
-          return tag.trim();
-        }).filter(Boolean),
-        visibility: elements.visibility.value,
-        is_approved: elements.approved.checked
-      }
-    });
-
+    await loadEntries();
     setStatus("Saved. Public entries appear after they are approved and marked public.");
   }
 
@@ -344,7 +528,7 @@
   bind(elements.createGolfer, createGolfer);
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
-  bind(elements.saveMemory, saveMemory);
+  bind(elements.saveEntry, saveEntry);
 
   bind(elements.generatePrompt, function () {
     elements.generatedPrompt.value = freeAiPrompt(elements.note.value.trim());
@@ -368,6 +552,11 @@
   if (elements.golferSelect) {
     elements.golferSelect.addEventListener("change", function () {
       state.selectedGolferId = elements.golferSelect.value;
+      state.entries = null;
+      renderEntries();
+      loadEntries().catch(function (error) {
+        setStatus(error.message);
+      });
     });
   }
 

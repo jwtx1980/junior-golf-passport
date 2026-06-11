@@ -28,15 +28,16 @@ http://127.0.0.1:8766/
 
 ## Build Direction
 
-The public site should stay centered on Kara's approved passport content. Editing belongs in `/dashboard/` once authentication is added.
+The public site should stay centered on Kara's approved passport content.
+Editing belongs in the authenticated `/dashboard/`.
 
-Planned stack:
+Current stack:
 
-- Auth: Supabase Auth with parent magic-link login
-- Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, goals, and memories
-- Photos: Supabase Storage
-- AI helper: Supabase Edge Function calling OpenAI from the server side only
-- Course verification: maps/geocoding API for course names and coordinates before pins are saved
+- Auth: Supabase Auth with email/password sign in
+- Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
+- Photos: Supabase Storage bucket exists; upload UI still needs to be added
+- AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
+- Course verification: manual course entry now; maps/geocoding verification later
 
 OpenAI keys should never be placed in public browser code. The browser should send rough notes to an authenticated backend function, receive structured data and a story draft, and save only after parent review.
 
@@ -68,6 +69,23 @@ Deploy the Edge Function:
 
 ```powershell
 npx supabase functions deploy passport-api
+```
+
+Live API endpoints include:
+
+```text
+GET  /me
+GET  /golfers/:slug/public
+GET  /dashboard/golfers
+GET  /dashboard/golfers/:id/entries
+POST /golfers
+POST /courses
+POST /rounds
+POST /memories
+POST /achievements
+POST /tournaments
+POST /ai/parse-pasted-result
+POST /ai/draft-entry
 ```
 
 Already set Edge Function secrets:

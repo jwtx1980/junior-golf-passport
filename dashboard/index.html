@@ -162,6 +162,56 @@
               <span>State</span>
               <input id="course-state" type="text" placeholder="Massachusetts">
             </label>
+            <div class="form-row">
+              <label>
+                <span>Played / achieved on</span>
+                <input id="entry-date" type="date">
+              </label>
+              <label>
+                <span>Score</span>
+                <input id="round-score" type="number" inputmode="numeric" placeholder="84">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Holes</span>
+                <input id="round-holes" type="number" inputmode="numeric" placeholder="18">
+              </label>
+              <label>
+                <span>Tees / highlight</span>
+                <input id="round-highlight" type="text" placeholder="Strong drive on 7">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Achievement type</span>
+                <input id="achievement-type" type="text" placeholder="Personal best">
+              </label>
+              <label>
+                <span>Achievement value</span>
+                <input id="achievement-value" type="text" placeholder="Broke 90">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Tournament name</span>
+                <input id="tournament-name" type="text" placeholder="Junior Open">
+              </label>
+              <label>
+                <span>Division</span>
+                <input id="tournament-division" type="text" placeholder="Girls 13-15">
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span>Finish</span>
+                <input id="tournament-finish" type="text" placeholder="2nd place">
+              </label>
+              <label>
+                <span>Result URL</span>
+                <input id="tournament-result-url" type="url" placeholder="https://">
+              </label>
+            </div>
             <label>
               <span>Story</span>
               <textarea id="entry-story" rows="8"></textarea>
@@ -174,9 +224,19 @@
               <input id="entry-approved" type="checkbox">
               <span>Approved for public passport if visibility is public or unlisted</span>
             </label>
-            <button class="button primary" id="save-memory-button" type="button">Save Memory</button>
+            <button class="button primary" id="save-entry-button" type="button">Save Entry</button>
             <p id="dashboard-status" role="status" aria-live="polite"></p>
           </section>
+        </section>
+
+        <section class="dashboard-section entries-section" aria-labelledby="entries-heading">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">Passport log</p>
+            <h2 id="entries-heading">Recent saved entries</h2>
+          </div>
+          <div class="entry-list" id="entry-list">
+            <p class="empty-state">Choose a golfer to load saved entries.</p>
+          </div>
         </section>
       </section>
     </main>

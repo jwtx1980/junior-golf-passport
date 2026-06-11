@@ -176,6 +176,15 @@ async function requireProfile(user: ApiUser): Promise<Profile> {
   return data as Profile;
 }
 
+async function requireReadyUser(req: Request): Promise<{ user: ApiUser; profile: Profile }> {
+  const user = await requireUser(req);
+  const profile = await requireProfile(user);
+  if (profile.must_change_password) {
+    throw new ApiError(403, "Update the temporary password before editing this passport");
+  }
+  return { user, profile };
+}
+
 async function requireEditableGolfer(userId: string, golferId: string) {
   const { data, error } = await adminClient()
     .from("golfer_members")
@@ -333,8 +342,59 @@ async function handleDashboardGolfers(req: Request) {
   return jsonResponse(200, { golfers: data || [] });
 }
 
-async function handleCreateGolfer(req: Request) {
+async function handleDashboardEntries(req: Request, golferId: string) {
   const user = await requireUser(req);
+  if (!golferId) throw new ApiError(400, "golfer_id is required");
+  await requireEditableGolfer(user.id, golferId);
+
+  const [rounds, memories, achievements, tournaments, photos] = await Promise.all([
+    adminClient()
+      .from("rounds")
+      .select("*,courses(*)")
+      .eq("golfer_id", golferId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    adminClient()
+      .from("memories")
+      .select("*,courses(*)")
+      .eq("golfer_id", golferId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    adminClient()
+      .from("achievements")
+      .select("*,courses(*)")
+      .eq("golfer_id", golferId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    adminClient()
+      .from("tournaments")
+      .select("*,courses(*)")
+      .eq("golfer_id", golferId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    adminClient()
+      .from("photos")
+      .select("*")
+      .eq("golfer_id", golferId)
+      .order("created_at", { ascending: false })
+      .limit(30),
+  ]);
+
+  for (const result of [rounds, memories, achievements, tournaments, photos]) {
+    if (result.error) throw new ApiError(500, result.error.message);
+  }
+
+  return jsonResponse(200, {
+    rounds: rounds.data || [],
+    memories: memories.data || [],
+    achievements: achievements.data || [],
+    tournaments: tournaments.data || [],
+    photos: photos.data || [],
+  });
+}
+
+async function handleCreateGolfer(req: Request) {
+  const { user } = await requireReadyUser(req);
   const body = await readJson(req);
   const displayName = cleanString(body.display_name);
   const slug = cleanString(body.slug)
@@ -400,13 +460,13 @@ async function upsertCourse(body: Record<string, unknown>) {
 }
 
 async function handleCreateCourse(req: Request) {
-  await requireUser(req);
+  await requireReadyUser(req);
   const course = await upsertCourse(await readJson(req));
   return jsonResponse(201, { course });
 }
 
 async function handleCreateRound(req: Request) {
-  const user = await requireUser(req);
+  const { user } = await requireReadyUser(req);
   const body = await readJson(req);
   const golferId = cleanString(body.golfer_id);
   if (!golferId) throw new ApiError(400, "golfer_id is required");
@@ -435,7 +495,7 @@ async function handleCreateRound(req: Request) {
 }
 
 async function handleCreateMemory(req: Request) {
-  const user = await requireUser(req);
+  const { user } = await requireReadyUser(req);
   const body = await readJson(req);
   const golferId = cleanString(body.golfer_id);
   if (!golferId) throw new ApiError(400, "golfer_id is required");
@@ -467,7 +527,7 @@ async function handleCreateMemory(req: Request) {
 }
 
 async function handleCreateAchievement(req: Request) {
-  const user = await requireUser(req);
+  const { user } = await requireReadyUser(req);
   const body = await readJson(req);
   const golferId = cleanString(body.golfer_id);
   if (!golferId) throw new ApiError(400, "golfer_id is required");
@@ -499,7 +559,7 @@ async function handleCreateAchievement(req: Request) {
 }
 
 async function handleCreateTournament(req: Request) {
-  const user = await requireUser(req);
+  const { user } = await requireReadyUser(req);
   const body = await readJson(req);
   const golferId = cleanString(body.golfer_id);
   if (!golferId) throw new ApiError(400, "golfer_id is required");
@@ -555,7 +615,7 @@ function parsePastedEntry(value: unknown) {
 }
 
 async function handleParsePastedResult(req: Request) {
-  await requireUser(req);
+  await requireReadyUser(req);
   const body = await readJson(req);
   try {
     return jsonResponse(200, { draft: parsePastedEntry(body.result ?? body) });
@@ -609,8 +669,7 @@ Return JSON with this shape:
 }
 
 async function handleDraftEntry(req: Request) {
-  const user = await requireUser(req);
-  const profile = await requireProfile(user);
+  const { user, profile } = await requireReadyUser(req);
   if (!profile.has_ai_access) {
     throw new ApiError(402, "Built-in AI requires AI access. Use Your Own AI is free.");
   }
@@ -707,6 +766,10 @@ async function route(req: Request) {
     return handlePasswordUpdated(req);
   }
   if (req.method === "GET" && pathname === "/dashboard/golfers") return handleDashboardGolfers(req);
+  const dashboardEntriesMatch = pathname.match(/^\/dashboard\/golfers\/([^/]+)\/entries$/);
+  if (req.method === "GET" && dashboardEntriesMatch) {
+    return handleDashboardEntries(req, dashboardEntriesMatch[1]);
+  }
   if (req.method === "POST" && pathname === "/golfers") return handleCreateGolfer(req);
 
   const publicGolferMatch = pathname.match(/^\/golfers\/([^/]+)\/public$/);

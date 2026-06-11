@@ -797,6 +797,49 @@ main {
   margin-bottom: 0;
 }
 
+.entries-section {
+  padding-top: 28px;
+}
+
+.entry-list {
+  display: grid;
+  gap: 12px;
+}
+
+.entry-list-item {
+  align-items: start;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.entry-list-item h3,
+.entry-list-item p {
+  margin-bottom: 6px;
+}
+
+.entry-list-item strong {
+  background: var(--green-soft);
+  border-radius: 8px;
+  color: var(--green-dark);
+  flex: 0 0 auto;
+  font-size: 0.84rem;
+  padding: 8px 10px;
+}
+
+.empty-state {
+  background: var(--paper);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  margin-bottom: 0;
+  padding: 18px;
+}
+
 .dashboard-shell {
   background: var(--paper);
   border: 1px solid var(--line);
@@ -933,6 +976,7 @@ footer nav {
 
   .profile-card,
   .tournament-list article,
+  .entry-list-item,
   .dashboard-top,
   .dashboard-toolbar,
   .notice-panel,
