@@ -1,0 +1,4 @@
+project_id = "junior-golf-passport"
+
+[functions.passport-api]
+verify_jwt = false

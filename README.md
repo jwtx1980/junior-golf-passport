@@ -21,7 +21,7 @@ http://127.0.0.1:8766/
 - `/` - Kara-first public homepage
 - `/Kara/` - Kara Walker's public passport
 - `/Kara/map/` - interactive golfed states map
-- `/dashboard/` - static private-dashboard preview for the future authenticated admin area
+- `/dashboard/` - authenticated dashboard for manual logging, free prompt-based AI, and built-in AI access
 - `/privacy/` - privacy policy draft
 - `/terms/` - terms draft
 - `/support/` - support page
@@ -39,6 +39,53 @@ Planned stack:
 - Course verification: maps/geocoding API for course names and coordinates before pins are saved
 
 OpenAI keys should never be placed in public browser code. The browser should send rough notes to an authenticated backend function, receive structured data and a story draft, and save only after parent review.
+
+## Supabase Backend
+
+This repo is linked to the dedicated Junior Golf Passport Supabase project:
+
+```text
+Project URL: https://znstslovujtpmydnrcxf.supabase.co
+Project ref: znstslovujtpmydnrcxf
+Edge Function: passport-api
+API base: https://znstslovujtpmydnrcxf.functions.supabase.co/passport-api
+```
+
+Local checks:
+
+```powershell
+deno task check:passport-api
+deno task fmt:check
+```
+
+Deploy database migrations:
+
+```powershell
+npx supabase db push
+```
+
+Deploy the Edge Function:
+
+```powershell
+npx supabase functions deploy passport-api
+```
+
+Already set Edge Function secrets:
+
+```text
+JGP_SUPABASE_URL
+JGP_SUPABASE_SERVICE_ROLE_KEY
+```
+
+Still needed before built-in AI works:
+
+```powershell
+npx supabase secrets set OPENAI_API_KEY="sk-..."
+```
+
+The free `Use Your Own AI` flow does not require an OpenAI key because users copy
+the generated prompt into their own AI tool and paste JSON back into the
+dashboard.
 
 ## Domain
 

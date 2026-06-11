@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Private Dashboard | Junior Golf Passport</title>
+    <title>Dashboard | Junior Golf Passport</title>
     <meta
       name="description"
-      content="Private parent dashboard preview for managing Kara Walker's Junior Golf Passport."
+      content="Private dashboard for managing Junior Golf Passport entries."
     >
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="/styles.css">
@@ -23,65 +23,161 @@
       </nav>
     </header>
 
-    <main>
-      <section class="dashboard-hero">
+    <main class="dashboard-workspace">
+      <section class="dashboard-hero compact-dashboard-hero">
         <div>
-          <p class="eyebrow">Private parent dashboard</p>
-          <h1>Kara's public page stays clean. Editing belongs here.</h1>
+          <p class="eyebrow">Private dashboard</p>
+          <h1>Add the golf memory once. Shape it before it goes public.</h1>
           <p>
-            This route is the planned home for Supabase Auth, course and round
-            entry, photo uploads, and AI-assisted memory drafts. Public visitors
-            should only see approved passport content.
+            Manual logging is free. Use Your Own AI creates a copyable prompt
+            for any AI tool. Built-in AI is ready for accounts with AI access.
           </p>
         </div>
-        <form class="login-panel">
+        <form class="login-panel" id="auth-panel">
           <label>
-            <span>Email for magic link</span>
-            <input type="email" placeholder="parent@example.com" autocomplete="email">
+            <span>Email</span>
+            <input id="auth-email" type="email" placeholder="you@example.com" autocomplete="email">
           </label>
-          <button class="button primary" type="button">Send Magic Link</button>
-          <p>Static preview only. Supabase Auth will make this route private.</p>
+          <label>
+            <span>Password</span>
+            <input id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
+          </label>
+          <label>
+            <span>Display name</span>
+            <input id="auth-name" type="text" placeholder="Kara Walker" autocomplete="name">
+          </label>
+          <div class="button-row">
+            <button class="button primary" id="sign-in-button" type="button">Sign In</button>
+            <button class="button secondary" id="sign-up-button" type="button">Create Account</button>
+          </div>
+          <p id="auth-status" role="status" aria-live="polite"></p>
         </form>
       </section>
 
-      <section class="dashboard-section private-flow" aria-label="Dashboard workflow">
-        <div class="dashboard-shell">
-          <aside class="dashboard-nav" aria-label="Private dashboard navigation">
-            <span class="brand-mark" aria-hidden="true">JGP</span>
-            <button class="active" type="button">Inbox</button>
-            <button type="button">Courses</button>
-            <button type="button">Rounds</button>
-            <button type="button">Achievements</button>
-            <button type="button">Photos</button>
-          </aside>
-          <div class="dashboard-main">
-            <div class="dashboard-top">
-              <div>
-                <p class="eyebrow">AI helper behind auth</p>
-                <h2>Rough note in. Reviewed passport entry out.</h2>
-              </div>
-              <a class="button secondary" href="/Kara/">Preview Public Page</a>
-            </div>
-            <div class="ai-flow-grid">
-              <article>
-                <span class="card-kicker">1. Parent note</span>
-                <p>Played Gannon Municipal in Lynn MA. Kara hit a great drive on 7 and we want to remember it.</p>
-              </article>
-              <article>
-                <span class="card-kicker">2. Verified data</span>
-                <p>Course lookup confirms name, city, state, and map coordinates before a pin is saved.</p>
-              </article>
-              <article>
-                <span class="card-kicker">3. Draft memory</span>
-                <p>Kara added Massachusetts to her golf passport with a round at Gannon Municipal Golf Course in Lynn.</p>
-              </article>
-              <article>
-                <span class="card-kicker">4. Review and publish</span>
-                <p>An approved adult edits the story, chooses visibility, and saves it to Kara's public passport.</p>
-              </article>
-            </div>
+      <section class="dashboard-section app-dashboard" id="dashboard-app" hidden>
+        <div class="dashboard-toolbar">
+          <div>
+            <p class="eyebrow">Signed in</p>
+            <h2 id="account-summary">Loading account...</h2>
+            <p class="tiny-status">API: <span id="api-status"></span></p>
           </div>
+          <button class="button secondary" id="sign-out-button" type="button">Sign Out</button>
         </div>
+
+        <section class="notice-panel" id="password-panel" hidden>
+          <div>
+            <p class="eyebrow">Password update required</p>
+            <h2>Replace the temporary password before editing.</h2>
+          </div>
+          <label>
+            <span>New password</span>
+            <input id="new-password" type="password" autocomplete="new-password">
+          </label>
+          <button class="button primary" id="update-password-button" type="button">Update Password</button>
+        </section>
+
+        <section class="editor-grid">
+          <aside class="editor-panel">
+            <p class="eyebrow">Passport</p>
+            <label>
+              <span>Golfer profile</span>
+              <select id="golfer-select"></select>
+            </label>
+
+            <div class="stacked-fields" id="create-golfer-panel">
+              <h3>Create first golfer profile</h3>
+              <label>
+                <span>Golfer name</span>
+                <input id="golfer-name" type="text" placeholder="Kara Walker">
+              </label>
+              <label>
+                <span>Public slug</span>
+                <input id="golfer-slug" type="text" placeholder="kara">
+              </label>
+              <button class="button primary" id="create-golfer-button" type="button">Create Golfer</button>
+            </div>
+
+            <label>
+              <span>Rough note</span>
+              <textarea id="rough-note" rows="8" placeholder="Played Gannon Municipal in Lynn MA. Kara hit a great drive on 7..."></textarea>
+            </label>
+
+            <div class="button-row">
+              <button class="button secondary" id="generate-prompt-button" type="button">Use Your Own AI</button>
+              <button class="button primary" id="draft-with-ai-button" type="button">Draft With AI</button>
+            </div>
+          </aside>
+
+          <section class="editor-panel">
+            <p class="eyebrow">Free prompt flow</p>
+            <label>
+              <span>Copy this prompt into your own AI tool</span>
+              <textarea id="generated-prompt" rows="10" readonly></textarea>
+            </label>
+            <button class="button secondary" id="copy-prompt-button" type="button">Copy Prompt</button>
+            <label>
+              <span>Paste AI JSON result here</span>
+              <textarea id="pasted-ai-result" rows="8" placeholder="{ &quot;entry_type&quot;: &quot;course_played&quot;, ... }"></textarea>
+            </label>
+            <button class="button primary" id="parse-result-button" type="button">Parse Into Review Draft</button>
+          </section>
+
+          <section class="editor-panel review-panel">
+            <p class="eyebrow">Review before save</p>
+            <div class="form-row">
+              <label>
+                <span>Entry type</span>
+                <select id="entry-type">
+                  <option value="memory">Memory</option>
+                  <option value="course_played">Course played</option>
+                  <option value="round">Round</option>
+                  <option value="achievement">Achievement</option>
+                  <option value="tournament">Tournament</option>
+                </select>
+              </label>
+              <label>
+                <span>Visibility</span>
+                <select id="entry-visibility">
+                  <option value="private">Private</option>
+                  <option value="unlisted">Unlisted</option>
+                  <option value="public">Public</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span>Title</span>
+              <input id="entry-title" type="text" placeholder="Massachusetts passport stamp">
+            </label>
+            <div class="form-row">
+              <label>
+                <span>Course</span>
+                <input id="course-name" type="text" placeholder="Gannon Municipal Golf Course">
+              </label>
+              <label>
+                <span>City</span>
+                <input id="course-city" type="text" placeholder="Lynn">
+              </label>
+            </div>
+            <label>
+              <span>State</span>
+              <input id="course-state" type="text" placeholder="Massachusetts">
+            </label>
+            <label>
+              <span>Story</span>
+              <textarea id="entry-story" rows="8"></textarea>
+            </label>
+            <label>
+              <span>Tags</span>
+              <input id="entry-tags" type="text" placeholder="new state, family round, memorable drive">
+            </label>
+            <label class="check-field compact-check">
+              <input id="entry-approved" type="checkbox">
+              <span>Approved for public passport if visibility is public or unlisted</span>
+            </label>
+            <button class="button primary" id="save-memory-button" type="button">Save Memory</button>
+            <p id="dashboard-status" role="status" aria-live="polite"></p>
+          </section>
+        </section>
       </section>
     </main>
 
@@ -94,5 +190,8 @@
         <a href="/support/">Support</a>
       </nav>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/config.js"></script>
+    <script src="/dashboard/dashboard.js"></script>
   </body>
 </html>
