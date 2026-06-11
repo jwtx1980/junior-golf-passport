@@ -35,7 +35,7 @@ Current stack:
 
 - Auth: Supabase Auth with email/password sign in
 - Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
-- Photos: Supabase Storage bucket exists; upload UI still needs to be added
+- Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
 - Course verification: manual course entry now; maps/geocoding verification later
 
@@ -84,6 +84,7 @@ POST /rounds
 POST /memories
 POST /achievements
 POST /tournaments
+POST /photos
 POST /ai/parse-pasted-result
 POST /ai/draft-entry
 ```

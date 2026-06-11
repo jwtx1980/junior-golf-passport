@@ -801,6 +801,47 @@ main {
   padding-top: 28px;
 }
 
+.photo-upload-section {
+  padding-top: 28px;
+}
+
+.photo-upload-panel {
+  align-items: end;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(220px, 1fr) minmax(220px, 1fr) auto;
+  padding: 20px;
+}
+
+.photo-upload-panel h2 {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.photo-upload-panel p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.photo-upload-panel label {
+  display: grid;
+  gap: 7px;
+  font-weight: 850;
+}
+
+.photo-upload-panel input,
+.photo-upload-panel select {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  min-height: 48px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
 .entry-list {
   display: grid;
   gap: 12px;
@@ -820,6 +861,14 @@ main {
 .entry-list-item h3,
 .entry-list-item p {
   margin-bottom: 6px;
+}
+
+.entry-thumb {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  object-fit: cover;
+  width: min(180px, 100%);
 }
 
 .entry-list-item strong {
@@ -926,6 +975,7 @@ footer nav {
   .dashboard-shell,
   .ai-flow-grid,
   .editor-grid,
+  .photo-upload-panel,
   .notice-panel {
     grid-template-columns: 1fr;
   }

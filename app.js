@@ -66,6 +66,60 @@
     }).join("");
   }
 
+  function renderAchievements(achievements) {
+    var grid = document.querySelector(".achievement-grid");
+    if (!grid || !achievements.length) return;
+
+    grid.innerHTML = achievements.map(function (achievement) {
+      var badge = String(achievement.value || achievement.achievement_type || "A").slice(0, 2).toUpperCase();
+      return [
+        "<article>",
+        "<span>" + escapeHtml(badge) + "</span>",
+        "<strong>" + escapeHtml(achievement.title) + "</strong>",
+        "<p>" + escapeHtml(achievement.story || achievement.value || "") + "</p>",
+        "</article>"
+      ].join("");
+    }).join("");
+  }
+
+  function renderTournaments(tournaments) {
+    var list = document.querySelector(".tournament-list");
+    if (!list || !tournaments.length) return;
+
+    list.innerHTML = tournaments.map(function (tournament) {
+      var details = [tournament.division, tournament.score, tournament.story].filter(Boolean).join(" - ");
+      return [
+        "<article>",
+        "<div>",
+        "<h3>" + escapeHtml(tournament.event_name) + "</h3>",
+        "<p>" + escapeHtml(details || "Tournament result saved to Kara's passport.") + "</p>",
+        "</div>",
+        '<div class="result">' + escapeHtml(tournament.finish || "Saved") + "</div>",
+        "</article>"
+      ].join("");
+    }).join("");
+  }
+
+  function renderPhotos(photos) {
+    var grid = document.querySelector("#photos .memory-grid");
+    if (!grid || !photos.length) return;
+
+    grid.innerHTML = photos.map(function (photo) {
+      var caption = photo.caption || "Passport photo";
+      return [
+        "<article>",
+        photo.signed_url
+          ? '<img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption) + '">'
+          : '<div class="memory-placeholder">Photo</div>',
+        "<div>",
+        "<h3>" + escapeHtml(caption) + "</h3>",
+        "<p>Saved to Kara's Junior Golf Passport.</p>",
+        "</div>",
+        "</article>"
+      ].join("");
+    }).join("");
+  }
+
   function renderStats(rounds, memories) {
     var stats = document.querySelector(".profile-stats");
     if (!stats || !rounds.length) return;
@@ -98,9 +152,15 @@
       .then(function (data) {
         var rounds = Array.isArray(data.rounds) ? data.rounds : [];
         var memories = Array.isArray(data.memories) ? data.memories : [];
+        var achievements = Array.isArray(data.achievements) ? data.achievements : [];
+        var tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
+        var photos = Array.isArray(data.photos) ? data.photos : [];
         renderStats(rounds, memories);
         renderCourseCards(rounds);
         renderMemories(memories);
+        renderAchievements(achievements);
+        renderTournaments(tournaments);
+        renderPhotos(photos);
       })
       .catch(function () {
         // Keep the static passport visible if the live API is unavailable.

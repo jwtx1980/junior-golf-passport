@@ -58,6 +58,11 @@
     tournamentResultUrl: document.getElementById("tournament-result-url"),
     visibility: document.getElementById("entry-visibility"),
     approved: document.getElementById("entry-approved"),
+    photoFile: document.getElementById("photo-file"),
+    photoCaption: document.getElementById("photo-caption"),
+    photoVisibility: document.getElementById("photo-visibility"),
+    photoApproved: document.getElementById("photo-approved"),
+    uploadPhoto: document.getElementById("upload-photo-button"),
     saveEntry: document.getElementById("save-entry-button"),
     dashboardStatus: document.getElementById("dashboard-status"),
     apiStatus: document.getElementById("api-status"),
@@ -149,6 +154,15 @@
       .replace(/^-+|-+$/g, "");
   }
 
+  function safeFileName(value) {
+    return String(value || "photo")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9.]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80) || "photo";
+  }
+
   function selectedGolfer() {
     var golfers = state.me && Array.isArray(state.me.golfers) ? state.me.golfers : [];
     return golfers.find(function (row) {
@@ -211,6 +225,17 @@
           visibility: item.visibility,
           approved: item.is_approved
         };
+      }))
+      .concat((state.entries.photos || []).map(function (item) {
+        return {
+          type: "photo",
+          title: item.caption || "Passport photo",
+          detail: item.storage_path,
+          date: item.created_at,
+          image: item.signed_url,
+          visibility: item.visibility,
+          approved: item.is_approved
+        };
       }));
 
     rows.sort(function (a, b) {
@@ -227,6 +252,7 @@
       return [
         '<article class="entry-list-item">',
         '<div>',
+        row.image ? '<img class="entry-thumb" src="' + escapeHtml(row.image) + '" alt="">' : '',
         '<span class="card-kicker">' + escapeHtml(row.type.replace(/_/g, " ")) + '</span>',
         '<h3>' + escapeHtml(row.title || "Untitled entry") + '</h3>',
         row.course ? '<p>' + escapeHtml(row.course) + '</p>' : '',
@@ -511,6 +537,55 @@
     setStatus("Saved. Public entries appear after they are approved and marked public.");
   }
 
+  async function uploadPhoto() {
+    if (!state.selectedGolferId) {
+      throw new Error("Create or select a golfer first.");
+    }
+    if (!client) {
+      throw new Error("Supabase config did not load.");
+    }
+
+    var file = elements.photoFile && elements.photoFile.files ? elements.photoFile.files[0] : null;
+    if (!file) {
+      throw new Error("Choose a photo first.");
+    }
+    if (!/^image\//.test(file.type || "")) {
+      throw new Error("Choose an image file.");
+    }
+
+    setStatus("Uploading photo...");
+    var path = [
+      state.selectedGolferId,
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+    ].join("/");
+
+    var upload = await client.storage
+      .from("passport-photos")
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+
+    await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: state.selectedGolferId,
+        storage_path: upload.data.path,
+        caption: elements.photoCaption.value.trim(),
+        visibility: elements.photoVisibility.value,
+        is_approved: elements.photoApproved.checked
+      }
+    });
+
+    elements.photoFile.value = "";
+    elements.photoCaption.value = "";
+    elements.photoApproved.checked = false;
+    await loadEntries();
+    setStatus("Photo uploaded. Public photos appear after they are approved and marked public.");
+  }
+
   function bind(button, handler, statusHandler) {
     if (!button) return;
     button.addEventListener("click", function () {
@@ -529,6 +604,7 @@
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
   bind(elements.saveEntry, saveEntry);
+  bind(elements.uploadPhoto, uploadPhoto);
 
   bind(elements.generatePrompt, function () {
     elements.generatedPrompt.value = freeAiPrompt(elements.note.value.trim());

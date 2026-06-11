@@ -229,6 +229,42 @@
           </section>
         </section>
 
+        <section class="dashboard-section photo-upload-section" aria-labelledby="photo-upload-heading">
+          <div class="photo-upload-panel">
+            <div>
+              <p class="eyebrow">Photos</p>
+              <h2 id="photo-upload-heading">Add a scrapbook photo.</h2>
+              <p>
+                Uploads stay private unless you mark them public or unlisted
+                and approve them for the passport.
+              </p>
+            </div>
+            <label>
+              <span>Photo</span>
+              <input id="photo-file" type="file" accept="image/*">
+            </label>
+            <label>
+              <span>Caption</span>
+              <input id="photo-caption" type="text" placeholder="Kara after a round at Kona">
+            </label>
+            <div class="form-row">
+              <label>
+                <span>Visibility</span>
+                <select id="photo-visibility">
+                  <option value="private">Private</option>
+                  <option value="unlisted">Unlisted</option>
+                  <option value="public">Public</option>
+                </select>
+              </label>
+              <label class="check-field compact-check">
+                <input id="photo-approved" type="checkbox">
+                <span>Approved for public passport</span>
+              </label>
+            </div>
+            <button class="button primary" id="upload-photo-button" type="button">Upload Photo</button>
+          </div>
+        </section>
+
         <section class="dashboard-section entries-section" aria-labelledby="entries-heading">
           <div class="section-heading compact-heading">
             <p class="eyebrow">Passport log</p>

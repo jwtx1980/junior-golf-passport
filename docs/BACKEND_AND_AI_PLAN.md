@@ -489,6 +489,7 @@ POST /rounds
 POST /memories
 POST /achievements
 POST /tournaments
+POST /photos
 POST /ai/draft-entry
 POST /ai/parse-pasted-result
 ```
@@ -570,18 +571,21 @@ Build:
   stamps, rounds, achievements, and tournaments
 - protected dashboard entry log: dashboard can load recent rounds, memories,
   achievements, tournaments, and photos for the selected golfer
-- public page reading approved data: started for Kara courses and memories
+- public page reading approved data: started for Kara courses, memories,
+  achievements, tournaments, and photos; private photo files stay in Supabase
+  Storage and are exposed through short-lived signed URLs from the Edge Function
 - free copy-prompt AI flow: prompt generation, pasted JSON validation, review,
   and save path started
 - built-in paid/entitled AI flow: Edge Function route exists and checks
   `has_ai_access`, but still needs the `OPENAI_API_KEY` Supabase secret before it
   can be used
+- photo upload through Supabase Storage: started in the dashboard with caption,
+  visibility, approval, metadata save, and dashboard/public signed URL reads
 
 Then add:
 
 - real Kara/Jamie accounts and golfer memberships
 - first-login password update test with Kara's temporary password
-- photo upload through Supabase Storage
-- dynamic public achievements, tournaments, and photos
+- editing/deleting saved entries and photos
 - course lookup/verification through a maps or geocoding API
 - subscription/payment only after the product flow is proven

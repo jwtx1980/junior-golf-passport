@@ -103,6 +103,8 @@ const corsHeaders = {
   "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
 };
 
+const photoBucket = "passport-photos";
+
 class ApiError extends Error {
   status: number;
 
@@ -238,9 +240,38 @@ function cleanEntryType(value: unknown) {
     : "memory";
 }
 
+function cleanLinkedType(value: unknown) {
+  const text = cleanString(value);
+  return ["round", "memory", "achievement", "tournament", "golfer"].includes(text) ? text : null;
+}
+
 function stringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.map((item) => cleanString(item)).filter(Boolean).slice(0, 12);
+}
+
+async function addSignedPhotoUrls<T extends Record<string, unknown>>(
+  photos: T[],
+  expiresIn = 60 * 60,
+) {
+  if (!photos.length) return [];
+
+  const signed = await Promise.all(photos.map(async (photo) => {
+    const storagePath = cleanString(photo.storage_path);
+    if (!storagePath) return { ...photo, signed_url: null };
+
+    const { data, error } = await adminClient()
+      .storage
+      .from(photoBucket)
+      .createSignedUrl(storagePath, expiresIn);
+
+    return {
+      ...photo,
+      signed_url: error ? null : data?.signedUrl || null,
+    };
+  }));
+
+  return signed;
 }
 
 async function handleMe(req: Request) {
@@ -327,7 +358,7 @@ async function handlePublicGolfer(slug: string) {
     memories: memories.data || [],
     achievements: achievements.data || [],
     tournaments: tournaments.data || [],
-    photos: photos.data || [],
+    photos: await addSignedPhotoUrls(photos.data || []),
   });
 }
 
@@ -389,7 +420,7 @@ async function handleDashboardEntries(req: Request, golferId: string) {
     memories: memories.data || [],
     achievements: achievements.data || [],
     tournaments: tournaments.data || [],
-    photos: photos.data || [],
+    photos: await addSignedPhotoUrls(photos.data || []),
   });
 }
 
@@ -591,6 +622,40 @@ async function handleCreateTournament(req: Request) {
   return jsonResponse(201, { tournament: data });
 }
 
+async function handleCreatePhoto(req: Request) {
+  const { user } = await requireReadyUser(req);
+  const body = await readJson(req);
+  const golferId = cleanString(body.golfer_id);
+  if (!golferId) throw new ApiError(400, "golfer_id is required");
+  await requireEditableGolfer(user.id, golferId);
+
+  const storagePath = cleanString(body.storage_path);
+  if (!storagePath) throw new ApiError(400, "storage_path is required");
+  if (!storagePath.startsWith(`${golferId}/`)) {
+    throw new ApiError(400, "Photo storage path must belong to the selected golfer");
+  }
+
+  const linkedType = cleanLinkedType(body.linked_type);
+  const { data, error } = await adminClient()
+    .from("photos")
+    .insert({
+      golfer_id: golferId,
+      storage_path: storagePath,
+      caption: cleanNullableString(body.caption),
+      linked_type: linkedType,
+      linked_id: cleanNullableString(body.linked_id),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+      uploaded_by: user.id,
+    })
+    .select("*")
+    .single();
+
+  if (error) throw new ApiError(500, error.message);
+  const signed = await addSignedPhotoUrls([data]);
+  return jsonResponse(201, { photo: signed[0] });
+}
+
 function parsePastedEntry(value: unknown) {
   const parsed = typeof value === "string" ? JSON.parse(value) : value;
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -782,6 +847,7 @@ async function route(req: Request) {
   if (req.method === "POST" && pathname === "/memories") return handleCreateMemory(req);
   if (req.method === "POST" && pathname === "/achievements") return handleCreateAchievement(req);
   if (req.method === "POST" && pathname === "/tournaments") return handleCreateTournament(req);
+  if (req.method === "POST" && pathname === "/photos") return handleCreatePhoto(req);
   if (req.method === "POST" && pathname === "/ai/parse-pasted-result") {
     return handleParsePastedResult(req);
   }
