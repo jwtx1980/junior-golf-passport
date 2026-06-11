@@ -34,8 +34,9 @@ public profile directly to one login identity.
 
 Initial users:
 
-- Kara: first real golfer/user, temporary password `password`.
-- Jamie/JW account: likely admin/owner access.
+- Kara: first real golfer/user, `kara.walker5115@gmail.com`, temporary password
+  `password`.
+- Jamie/JW account: `jwtx1980@gmail.com`, admin/owner access.
 
 Kara's temporary password should not be treated as permanent. Add a profile flag:
 
@@ -572,13 +573,11 @@ API base: https://znstslovujtpmydnrcxf.functions.supabase.co/passport-api
 
 ## Open Questions
 
-- What email should Kara use for her first account?
-- What email should Jamie/JW use for admin?
 - Should all new entries default to private until approved?
 - Should Kara's page be editable by Kara, Jamie/JW, or both?
 - Should we start with password login, magic-link login, or both?
-- Do we have, or want to create later, a Google Places API key for course
-  verification?
+- Should we enable Google Places now, or keep manual course coordinates until
+  verified pins become tedious?
 - Should Stripe/subscriptions wait until after manual logging and prompt-based
   AI are working?
 
@@ -639,7 +638,8 @@ Build:
 
 Then add:
 
-- real Kara/Jamie accounts and golfer memberships
+- real Kara/Jamie accounts and golfer memberships with
+  `scripts/bootstrap-live-accounts.ps1`
 - first-login password update test with Kara's temporary password
 - Google Places secret and live lookup verification
 - subscription/payment only after the product flow is proven

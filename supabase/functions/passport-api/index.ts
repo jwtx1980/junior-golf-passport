@@ -1131,7 +1131,7 @@ async function handleDraftEntry(req: Request) {
   if (!note) throw new ApiError(400, "A rough note is required");
 
   const startedAt = new Date().toISOString();
-  const model = optionalEnv("OPENAI_MODEL") || "gpt-4o-mini";
+  const model = optionalEnv("OPENAI_MODEL") || "gpt-5.4-mini";
   let aiRequestId: string | null = null;
 
   const insert = await adminClient()

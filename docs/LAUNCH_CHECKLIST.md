@@ -19,8 +19,8 @@ passport prototype to a live, usable account-backed product.
 
 ## Needs User Input
 
-1. Choose Kara's real login email.
-2. Choose Jamie/JW's admin login email.
+1. Kara's real login email: `kara.walker5115@gmail.com`.
+2. Jamie/JW's admin login email: `jwtx1980@gmail.com`.
 3. Decide whether new public signups should create their first golfer profile
    automatically or by using the current dashboard form.
 4. Decide when to enable subscriptions. Manual logging and copy-prompt AI should
@@ -29,17 +29,21 @@ passport prototype to a live, usable account-backed product.
 ## Supabase Secrets
 
 Set these in the Junior Golf Passport Supabase project before testing paid AI or
-live course lookup:
+live course lookup. The easiest local path is:
 
 ```powershell
-npx supabase secrets set OPENAI_API_KEY="sk-..."
-npx supabase secrets set GOOGLE_PLACES_API_KEY="..."
+.\scripts\set-live-secrets.ps1
 ```
 
-Optional model override:
+That script prompts for `OPENAI_API_KEY`, optionally prompts for
+`GOOGLE_PLACES_API_KEY`, sets `OPENAI_MODEL`, and checks `/features`.
+
+Manual commands, if needed:
 
 ```powershell
-npx supabase secrets set OPENAI_MODEL="gpt-4.1-mini"
+npx supabase secrets set OPENAI_API_KEY="sk-..." --project-ref znstslovujtpmydnrcxf
+npx supabase secrets set OPENAI_MODEL="gpt-5.4-mini" --project-ref znstslovujtpmydnrcxf
+npx supabase secrets set GOOGLE_PLACES_API_KEY="..." --project-ref znstslovujtpmydnrcxf
 ```
 
 After setting secrets, verify:
@@ -59,33 +63,42 @@ Expected result after both keys are configured:
 
 ## Real Account Bootstrap
 
-Run this only after the real email addresses are known and the service-role key
-is available in the local shell.
+Run this only after the service-role key is available. The wrapper uses the real
+Kara/Jamie emails and temporary passwords:
 
 ```powershell
-$env:JGP_SUPABASE_URL="https://znstslovujtpmydnrcxf.supabase.co"
-$env:JGP_SUPABASE_SERVICE_ROLE_KEY="paste-service-role-key-here"
-
-deno run --allow-env --allow-net scripts/bootstrap-account.ts `
-  --email kara@example.com `
-  --password password `
-  --display-name "Kara Walker" `
-  --profile-role owner `
-  --member-role owner `
-  --golfer-slug kara `
-  --has-ai-access true `
-  --must-change-password true
-
-deno run --allow-env --allow-net scripts/bootstrap-account.ts `
-  --email jamie@example.com `
-  --password "replace-this-temporary-password" `
-  --display-name "Jamie Walker" `
-  --profile-role admin `
-  --member-role owner `
-  --golfer-slug kara `
-  --has-ai-access true `
-  --must-change-password true
+.\scripts\bootstrap-live-accounts.ps1
 ```
+
+It creates or updates:
+
+- Kara: `kara.walker5115@gmail.com`, owner of Kara's passport, AI access enabled,
+  temporary password `password`, must change password on first sign-in.
+- Jamie/JW: `jwtx1980@gmail.com`, admin, owner member of Kara's passport, AI
+  access enabled, temporary password `password`, must change password on first
+  sign-in.
+
+The lower-level Deno script is still available for custom accounts:
+`scripts/bootstrap-account.ts`.
+
+## Google Places Decision
+
+Google Places is not required for the first launch because the dashboard already
+supports manual course entry and manual latitude/longitude. Add it when verified
+course pins become annoying to maintain by hand.
+
+When enabled, keep lookup in the private dashboard only. Do not add public
+autocomplete until subscriptions or strict quota controls exist.
+
+Cost note checked June 11, 2026: our current lookup asks Google for course
+display name, address, and location, which places it in the Text Search Pro tier.
+Google's public pricing currently shows a free usage cap for that tier before
+paid usage. This should be inexpensive for private admin lookup, but it should
+not be exposed as a public search box without quota controls.
+
+OpenAI cost note checked June 11, 2026: use a mini model for rough-note drafting
+and set a monthly budget/alert in the OpenAI dashboard before opening built-in AI
+to more users.
 
 ## Verification Gates
 
