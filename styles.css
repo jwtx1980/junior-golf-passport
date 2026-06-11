@@ -240,6 +240,21 @@ main {
   background: var(--green-dark);
 }
 
+.small-button {
+  font-size: 0.86rem;
+  min-height: 38px;
+  padding: 7px 11px;
+}
+
+.danger-button {
+  color: #8d2e1f;
+}
+
+.danger-button:hover {
+  border-color: var(--coral);
+  color: #6e2318;
+}
+
 .text-link {
   color: var(--green-dark);
   font-weight: 900;
@@ -875,9 +890,16 @@ main {
   background: var(--green-soft);
   border-radius: 8px;
   color: var(--green-dark);
-  flex: 0 0 auto;
   font-size: 0.84rem;
   padding: 8px 10px;
+}
+
+.entry-actions {
+  align-items: end;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .empty-state {
@@ -1027,6 +1049,7 @@ footer nav {
   .profile-card,
   .tournament-list article,
   .entry-list-item,
+  .entry-actions,
   .dashboard-top,
   .dashboard-toolbar,
   .notice-panel,

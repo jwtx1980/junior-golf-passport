@@ -10,7 +10,9 @@
     me: null,
     selectedGolferId: "",
     currentDraft: null,
-    entries: null
+    entries: null,
+    currentEdit: null,
+    renderedRows: {}
   };
 
   var elements = {
@@ -170,6 +172,52 @@
     });
   }
 
+  function setEditMode(edit) {
+    state.currentEdit = edit;
+    if (elements.saveEntry) {
+      elements.saveEntry.textContent = edit && edit.kind !== "photos" ? "Update Entry" : "Save Entry";
+    }
+    if (elements.uploadPhoto) {
+      elements.uploadPhoto.textContent = edit && edit.kind === "photos" ? "Update Photo" : "Upload Photo";
+    }
+  }
+
+  function clearEntryForm() {
+    [
+      elements.note,
+      elements.entryTitle,
+      elements.entryStory,
+      elements.entryTags,
+      elements.courseName,
+      elements.courseCity,
+      elements.courseState,
+      elements.entryDate,
+      elements.roundScore,
+      elements.roundHoles,
+      elements.roundHighlight,
+      elements.achievementType,
+      elements.achievementValue,
+      elements.tournamentName,
+      elements.tournamentDivision,
+      elements.tournamentFinish,
+      elements.tournamentResultUrl
+    ].forEach(function (field) {
+      if (field) field.value = "";
+    });
+    if (elements.entryType) elements.entryType.value = "memory";
+    if (elements.visibility) elements.visibility.value = "private";
+    if (elements.approved) elements.approved.checked = false;
+    setEditMode(null);
+  }
+
+  function clearPhotoForm() {
+    if (elements.photoFile) elements.photoFile.value = "";
+    if (elements.photoCaption) elements.photoCaption.value = "";
+    if (elements.photoVisibility) elements.photoVisibility.value = "private";
+    if (elements.photoApproved) elements.photoApproved.checked = false;
+    setEditMode(null);
+  }
+
   function renderEntries() {
     if (!elements.entryList) return;
     if (!state.selectedGolferId) {
@@ -181,9 +229,13 @@
       return;
     }
 
+    state.renderedRows = {};
     var rows = []
       .concat((state.entries.memories || []).map(function (item) {
         return {
+          id: item.id,
+          kind: "memories",
+          raw: item,
           type: item.entry_type || "memory",
           title: item.title,
           detail: item.story,
@@ -195,6 +247,9 @@
       }))
       .concat((state.entries.rounds || []).map(function (item) {
         return {
+          id: item.id,
+          kind: "rounds",
+          raw: item,
           type: "round",
           title: item.score ? "Round of " + item.score : "Round played",
           detail: item.story || item.notes,
@@ -206,6 +261,9 @@
       }))
       .concat((state.entries.achievements || []).map(function (item) {
         return {
+          id: item.id,
+          kind: "achievements",
+          raw: item,
           type: "achievement",
           title: item.title,
           detail: item.story || item.value,
@@ -217,6 +275,9 @@
       }))
       .concat((state.entries.tournaments || []).map(function (item) {
         return {
+          id: item.id,
+          kind: "tournaments",
+          raw: item,
           type: "tournament",
           title: item.event_name,
           detail: [item.division, item.finish, item.story].filter(Boolean).join(" - "),
@@ -228,6 +289,9 @@
       }))
       .concat((state.entries.photos || []).map(function (item) {
         return {
+          id: item.id,
+          kind: "photos",
+          raw: item,
           type: "photo",
           title: item.caption || "Passport photo",
           detail: item.storage_path,
@@ -248,9 +312,11 @@
     }
 
     elements.entryList.innerHTML = rows.slice(0, 24).map(function (row) {
+      var rowKey = row.kind + ":" + row.id;
+      state.renderedRows[rowKey] = row;
       var status = row.visibility + (row.approved ? " / approved" : " / draft");
       return [
-        '<article class="entry-list-item">',
+        '<article class="entry-list-item" data-row-key="' + escapeHtml(rowKey) + '">',
         '<div>',
         row.image ? '<img class="entry-thumb" src="' + escapeHtml(row.image) + '" alt="">' : '',
         '<span class="card-kicker">' + escapeHtml(row.type.replace(/_/g, " ")) + '</span>',
@@ -258,7 +324,11 @@
         row.course ? '<p>' + escapeHtml(row.course) + '</p>' : '',
         row.detail ? '<p>' + escapeHtml(row.detail) + '</p>' : '',
         '</div>',
+        '<div class="entry-actions">',
         '<strong>' + escapeHtml(status) + '</strong>',
+        '<button class="button secondary small-button" type="button" data-action="edit" data-row-key="' + escapeHtml(rowKey) + '">Edit</button>',
+        '<button class="button secondary small-button danger-button" type="button" data-action="delete" data-row-key="' + escapeHtml(rowKey) + '">Delete</button>',
+        '</div>',
         '</article>'
       ].join("");
     }).join("");
@@ -314,6 +384,66 @@
     }
     state.entries = await api("/dashboard/golfers/" + state.selectedGolferId + "/entries");
     renderEntries();
+  }
+
+  function courseToFields(item) {
+    var course = item && item.courses ? item.courses : {};
+    elements.courseName.value = course.name || "";
+    elements.courseCity.value = course.city || "";
+    elements.courseState.value = course.state || "";
+  }
+
+  function editRow(row) {
+    if (!row) return;
+    if (row.kind === "photos") {
+      clearEntryForm();
+      elements.photoCaption.value = row.raw.caption || "";
+      elements.photoVisibility.value = row.raw.visibility || "private";
+      elements.photoApproved.checked = Boolean(row.raw.is_approved);
+      setEditMode({ kind: row.kind, id: row.id });
+      setStatus("Editing photo details. Update the caption, visibility, or approval.");
+      return;
+    }
+
+    clearPhotoForm();
+    var item = row.raw;
+    elements.entryType.value = row.type || "memory";
+    elements.visibility.value = item.visibility || "private";
+    elements.approved.checked = Boolean(item.is_approved);
+    courseToFields(item);
+
+    if (row.kind === "memories") {
+      elements.entryTitle.value = item.title || "";
+      elements.entryStory.value = item.story || "";
+      elements.note.value = item.raw_note || "";
+      elements.entryTags.value = Array.isArray(item.tags) ? item.tags.join(", ") : "";
+    } else if (row.kind === "rounds") {
+      elements.entryTitle.value = row.title || "";
+      elements.entryStory.value = item.story || "";
+      elements.note.value = item.notes || "";
+      elements.entryDate.value = item.played_on || "";
+      elements.roundScore.value = item.score || "";
+      elements.roundHoles.value = item.holes || "";
+      elements.roundHighlight.value = item.tees || "";
+    } else if (row.kind === "achievements") {
+      elements.entryTitle.value = item.title || "";
+      elements.entryStory.value = item.story || "";
+      elements.entryDate.value = item.achieved_on || "";
+      elements.achievementType.value = item.achievement_type || "";
+      elements.achievementValue.value = item.value || "";
+    } else if (row.kind === "tournaments") {
+      elements.entryTitle.value = item.event_name || "";
+      elements.entryStory.value = item.story || "";
+      elements.entryDate.value = item.played_on || "";
+      elements.roundScore.value = item.score || "";
+      elements.tournamentName.value = item.event_name || "";
+      elements.tournamentDivision.value = item.division || "";
+      elements.tournamentFinish.value = item.finish || "";
+      elements.tournamentResultUrl.value = item.result_url || "";
+    }
+
+    setEditMode({ kind: row.kind, id: row.id });
+    setStatus("Editing saved entry. Update the review fields and click Update Entry.");
   }
 
   async function loadSession() {
@@ -479,60 +609,69 @@
     var base = baseEntryPayload(courseId);
 
     if (entryType === "round") {
-      await api("/rounds", {
-        method: "POST",
-        body: {
-          ...base,
-          played_on: elements.entryDate.value,
-          score: elements.roundScore.value,
-          holes: elements.roundHoles.value,
-          tees: elements.roundHighlight.value,
-          notes: elements.note.value.trim(),
-          story: elements.entryStory.value.trim()
-        }
-      });
+      var roundBody = {
+        ...base,
+        played_on: elements.entryDate.value,
+        score: elements.roundScore.value,
+        holes: elements.roundHoles.value,
+        tees: elements.roundHighlight.value,
+        notes: elements.note.value.trim(),
+        story: elements.entryStory.value.trim()
+      };
+      if (state.currentEdit && state.currentEdit.kind === "rounds") {
+        await api("/entries/rounds/" + state.currentEdit.id, { method: "PATCH", body: roundBody });
+      } else {
+        await api("/rounds", { method: "POST", body: roundBody });
+      }
     } else if (entryType === "achievement") {
-      await api("/achievements", {
-        method: "POST",
-        body: {
-          ...base,
-          title: elements.entryTitle.value.trim(),
-          achievement_type: elements.achievementType.value.trim(),
-          achieved_on: elements.entryDate.value,
-          value: elements.achievementValue.value.trim(),
-          story: elements.entryStory.value.trim()
-        }
-      });
+      var achievementBody = {
+        ...base,
+        title: elements.entryTitle.value.trim(),
+        achievement_type: elements.achievementType.value.trim(),
+        achieved_on: elements.entryDate.value,
+        value: elements.achievementValue.value.trim(),
+        story: elements.entryStory.value.trim()
+      };
+      if (state.currentEdit && state.currentEdit.kind === "achievements") {
+        await api("/entries/achievements/" + state.currentEdit.id, { method: "PATCH", body: achievementBody });
+      } else {
+        await api("/achievements", { method: "POST", body: achievementBody });
+      }
     } else if (entryType === "tournament") {
-      await api("/tournaments", {
-        method: "POST",
-        body: {
-          ...base,
-          event_name: elements.tournamentName.value.trim() || elements.entryTitle.value.trim(),
-          played_on: elements.entryDate.value,
-          division: elements.tournamentDivision.value.trim(),
-          score: elements.roundScore.value,
-          finish: elements.tournamentFinish.value.trim(),
-          result_url: elements.tournamentResultUrl.value.trim(),
-          story: elements.entryStory.value.trim()
-        }
-      });
+      var tournamentBody = {
+        ...base,
+        event_name: elements.tournamentName.value.trim() || elements.entryTitle.value.trim(),
+        played_on: elements.entryDate.value,
+        division: elements.tournamentDivision.value.trim(),
+        score: elements.roundScore.value,
+        finish: elements.tournamentFinish.value.trim(),
+        result_url: elements.tournamentResultUrl.value.trim(),
+        story: elements.entryStory.value.trim()
+      };
+      if (state.currentEdit && state.currentEdit.kind === "tournaments") {
+        await api("/entries/tournaments/" + state.currentEdit.id, { method: "PATCH", body: tournamentBody });
+      } else {
+        await api("/tournaments", { method: "POST", body: tournamentBody });
+      }
     } else {
-      await api("/memories", {
-        method: "POST",
-        body: {
-          ...base,
-          title: elements.entryTitle.value.trim(),
-          entry_type: entryType,
-          story: elements.entryStory.value.trim(),
-          raw_note: elements.note.value.trim(),
-          tags: elements.entryTags.value.split(",").map(function (tag) {
-            return tag.trim();
-          }).filter(Boolean)
-        }
-      });
+      var memoryBody = {
+        ...base,
+        title: elements.entryTitle.value.trim(),
+        entry_type: entryType,
+        story: elements.entryStory.value.trim(),
+        raw_note: elements.note.value.trim(),
+        tags: elements.entryTags.value.split(",").map(function (tag) {
+          return tag.trim();
+        }).filter(Boolean)
+      };
+      if (state.currentEdit && state.currentEdit.kind === "memories") {
+        await api("/entries/memories/" + state.currentEdit.id, { method: "PATCH", body: memoryBody });
+      } else {
+        await api("/memories", { method: "POST", body: memoryBody });
+      }
     }
 
+    clearEntryForm();
     await loadEntries();
     setStatus("Saved. Public entries appear after they are approved and marked public.");
   }
@@ -546,6 +685,21 @@
     }
 
     var file = elements.photoFile && elements.photoFile.files ? elements.photoFile.files[0] : null;
+    if (state.currentEdit && state.currentEdit.kind === "photos") {
+      setStatus("Updating photo...");
+      await api("/entries/photos/" + state.currentEdit.id, {
+        method: "PATCH",
+        body: {
+          caption: elements.photoCaption.value.trim(),
+          visibility: elements.photoVisibility.value,
+          is_approved: elements.photoApproved.checked
+        }
+      });
+      clearPhotoForm();
+      await loadEntries();
+      setStatus("Photo updated.");
+      return;
+    }
     if (!file) {
       throw new Error("Choose a photo first.");
     }
@@ -584,6 +738,18 @@
     elements.photoApproved.checked = false;
     await loadEntries();
     setStatus("Photo uploaded. Public photos appear after they are approved and marked public.");
+  }
+
+  async function deleteRow(row) {
+    if (!row) return;
+    setStatus("Deleting " + row.type.replace(/_/g, " ") + "...");
+    await api("/entries/" + row.kind + "/" + row.id, { method: "DELETE" });
+    if (state.currentEdit && state.currentEdit.id === row.id && state.currentEdit.kind === row.kind) {
+      clearEntryForm();
+      clearPhotoForm();
+    }
+    await loadEntries();
+    setStatus("Deleted.");
   }
 
   function bind(button, handler, statusHandler) {
@@ -633,6 +799,23 @@
       loadEntries().catch(function (error) {
         setStatus(error.message);
       });
+    });
+  }
+
+  if (elements.entryList) {
+    elements.entryList.addEventListener("click", function (event) {
+      var button = event.target.closest("button[data-action]");
+      if (!button) return;
+      var row = state.renderedRows[button.getAttribute("data-row-key")];
+      if (button.getAttribute("data-action") === "edit") {
+        editRow(row);
+        return;
+      }
+      if (button.getAttribute("data-action") === "delete") {
+        deleteRow(row).catch(function (error) {
+          setStatus(error.message);
+        });
+      }
     });
   }
 

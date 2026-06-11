@@ -100,7 +100,7 @@ const passportEntrySchema = {
 const corsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "authorization, x-client-info, apikey, content-type",
-  "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
+  "access-control-allow-methods": "GET, POST, PATCH, DELETE, OPTIONS",
 };
 
 const photoBucket = "passport-photos";
@@ -243,6 +243,11 @@ function cleanEntryType(value: unknown) {
 function cleanLinkedType(value: unknown) {
   const text = cleanString(value);
   return ["round", "memory", "achievement", "tournament", "golfer"].includes(text) ? text : null;
+}
+
+function cleanEntryKind(value: unknown) {
+  const text = cleanString(value);
+  return ["rounds", "memories", "achievements", "tournaments", "photos"].includes(text) ? text : "";
 }
 
 function stringArray(value: unknown) {
@@ -656,6 +661,148 @@ async function handleCreatePhoto(req: Request) {
   return jsonResponse(201, { photo: signed[0] });
 }
 
+async function loadEditableEntry(req: Request, kind: string, id: string) {
+  const { user } = await requireReadyUser(req);
+  const entryKind = cleanEntryKind(kind);
+  if (!entryKind) throw new ApiError(404, "Entry type not found");
+  const entryId = cleanString(id);
+  if (!entryId) throw new ApiError(400, "Entry id is required");
+
+  const { data, error } = await adminClient()
+    .from(entryKind)
+    .select("*")
+    .eq("id", entryId)
+    .maybeSingle();
+
+  if (error) throw new ApiError(500, error.message);
+  if (!data) throw new ApiError(404, "Entry not found");
+
+  const golferId = cleanString((data as Record<string, unknown>).golfer_id);
+  if (!golferId) throw new ApiError(500, "Entry is missing golfer_id");
+  await requireEditableGolfer(user.id, golferId);
+
+  return { user, entryKind, entry: data as Record<string, unknown>, golferId };
+}
+
+function updatePayload(kind: string, body: Record<string, unknown>) {
+  if (kind === "rounds") {
+    return {
+      course_id: cleanNullableString(body.course_id),
+      played_on: cleanDate(body.played_on),
+      score: cleanNumber(body.score),
+      holes: cleanNumber(body.holes),
+      tees: cleanNullableString(body.tees),
+      notes: cleanNullableString(body.notes),
+      story: cleanNullableString(body.story),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+    };
+  }
+  if (kind === "memories") {
+    const title = cleanString(body.title);
+    if (!title) throw new ApiError(400, "Title is required");
+    return {
+      course_id: cleanNullableString(body.course_id),
+      round_id: cleanNullableString(body.round_id),
+      title,
+      entry_type: cleanEntryType(body.entry_type),
+      story: cleanNullableString(body.story),
+      raw_note: cleanNullableString(body.raw_note),
+      tags: stringArray(body.tags),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+    };
+  }
+  if (kind === "achievements") {
+    const title = cleanString(body.title);
+    if (!title) throw new ApiError(400, "Title is required");
+    return {
+      title,
+      achievement_type: cleanNullableString(body.achievement_type),
+      achieved_on: cleanDate(body.achieved_on),
+      course_id: cleanNullableString(body.course_id),
+      round_id: cleanNullableString(body.round_id),
+      value: cleanNullableString(body.value),
+      story: cleanNullableString(body.story),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+    };
+  }
+  if (kind === "tournaments") {
+    const eventName = cleanString(body.event_name);
+    if (!eventName) throw new ApiError(400, "Event name is required");
+    return {
+      course_id: cleanNullableString(body.course_id),
+      event_name: eventName,
+      played_on: cleanDate(body.played_on),
+      division: cleanNullableString(body.division),
+      score: cleanNullableString(body.score),
+      finish: cleanNullableString(body.finish),
+      result_url: cleanNullableString(body.result_url),
+      story: cleanNullableString(body.story),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+    };
+  }
+  if (kind === "photos") {
+    return {
+      caption: cleanNullableString(body.caption),
+      linked_type: cleanLinkedType(body.linked_type),
+      linked_id: cleanNullableString(body.linked_id),
+      visibility: cleanVisibility(body.visibility),
+      is_approved: cleanBoolean(body.is_approved),
+    };
+  }
+  throw new ApiError(404, "Entry type not found");
+}
+
+async function handleUpdateEntry(req: Request, kind: string, id: string) {
+  const current = await loadEditableEntry(req, kind, id);
+  const body = await readJson(req);
+  const payload = updatePayload(current.entryKind, body);
+
+  if (current.entryKind === "photos") {
+    const { data, error } = await adminClient()
+      .from(current.entryKind)
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) throw new ApiError(500, error.message);
+    const signed = await addSignedPhotoUrls([data as Record<string, unknown>]);
+    return jsonResponse(200, { entry: signed[0] });
+  }
+
+  const { data, error } = await adminClient()
+    .from(current.entryKind)
+    .update(payload)
+    .eq("id", id)
+    .select("*,courses(*)")
+    .single();
+
+  if (error) throw new ApiError(500, error.message);
+  return jsonResponse(200, { entry: data });
+}
+
+async function handleDeleteEntry(req: Request, kind: string, id: string) {
+  const current = await loadEditableEntry(req, kind, id);
+  const storagePath = current.entryKind === "photos" ? cleanString(current.entry.storage_path) : "";
+
+  const { error } = await adminClient()
+    .from(current.entryKind)
+    .delete()
+    .eq("id", id);
+
+  if (error) throw new ApiError(500, error.message);
+
+  if (storagePath) {
+    await adminClient().storage.from(photoBucket).remove([storagePath]);
+  }
+
+  return jsonResponse(200, { deleted: true });
+}
+
 function parsePastedEntry(value: unknown) {
   const parsed = typeof value === "string" ? JSON.parse(value) : value;
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
@@ -840,6 +987,14 @@ async function route(req: Request) {
   const publicGolferMatch = pathname.match(/^\/golfers\/([^/]+)\/public$/);
   if (req.method === "GET" && publicGolferMatch) {
     return handlePublicGolfer(publicGolferMatch[1].toLowerCase());
+  }
+
+  const entryMatch = pathname.match(/^\/entries\/([^/]+)\/([^/]+)$/);
+  if (entryMatch && req.method === "PATCH") {
+    return handleUpdateEntry(req, entryMatch[1], entryMatch[2]);
+  }
+  if (entryMatch && req.method === "DELETE") {
+    return handleDeleteEntry(req, entryMatch[1], entryMatch[2]);
   }
 
   if (req.method === "POST" && pathname === "/courses") return handleCreateCourse(req);

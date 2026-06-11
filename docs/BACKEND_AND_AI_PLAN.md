@@ -490,6 +490,8 @@ POST /memories
 POST /achievements
 POST /tournaments
 POST /photos
+PATCH /entries/:kind/:id
+DELETE /entries/:kind/:id
 POST /ai/draft-entry
 POST /ai/parse-pasted-result
 ```
@@ -581,11 +583,12 @@ Build:
   can be used
 - photo upload through Supabase Storage: started in the dashboard with caption,
   visibility, approval, metadata save, and dashboard/public signed URL reads
+- edit/delete saved entries and photos: dashboard can edit review fields,
+  captions, visibility, and approval, and can delete entries and stored photos
 
 Then add:
 
 - real Kara/Jamie accounts and golfer memberships
 - first-login password update test with Kara's temporary password
-- editing/deleting saved entries and photos
 - course lookup/verification through a maps or geocoding API
 - subscription/payment only after the product flow is proven

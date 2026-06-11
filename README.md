@@ -85,6 +85,8 @@ POST /memories
 POST /achievements
 POST /tournaments
 POST /photos
+PATCH /entries/:kind/:id
+DELETE /entries/:kind/:id
 POST /ai/parse-pasted-result
 POST /ai/draft-entry
 ```
