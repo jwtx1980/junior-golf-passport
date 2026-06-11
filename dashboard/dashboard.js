@@ -748,7 +748,6 @@
     var profile = state.me.profile;
     setDashboardLocked(false);
     renderFeatureControls(profile);
-    renderSetupChecklist(profile);
     setText(
       elements.accountSummary,
       [
@@ -765,11 +764,15 @@
       return '<option value="' + golfer.id + '">' + golfer.display_name + '</option>';
     }).join("");
 
-    if (!state.selectedGolferId && golfers[0] && golfers[0].golfers) {
+    var hasSelectedGolfer = golfers.some(function (row) {
+      return row.golfers && row.golfers.id === state.selectedGolferId;
+    });
+    if (!hasSelectedGolfer && golfers[0] && golfers[0].golfers) {
       state.selectedGolferId = golfers[0].golfers.id;
     }
     elements.golferSelect.value = state.selectedGolferId;
     setHidden(elements.createGolferPanel, golfers.length > 0);
+    renderSetupChecklist(profile);
     renderProfileEditor();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
