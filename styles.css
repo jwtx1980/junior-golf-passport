@@ -995,6 +995,17 @@ main {
   margin-bottom: 0;
 }
 
+.public-link-panel {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.public-link-panel .tiny-status {
+  flex-basis: 100%;
+}
+
 .form-row {
   display: grid;
   gap: 12px;

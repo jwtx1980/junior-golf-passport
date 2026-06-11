@@ -634,8 +634,9 @@ Build:
   verification status, and verification source when creating course-backed
   entries
 - automated course lookup: dashboard and Edge Function support server-side
-  Google Places Text Search candidates, but live lookup needs the
-  `GOOGLE_PLACES_API_KEY` Supabase secret before it can return verified matches
+  Google Places Text Search candidates, and the `GOOGLE_PLACES_API_KEY`
+  Supabase secret is saved; live lookup still needs Places API (New) enabled in
+  the Google Cloud project before it can return verified matches
 - feature readiness: dashboard reads a safe `/features` endpoint so built-in AI
   and course lookup controls are disabled with setup hints until the required
   Supabase secrets are present
@@ -651,6 +652,8 @@ Build:
   account status, selected golfer status, public content readiness, free
   copy-prompt AI availability, built-in AI key readiness, and course lookup key
   readiness
+- dashboard public link: signed-in users can open or copy the selected golfer's
+  public passport URL from the public profile editor
 - live public map data: Kara's map now hydrates from approved Supabase rounds and
   course coordinates, with the original built-in map list as fallback
 

@@ -54,6 +54,10 @@
     profileHomeState: document.getElementById("profile-home-state"),
     profileVisibility: document.getElementById("profile-visibility"),
     saveProfile: document.getElementById("save-profile-button"),
+    publicLinkPanel: document.getElementById("public-link-panel"),
+    publicPassportLink: document.getElementById("public-passport-link"),
+    copyPublicLink: document.getElementById("copy-public-link-button"),
+    publicLinkStatus: document.getElementById("public-link-status"),
     note: document.getElementById("rough-note"),
     generatedPrompt: document.getElementById("generated-prompt"),
     generatePrompt: document.getElementById("generate-prompt-button"),
@@ -228,6 +232,17 @@
       .replace(/[^a-z0-9.]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 80) || "photo";
+  }
+
+  function publicPathForGolfer(golfer) {
+    var slug = normalizeSlug(golfer && golfer.slug ? golfer.slug : golfer && golfer.display_name);
+    if (!slug) return "";
+    return slug === "kara" ? "/Kara/" : "/" + encodeURIComponent(slug) + "/";
+  }
+
+  function publicUrlForGolfer(golfer) {
+    var path = publicPathForGolfer(golfer);
+    return path ? window.location.origin + path : "";
   }
 
   function optionalNumber(value) {
@@ -517,7 +532,8 @@
     var allowedIds = {
       "new-password": true,
       "update-password-button": true,
-      "sign-out-button": true
+      "sign-out-button": true,
+      "copy-public-link-button": true
     };
 
     Array.from(elements.appPanel.querySelectorAll("button,input,select,textarea"))
@@ -568,6 +584,7 @@
     var row = selectedGolfer();
     var golfer = row && row.golfers;
     setHidden(elements.profileEditPanel, !golfer);
+    setHidden(elements.publicLinkPanel, !golfer);
     if (!golfer) return;
 
     elements.profileName.value = golfer.display_name || "";
@@ -575,6 +592,15 @@
     elements.profileBio.value = golfer.bio || "";
     elements.profileHomeState.value = golfer.home_state || "";
     elements.profileVisibility.value = golfer.visibility || "public";
+    renderPublicLink(golfer);
+  }
+
+  function renderPublicLink(golfer) {
+    var url = publicUrlForGolfer(golfer);
+    if (elements.publicPassportLink) {
+      elements.publicPassportLink.href = url || "#";
+    }
+    setText(elements.publicLinkStatus, url ? url.replace(window.location.origin, "") : "");
   }
 
   function selectedGolfer() {
@@ -1461,6 +1487,16 @@
   bind(elements.copyPrompt, function () {
     return navigator.clipboard.writeText(elements.generatedPrompt.value).then(function () {
       setStatus("Prompt copied.");
+    });
+  });
+
+  bind(elements.copyPublicLink, function () {
+    var row = selectedGolfer();
+    var url = publicUrlForGolfer(row && row.golfers);
+    if (!url) throw new Error("Select a golfer profile first.");
+    return navigator.clipboard.writeText(url).then(function () {
+      setText(elements.publicLinkStatus, "Public link copied.");
+      setStatus("Public passport link copied.");
     });
   });
 
