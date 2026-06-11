@@ -481,6 +481,7 @@ Initial endpoints:
 
 ```text
 GET  /me
+GET  /features
 GET  /golfers/:slug/public
 GET  /dashboard/golfers
 GET  /dashboard/golfers/:id/entries
@@ -597,6 +598,9 @@ Build:
 - automated course lookup: dashboard and Edge Function support server-side
   Google Places Text Search candidates, but live lookup needs the
   `GOOGLE_PLACES_API_KEY` Supabase secret before it can return verified matches
+- feature readiness: dashboard reads a safe `/features` endpoint so built-in AI
+  and course lookup controls are disabled with setup hints until the required
+  Supabase secrets are present
 - live public map data: Kara's map now hydrates from approved Supabase rounds and
   course coordinates, with the original built-in map list as fallback
 

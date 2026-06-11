@@ -77,6 +77,7 @@ Live API endpoints include:
 
 ```text
 GET  /me
+GET  /features
 GET  /golfers/:slug/public
 GET  /dashboard/golfers
 GET  /dashboard/golfers/:id/entries

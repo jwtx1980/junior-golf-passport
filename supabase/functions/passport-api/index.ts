@@ -367,6 +367,15 @@ async function handlePasswordUpdated(req: Request) {
   return jsonResponse(200, { profile: data });
 }
 
+function handleFeatures() {
+  return jsonResponse(200, {
+    built_in_ai_configured: Boolean(optionalEnv("OPENAI_API_KEY")),
+    course_lookup_configured: Boolean(
+      optionalEnv("GOOGLE_PLACES_API_KEY") || optionalEnv("GOOGLE_MAPS_API_KEY"),
+    ),
+  });
+}
+
 async function handlePublicGolfer(slug: string) {
   const { data: golfer, error } = await adminClient()
     .from("golfers")
@@ -1107,6 +1116,7 @@ async function route(req: Request) {
   const url = new URL(req.url);
   const pathname = url.pathname.replace(/^\/passport-api/, "") || "/";
 
+  if (req.method === "GET" && pathname === "/features") return handleFeatures();
   if (req.method === "GET" && pathname === "/me") return handleMe(req);
   if (req.method === "POST" && pathname === "/me/password-updated") {
     return handlePasswordUpdated(req);

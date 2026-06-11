@@ -13,7 +13,12 @@
     entries: null,
     currentEdit: null,
     renderedRows: {},
-    courseLookupCandidates: []
+    courseLookupCandidates: [],
+    features: {
+      loaded: false,
+      built_in_ai_configured: false,
+      course_lookup_configured: false
+    }
   };
 
   var elements = {
@@ -125,6 +130,17 @@
     });
     if (!response.ok) {
       throw new Error(payload.error || "Request failed");
+    }
+    return payload;
+  }
+
+  async function publicApi(path) {
+    var response = await fetch(config.passportApiBaseUrl + path);
+    var payload = await response.json().catch(function () {
+      return {};
+    });
+    if (!response.ok) {
+      throw new Error(payload.error || "API request failed");
     }
     return payload;
   }
@@ -289,6 +305,31 @@
       "<div><strong>" + drafts.length + "</strong><span>Draft/private</span></div>",
       "<div><strong>" + Object.keys(verifiedCourseIds).length + "</strong><span>Verified pins</span></div>"
     ].join("");
+  }
+
+  function featureSummary() {
+    if (!state.features.loaded) return "Feature readiness loading";
+    return [
+      state.features.built_in_ai_configured ? "Built-in AI ready" : "Built-in AI needs OpenAI key",
+      state.features.course_lookup_configured ? "Course lookup ready" : "Course lookup needs Google key"
+    ].join(" | ");
+  }
+
+  function renderFeatureControls(profile) {
+    var aiConfigured = Boolean(state.features.built_in_ai_configured);
+    var aiEntitled = Boolean(profile && profile.has_ai_access);
+    if (elements.draftWithAi) {
+      elements.draftWithAi.disabled = !aiConfigured || !aiEntitled;
+      elements.draftWithAi.title = !aiConfigured
+        ? "Add OPENAI_API_KEY in Supabase secrets to enable built-in AI."
+        : (!aiEntitled ? "This account does not have built-in AI access." : "");
+    }
+    if (elements.lookupCourse) {
+      elements.lookupCourse.disabled = !state.features.course_lookup_configured;
+      elements.lookupCourse.title = state.features.course_lookup_configured
+        ? ""
+        : "Add GOOGLE_PLACES_API_KEY in Supabase secrets to enable course lookup.";
+    }
   }
 
   function selectedGolfer() {
@@ -484,6 +525,7 @@
     if (!signedIn) return;
 
     var profile = state.me.profile;
+    renderFeatureControls(profile);
     setText(
       elements.accountSummary,
       [
@@ -505,7 +547,7 @@
     }
     elements.golferSelect.value = state.selectedGolferId;
     setHidden(elements.createGolferPanel, golfers.length > 0);
-    setText(elements.apiStatus, config.passportApiBaseUrl);
+    setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
   }
 
@@ -606,6 +648,24 @@
       await refreshMe();
     } else {
       render();
+    }
+  }
+
+  async function loadFeatures() {
+    if (!config || !config.passportApiBaseUrl) return;
+    try {
+      var features = await publicApi("/features");
+      state.features = {
+        loaded: true,
+        built_in_ai_configured: Boolean(features.built_in_ai_configured),
+        course_lookup_configured: Boolean(features.course_lookup_configured)
+      };
+      render();
+    } catch (error) {
+      state.features.loaded = false;
+      if (elements.apiStatus) {
+        setText(elements.apiStatus, config.passportApiBaseUrl + " | Feature readiness unavailable");
+      }
     }
   }
 
@@ -733,6 +793,12 @@
   }
 
   async function draftWithAi() {
+    if (!state.features.built_in_ai_configured) {
+      throw new Error("Built-in AI needs the OPENAI_API_KEY Supabase secret.");
+    }
+    if (state.me && state.me.profile && !state.me.profile.has_ai_access) {
+      throw new Error("This account does not have built-in AI access.");
+    }
     setStatus("Drafting with built-in AI...");
     var payload = await api("/ai/draft-entry", {
       method: "POST",
@@ -746,6 +812,9 @@
   }
 
   async function lookupCourse() {
+    if (!state.features.course_lookup_configured) {
+      throw new Error("Course lookup needs the GOOGLE_PLACES_API_KEY Supabase secret.");
+    }
     if (!state.selectedGolferId) throw new Error("Create or select a golfer first.");
     if (!elements.courseName.value.trim()) throw new Error("Course name is required.");
 
@@ -1071,6 +1140,12 @@
       }
     });
   }
+
+  loadFeatures().catch(function (error) {
+    if (elements.apiStatus) {
+      setText(elements.apiStatus, config.passportApiBaseUrl + " | " + error.message);
+    }
+  });
 
   loadSession().catch(function (error) {
     setAuthStatus(error.message);
