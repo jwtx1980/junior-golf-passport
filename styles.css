@@ -404,6 +404,33 @@ main {
   height: 430px;
 }
 
+.public-map-placeholder {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(31, 107, 76, 0.84), rgba(34, 53, 69, 0.78)),
+    url("/assets/junior-golf-hero.png") center / cover;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #ffffff;
+  display: grid;
+  min-height: 430px;
+  padding: 28px;
+}
+
+.public-map-placeholder strong {
+  display: block;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.public-map-placeholder span {
+  display: block;
+  font-size: 1.06rem;
+  font-weight: 760;
+  margin-top: 12px;
+  max-width: 460px;
+}
+
 .quiet-about {
   align-items: center;
   background: var(--navy);
@@ -1136,6 +1163,7 @@ main {
   border: 1px dashed var(--line);
   border-radius: 8px;
   color: var(--muted);
+  grid-column: 1 / -1;
   margin-bottom: 0;
   padding: 18px;
 }

@@ -21,6 +21,8 @@ http://127.0.0.1:8766/
 - `/` - Kara-first public homepage
 - `/Kara/` - Kara Walker's public passport
 - `/Kara/map/` - interactive golfed states map
+- `/passport/?golfer=slug` - generic public passport page for any approved
+  public or unlisted golfer profile
 - `/dashboard/` - authenticated dashboard for manual logging, free prompt-based AI, and built-in AI access
 - `/privacy/` - privacy policy draft
 - `/terms/` - terms draft
@@ -36,7 +38,8 @@ Current stack:
 - Auth: Supabase Auth with email/password sign in and email magic-link support
 - Database: Supabase tables for golfers, courses, rounds, achievements, tournaments, photos, and memories
 - Goals: public/private goal tracking for passport milestones
-- Dashboard: private entry creation/editing, password-change enforcement, and a passport snapshot of saved/public/draft/pinned content
+- Dashboard: private entry creation/editing, password-change enforcement,
+  selected-golfer public links, and a passport snapshot of saved/public/draft/pinned content
 - Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
 - Course verification: manual coordinates plus optional server-side Google Places lookup

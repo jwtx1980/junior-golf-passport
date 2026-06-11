@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Public Passport | Junior Golf Passport</title>
+    <meta
+      name="description"
+      content="A public Junior Golf Passport profile with approved courses, memories, achievements, photos, tournaments, and goals."
+    >
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="profile-page generic-profile-page">
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">JGP</span>
+        <span>Junior Golf Passport</span>
+      </a>
+      <nav aria-label="Primary">
+        <a href="#map">Map</a>
+        <a href="#courses">Courses</a>
+        <a href="#rounds">Memories</a>
+        <a href="#goals">Goals</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="profile-hero">
+        <div class="profile-card passport-card">
+          <div class="profile-photo" aria-hidden="true">J</div>
+          <div class="profile-summary">
+            <p class="eyebrow">Junior Golf Passport</p>
+            <h1>Loading Passport</h1>
+            <p class="profile-meta">Courses played, memories made, milestones earned.</p>
+            <p class="profile-bio">
+              This public passport shows approved golf memories, course stamps,
+              milestones, tournament results, photos, and goals.
+            </p>
+            <div class="profile-actions">
+              <button class="button primary" id="share-button" type="button">Share Page</button>
+              <a class="button secondary" href="/dashboard/">Dashboard</a>
+            </div>
+            <p class="share-status" id="share-status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="profile-stats">
+          <div><strong>0</strong><span>Courses played</span></div>
+          <div><strong>0</strong><span>States stamped</span></div>
+          <div><strong>0</strong><span>Mapped pins</span></div>
+          <div><strong>0</strong><span>Saved memories</span></div>
+        </div>
+      </section>
+
+      <section class="profile-section" id="map">
+        <div class="section-heading">
+          <p class="eyebrow">Map of states and courses</p>
+          <h2>Every stamp starts with a real course.</h2>
+          <p>
+            Approved course-backed entries can become passport stamps and map
+            pins after they are reviewed.
+          </p>
+        </div>
+        <div class="course-map-layout">
+          <div class="public-map-placeholder">
+            <strong>Map Preview</strong>
+            <span>Verified pins appear as course locations are added.</span>
+          </div>
+          <aside class="map-notes">
+            <article>
+              <strong>Waiting for first stamp</strong>
+              <span>No public courses yet</span>
+              <p>Approved public course entries will appear here.</p>
+            </article>
+          </aside>
+        </div>
+      </section>
+
+      <section class="profile-section" id="courses">
+        <div class="section-heading">
+          <p class="eyebrow">Course passport</p>
+          <h2>Courses played.</h2>
+        </div>
+        <div class="course-card-grid">
+          <p class="empty-state">Loading courses...</p>
+        </div>
+      </section>
+
+      <section class="profile-section timeline-section" id="rounds">
+        <div class="section-heading">
+          <p class="eyebrow">Favorite rounds</p>
+          <h2>Memories worth saving.</h2>
+        </div>
+        <div class="timeline">
+          <p class="empty-state">Loading memories...</p>
+        </div>
+      </section>
+
+      <section class="profile-section" id="achievements">
+        <div class="section-heading">
+          <p class="eyebrow">Achievements</p>
+          <h2>Milestones and firsts.</h2>
+        </div>
+        <div class="achievement-grid">
+          <p class="empty-state">Loading achievements...</p>
+        </div>
+      </section>
+
+      <section class="profile-section" id="tournaments">
+        <div class="section-heading">
+          <p class="eyebrow">Tournament history</p>
+          <h2>Approved results live here.</h2>
+        </div>
+        <div class="tournament-list">
+          <p class="empty-state">Loading tournaments...</p>
+        </div>
+      </section>
+
+      <section class="profile-section" id="photos">
+        <div class="section-heading">
+          <p class="eyebrow">Photos and memories</p>
+          <h2>The scrapbook side of the passport.</h2>
+        </div>
+        <div class="memory-grid">
+          <p class="empty-state">Loading photos...</p>
+        </div>
+      </section>
+
+      <section class="profile-section" id="goals">
+        <div class="section-heading">
+          <p class="eyebrow">Goals</p>
+          <h2>Where the passport goes next.</h2>
+        </div>
+        <div class="goal-list">
+          <p class="empty-state">Loading goals...</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Junior Golf Passport. Public pages show approved content only.</p>
+      <nav aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/dashboard/">Dashboard</a>
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/support/">Support</a>
+      </nav>
+    </footer>
+    <script src="/config.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

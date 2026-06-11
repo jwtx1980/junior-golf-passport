@@ -7,6 +7,7 @@ passport prototype to a live, usable account-backed product.
 
 - Dedicated Supabase project for Junior Golf Passport.
 - Public Kara passport reading approved Supabase data.
+- Generic public passport page for non-Kara golfer profiles.
 - Private dashboard sign-in with Supabase Auth.
 - Manual logging for courses, rounds, memories, achievements, tournaments,
   goals, and photos.
@@ -118,6 +119,8 @@ limited because it does not call our OpenAI key.
 - Course lookup returns Google Places candidates only after
   `GOOGLE_PLACES_API_KEY` is configured.
 - Public Kara page shows only approved public or unlisted content.
+- New golfer public links load the generic public passport route instead of a
+  missing static slug page.
 - Private photos never expose permanent storage URLs.
 - GitHub Pages custom domain works over HTTPS.
 

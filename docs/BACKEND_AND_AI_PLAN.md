@@ -654,6 +654,9 @@ Build:
   readiness
 - dashboard public link: signed-in users can open or copy the selected golfer's
   public passport URL from the public profile editor
+- generic public passport route: non-Kara golfer links now load
+  `/passport/?golfer=slug`, hydrate approved public/unlisted data from the
+  public API, and show clean empty states while a new passport is still sparse
 - live public map data: Kara's map now hydrates from approved Supabase rounds and
   course coordinates, with the original built-in map list as fallback
 

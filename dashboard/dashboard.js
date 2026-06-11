@@ -237,7 +237,7 @@
   function publicPathForGolfer(golfer) {
     var slug = normalizeSlug(golfer && golfer.slug ? golfer.slug : golfer && golfer.display_name);
     if (!slug) return "";
-    return slug === "kara" ? "/Kara/" : "/" + encodeURIComponent(slug) + "/";
+    return slug === "kara" ? "/Kara/" : "/passport/?golfer=" + encodeURIComponent(slug);
   }
 
   function publicUrlForGolfer(golfer) {
