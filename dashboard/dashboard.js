@@ -84,6 +84,7 @@
     goalStatus: document.getElementById("goal-status"),
     visibility: document.getElementById("entry-visibility"),
     approved: document.getElementById("entry-approved"),
+    aiDraftStatus: document.getElementById("ai-draft-status"),
     photoFile: document.getElementById("photo-file"),
     photoCaption: document.getElementById("photo-caption"),
     photoVisibility: document.getElementById("photo-visibility"),
@@ -164,7 +165,8 @@
       "",
       "Return only valid JSON. Do not include markdown. Do not include comments.",
       "If you are unsure about a value, use null and add a question in the questions array.",
-      "Do not invent scores, dates, or locations.",
+      "Do not invent scores, dates, exact course identities, or locations.",
+      "You may infer a likely course city/state from a distinctive course name only when the note gives enough context.",
       "",
       "Rough note:",
       '"""',
@@ -182,6 +184,7 @@
       '  "story": "polished public-friendly story draft",',
       '  "tags": ["tag one", "tag two"],',
       '  "visibility": "private",',
+      '  "course_lookup_query": "course name city state country for later map verification, or null",',
       '  "confidence": "high | medium | low",',
       '  "questions": ["question one if needed"]',
       "}"
@@ -553,6 +556,7 @@
     if (elements.courseVerificationSource) elements.courseVerificationSource.value = "manual_admin";
     if (elements.goalStatus) elements.goalStatus.value = "active";
     if (elements.approved) elements.approved.checked = false;
+    setText(elements.aiDraftStatus, "");
     setEditMode(null);
     hideLookupResults();
     setLookupStatus("");
@@ -976,10 +980,12 @@
       elements.courseSourcePlaceId.value = "";
       elements.courseLatitude.value = "";
       elements.courseLongitude.value = "";
-      elements.courseVerificationStatus.value = "needs_review";
+      elements.courseVerificationStatus.value = draft.course.name ? "ai_suggested" : "needs_review";
       elements.courseVerificationSource.value = "unknown";
       hideLookupResults();
-      setLookupStatus("");
+      setLookupStatus(draft.course_lookup_query
+        ? "AI suggested lookup: " + draft.course_lookup_query
+        : "");
     }
     if (draft.round) {
       elements.entryDate.value = draft.round.played_on || "";
@@ -996,6 +1002,15 @@
       elements.tournamentDivision.value = draft.tournament.division || "";
       elements.tournamentFinish.value = draft.tournament.finish || "";
     }
+    var draftNotes = [];
+    if (draft.confidence) draftNotes.push("AI confidence: " + draft.confidence + ".");
+    if (draft.course_lookup_query) {
+      draftNotes.push("Course details are AI-suggested; verify pins before relying on the map.");
+    }
+    if (Array.isArray(draft.questions) && draft.questions.length) {
+      draftNotes.push("Questions: " + draft.questions.join(" "));
+    }
+    setText(elements.aiDraftStatus, draftNotes.join(" "));
   }
 
   async function parsePastedResult() {

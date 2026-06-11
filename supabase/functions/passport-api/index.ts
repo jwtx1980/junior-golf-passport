@@ -40,6 +40,7 @@ const passportEntrySchema = {
     "story",
     "tags",
     "visibility",
+    "course_lookup_query",
     "confidence",
     "questions",
   ],
@@ -98,6 +99,9 @@ const passportEntrySchema = {
     visibility: {
       type: "string",
       enum: ["public", "unlisted", "private"],
+    },
+    course_lookup_query: {
+      type: ["string", "null"],
     },
     confidence: {
       type: "string",
@@ -1059,6 +1063,7 @@ function parsePastedEntry(value: unknown) {
     story: cleanString(body.story),
     tags: stringArray(body.tags),
     visibility: cleanVisibility(body.visibility),
+    course_lookup_query: cleanNullableString(body.course_lookup_query),
     confidence: ["high", "medium", "low"].includes(cleanString(body.confidence).toLowerCase())
       ? cleanString(body.confidence).toLowerCase()
       : "low",
@@ -1080,7 +1085,7 @@ async function handleParsePastedResult(req: Request) {
 function aiPrompt(note: string) {
   return `You are helping turn a junior golfer's rough golf note into a structured Junior Golf Passport entry.
 
-Return only valid JSON. Do not include markdown. Do not include comments. If you are unsure about a value, use null and add a question in the questions array. Do not invent scores, dates, or locations.
+Return only valid JSON. Do not include markdown. Do not include comments. If you are unsure about a value, use null and add a question in the questions array. Do not invent scores, dates, exact course identities, or locations. You may infer a likely course city/state from a distinctive course name only when the note gives enough context.
 
 Rough note:
 """
@@ -1115,6 +1120,7 @@ Return JSON with this shape:
   "story": "polished public-friendly story draft",
   "tags": ["tag one", "tag two"],
   "visibility": "private",
+  "course_lookup_query": "course name city state country for later map verification, or null",
   "confidence": "high | medium | low",
   "questions": ["question one if needed"]
 }`;

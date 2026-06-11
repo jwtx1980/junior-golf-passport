@@ -16,14 +16,14 @@ passport prototype to a live, usable account-backed product.
 - Built-in AI Edge Function route with entitlement checks.
 - Server-side course lookup route and dashboard controls.
 - Supabase Storage photo uploads with signed public/dashboard URLs.
+- Real Kara and Jamie/JW auth accounts with AI access and Kara passport access.
 
 ## Needs User Input
 
-1. Kara's real login email: `kara.walker5115@gmail.com`.
-2. Jamie/JW's admin login email: `jwtx1980@gmail.com`.
-3. Decide whether new public signups should create their first golfer profile
+1. Kara/Jamie need to sign in once and replace the temporary password.
+2. Decide whether new public signups should create their first golfer profile
    automatically or by using the current dashboard form.
-4. Decide when to enable subscriptions. Manual logging and copy-prompt AI should
+3. Decide when to enable subscriptions. Manual logging and copy-prompt AI should
    stay free.
 
 ## Supabase Secrets

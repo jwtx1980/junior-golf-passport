@@ -160,6 +160,7 @@ Return JSON with this shape:
   "story": "polished public-friendly story draft",
   "tags": ["tag one", "tag two"],
   "visibility": "private",
+  "course_lookup_query": "course name city state country for later map verification, or null",
   "confidence": "high | medium | low",
   "questions": ["question one if needed"]
 }
@@ -195,6 +196,7 @@ Example expected JSON:
   "story": "Kara added Massachusetts to her golf passport with a round at Gannon Municipal Golf Course in Lynn. The highlight was a strong drive on the 7th hole, one of those shots worth saving as part of the journey.",
   "tags": ["new state", "family round", "memorable drive"],
   "visibility": "private",
+  "course_lookup_query": "Gannon Municipal Golf Course Lynn Massachusetts United States",
   "confidence": "medium",
   "questions": ["What date was the round played?", "Do you want to add a score?"]
 }
@@ -228,6 +230,8 @@ as the final source for map coordinates.
 Recommended approach:
 
 - Start with manual course entry and optional manual latitude/longitude.
+- Let AI suggest likely course names, city/state, and a `course_lookup_query`
+  from the note, but save those as `ai_suggested` until verified.
 - Add a course lookup source later, ideally Google Places or a geocoding/maps
   API.
 - Store verification status on courses.
@@ -610,9 +614,12 @@ Build:
   Function
 - free copy-prompt AI flow: prompt generation, pasted JSON validation, review,
   and save path started
-- built-in paid/entitled AI flow: Edge Function route exists and checks
-  `has_ai_access`, but still needs the `OPENAI_API_KEY` Supabase secret before it
-  can be used
+- built-in paid/entitled AI flow: Edge Function route exists, checks
+  `has_ai_access`, calls OpenAI from the server, and `/features` reports
+  built-in AI configured
+- OpenAI course-name extraction: built-in and copy-prompt AI can now return a
+  `course_lookup_query`; dashboard saves AI-filled course details as
+  `ai_suggested` rather than verified
 - photo upload through Supabase Storage: started in the dashboard with caption,
   visibility, approval, metadata save, and dashboard/public signed URL reads
 - edit/delete saved entries and photos: dashboard can edit review fields,
