@@ -1086,6 +1086,7 @@ main {
 
 .dashboard-toolbar,
 .notice-panel,
+.passport-utility-panel,
 .account-settings-panel {
   align-items: center;
   background: var(--paper);
@@ -1096,6 +1097,40 @@ main {
   justify-content: space-between;
   margin-bottom: 18px;
   padding: 20px;
+}
+
+.passport-utility-panel {
+  align-items: start;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1fr);
+}
+
+.passport-utility-panel h2 {
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.passport-utility-links {
+  display: grid;
+  gap: 12px;
+}
+
+.passport-utility-card {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.passport-utility-card h3 {
+  font-size: 1.18rem;
+}
+
+.passport-utility-card p {
+  color: var(--muted);
+  margin-bottom: 0;
 }
 
 .account-settings-panel {
@@ -1265,6 +1300,30 @@ main {
   align-items: end;
   background: var(--sky);
   grid-template-columns: minmax(0, 1fr) 280px auto;
+}
+
+.password-reset-modal:not([hidden]) {
+  align-items: end;
+  background: var(--paper);
+  box-shadow: 0 28px 80px rgba(9, 16, 13, 0.28);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  left: 50%;
+  margin: 0;
+  max-width: 520px;
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 32px);
+  z-index: 60;
+}
+
+.password-reset-modal:not([hidden])::before {
+  background: rgba(18, 24, 21, 0.64);
+  content: "";
+  inset: -100vh;
+  position: fixed;
+  z-index: -1;
 }
 
 .notice-panel h2,
@@ -1590,6 +1649,7 @@ footer nav {
   .editor-grid,
   .photo-upload-panel,
   .notice-panel,
+  .passport-utility-panel,
   .account-settings-panel {
     grid-template-columns: 1fr;
   }
@@ -1654,6 +1714,7 @@ footer nav {
   }
 
   .profile-card,
+  .passport-utility-card,
   .tournament-list article,
   .entry-list-item,
   .entry-actions,

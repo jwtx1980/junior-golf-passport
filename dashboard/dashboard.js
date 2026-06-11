@@ -107,8 +107,10 @@
     apiStatus: document.getElementById("api-status"),
     entryList: document.getElementById("entry-list"),
     snapshot: document.getElementById("dashboard-snapshot"),
+    passportUtilityLinks: document.getElementById("passport-utility-links"),
     setupChecklist: document.getElementById("setup-checklist"),
     setupChecklistItems: document.getElementById("setup-checklist-items"),
+    adminSurfaces: Array.from(document.querySelectorAll("[data-admin-surface]")),
     entryFieldGroups: Array.from(document.querySelectorAll("[data-entry-group]"))
   };
 
@@ -243,6 +245,10 @@
   function publicUrlForGolfer(golfer) {
     var path = publicPathForGolfer(golfer);
     return path ? window.location.origin + path : "";
+  }
+
+  function isAdmin(profile) {
+    return Boolean(profile && profile.role === "admin");
   }
 
   function optionalNumber(value) {
@@ -603,6 +609,39 @@
     setText(elements.publicLinkStatus, url ? url.replace(window.location.origin, "") : "");
   }
 
+  function renderPassportUtility() {
+    if (!elements.passportUtilityLinks) return;
+    var golfers = state.me && Array.isArray(state.me.golfers) ? state.me.golfers : [];
+    if (!golfers.length) {
+      elements.passportUtilityLinks.innerHTML =
+        '<p class="empty-state">No golfer passports are assigned to this account yet.</p>';
+      return;
+    }
+
+    elements.passportUtilityLinks.innerHTML = golfers.map(function (row) {
+      var golfer = row.golfers || {};
+      var path = publicPathForGolfer(golfer);
+      var visibility = golfer.visibility || "private";
+      return [
+        '<article class="passport-utility-card">',
+        '<div>',
+        '<span class="card-kicker">' + escapeHtml(visibility) + " passport</span>",
+        '<h3>' + escapeHtml(golfer.display_name || "Golfer passport") + '</h3>',
+        '<p>' + escapeHtml(golfer.headline || "Open the golfer page to add memories, photos, and course stamps.") + '</p>',
+        '</div>',
+        '<a class="button primary" href="' + escapeHtml(path || "#") + '">' + (path ? "Open Passport" : "Missing Link") + '</a>',
+        '</article>'
+      ].join("");
+    }).join("");
+  }
+
+  function renderAdminSurfaces(profile) {
+    var showAdmin = isAdmin(profile);
+    elements.adminSurfaces.forEach(function (surface) {
+      surface.hidden = !showAdmin;
+    });
+  }
+
   function selectedGolfer() {
     var golfers = state.me && Array.isArray(state.me.golfers) ? state.me.golfers : [];
     return golfers.find(function (row) {
@@ -824,6 +863,8 @@
     setDashboardLocked(false);
     renderFeatureControls(profile);
     renderAccountSettings(profile);
+    renderPassportUtility();
+    renderAdminSurfaces(profile);
     setText(
       elements.accountSummary,
       [
@@ -854,7 +895,7 @@
       }
       syncGolferSlugFromName();
     }
-    renderSetupChecklist(profile);
+    if (isAdmin(profile)) renderSetupChecklist(profile);
     renderProfileEditor();
     updateEntryFieldVisibility();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
@@ -1035,6 +1076,9 @@
   }
 
   async function updatePassword() {
+    if (!elements.newPassword.value || elements.newPassword.value.length < 6) {
+      throw new Error("New password must be at least 6 characters.");
+    }
     setStatus("Updating password...");
     var result = await client.auth.updateUser({
       password: elements.newPassword.value

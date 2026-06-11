@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Dashboard | Junior Golf Passport</title>
+    <title>Account | Junior Golf Passport</title>
     <meta
       name="description"
-      content="Private dashboard for managing Junior Golf Passport entries."
+      content="Private account utility for Junior Golf Passport sign-in, profile links, and account settings."
     >
     <meta name="robots" content="noindex">
     <link rel="stylesheet" href="/styles.css">
@@ -26,11 +26,11 @@
     <main class="dashboard-workspace">
       <section class="dashboard-hero compact-dashboard-hero">
         <div>
-          <p class="eyebrow">Private dashboard</p>
-          <h1>Add the golf memory once. Shape it before it goes public.</h1>
+          <p class="eyebrow">Private account</p>
+          <h1>Sign in, then manage the passport from the golfer page.</h1>
           <p>
-            Manual logging is free. Use Your Own AI creates a copyable prompt
-            for any AI tool. Built-in AI is ready for accounts with AI access.
+            Junior Golf Passport keeps the public page as the main experience.
+            This account area is for sign-in, profile access, and settings.
           </p>
         </div>
         <form class="login-panel" id="auth-panel">
@@ -72,14 +72,24 @@
           <div><strong>0</strong><span>Verified pins</span></div>
         </section>
 
-        <section class="workflow-strip" aria-label="Dashboard workflow">
+        <section class="passport-utility-panel" id="passport-utility-panel" aria-label="Your passport pages">
+          <div>
+            <p class="eyebrow">Your golfers</p>
+            <h2>Open a passport to add or edit memories.</h2>
+          </div>
+          <div class="passport-utility-links" id="passport-utility-links">
+            <p class="empty-state">Loading assigned golfers...</p>
+          </div>
+        </section>
+
+        <section class="workflow-strip" aria-label="Dashboard workflow" data-admin-surface hidden>
           <div><strong>1</strong><span>Write or paste a rough note</span></div>
           <div><strong>2</strong><span>Fill the review fields manually or with a prompt</span></div>
           <div><strong>3</strong><span>Save private first</span></div>
           <div><strong>4</strong><span>Approve only what belongs on the passport</span></div>
         </section>
 
-        <section class="setup-checklist" id="setup-checklist" aria-label="Launch readiness">
+        <section class="setup-checklist" id="setup-checklist" aria-label="Launch readiness" data-admin-surface hidden>
           <div class="setup-checklist-heading">
             <div>
               <p class="eyebrow">Launch readiness</p>
@@ -92,10 +102,11 @@
           </div>
         </section>
 
-        <section class="notice-panel" id="password-panel" hidden>
+        <section class="notice-panel password-reset-modal" id="password-panel" role="dialog" aria-modal="true" aria-labelledby="password-reset-heading" hidden>
           <div>
             <p class="eyebrow">Password update required</p>
-            <h2>Replace the temporary password before editing.</h2>
+            <h2 id="password-reset-heading">Replace the temporary password before editing.</h2>
+            <p>This account is locked until the temporary password is changed.</p>
           </div>
           <label>
             <span>New password</span>
@@ -123,7 +134,7 @@
           </div>
         </section>
 
-        <section class="editor-grid">
+        <section class="editor-grid" data-admin-surface hidden>
           <aside class="editor-panel">
             <p class="eyebrow">Passport</p>
             <label>
@@ -370,7 +381,7 @@
           </section>
         </section>
 
-        <section class="dashboard-section photo-upload-section" aria-labelledby="photo-upload-heading">
+        <section class="dashboard-section photo-upload-section" aria-labelledby="photo-upload-heading" data-admin-surface hidden>
           <div class="photo-upload-panel">
             <div>
               <p class="eyebrow">Photos</p>
@@ -409,7 +420,7 @@
           </div>
         </section>
 
-        <section class="dashboard-section entries-section" aria-labelledby="entries-heading">
+        <section class="dashboard-section entries-section" aria-labelledby="entries-heading" data-admin-surface hidden>
           <div class="section-heading compact-heading">
             <p class="eyebrow">Passport log</p>
             <h2 id="entries-heading">Recent saved entries</h2>
