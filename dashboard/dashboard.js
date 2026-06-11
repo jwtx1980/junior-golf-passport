@@ -14,6 +14,7 @@
     currentEdit: null,
     renderedRows: {},
     courseLookupCandidates: [],
+    golferSlugEdited: false,
     features: {
       loaded: false,
       built_in_ai_configured: false,
@@ -206,6 +207,17 @@
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+
+  function defaultProfileName(profile) {
+    if (profile.display_name) return profile.display_name;
+    if (profile.email) return String(profile.email).split("@")[0];
+    return "";
+  }
+
+  function syncGolferSlugFromName() {
+    if (!elements.golferSlug || state.golferSlugEdited) return;
+    elements.golferSlug.value = normalizeSlug(elements.golferName.value);
   }
 
   function safeFileName(value) {
@@ -790,6 +802,12 @@
     }
     elements.golferSelect.value = state.selectedGolferId;
     setHidden(elements.createGolferPanel, golfers.length > 0);
+    if (!golfers.length) {
+      if (!elements.golferName.value) {
+        elements.golferName.value = defaultProfileName(profile);
+      }
+      syncGolferSlugFromName();
+    }
     renderSetupChecklist(profile);
     renderProfileEditor();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
@@ -1004,9 +1022,12 @@
   }
 
   async function createGolfer() {
-    setStatus("Creating golfer profile...");
     var name = elements.golferName.value.trim();
     var slug = normalizeSlug(elements.golferSlug.value || name);
+    if (!name) throw new Error("Golfer name is required.");
+    if (!slug) throw new Error("Public link name is required.");
+
+    setStatus("Creating passport...");
     var payload = await api("/golfers", {
       method: "POST",
       body: {
@@ -1017,8 +1038,9 @@
       }
     });
     state.selectedGolferId = payload.golfer.id;
+    state.golferSlugEdited = false;
     await refreshMe();
-    setStatus("Golfer profile created.");
+    setStatus("Passport created. Save the first note private, then approve what belongs on the public page.");
   }
 
   async function saveProfile() {
@@ -1418,6 +1440,17 @@
       setStatus("Prompt copied.");
     });
   });
+
+  if (elements.golferName) {
+    elements.golferName.addEventListener("input", syncGolferSlugFromName);
+  }
+
+  if (elements.golferSlug) {
+    elements.golferSlug.addEventListener("input", function () {
+      state.golferSlugEdited = true;
+      elements.golferSlug.value = normalizeSlug(elements.golferSlug.value);
+    });
+  }
 
   bind(elements.signOut, async function () {
     await client.auth.signOut();

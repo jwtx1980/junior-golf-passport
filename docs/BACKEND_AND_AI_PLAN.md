@@ -642,6 +642,9 @@ Build:
 - dashboard onboarding: signed-in users see a compact manual-first workflow,
   clearer empty states, and clear/cancel controls while adding or editing
   entries and photos
+- first-passport onboarding: the create-passport form pre-fills from the account
+  display name, auto-generates the public link name, and uses passport-first
+  language for new free users
 - dashboard launch readiness: signed-in users see a setup checklist that shows
   account status, selected golfer status, public content readiness, free
   copy-prompt AI availability, built-in AI key readiness, and course lookup key
