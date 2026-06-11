@@ -188,17 +188,25 @@ async function requireReadyUser(req: Request): Promise<{ user: ApiUser; profile:
 }
 
 async function requireEditableGolfer(userId: string, golferId: string) {
+  const { data: profile, error: profileError } = await adminClient()
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profileError) throw new ApiError(500, profileError.message);
+  if (profile?.role === "admin") return;
+
   const { data, error } = await adminClient()
     .from("golfer_members")
-    .select("member_role, profiles!inner(role)")
+    .select("member_role")
     .eq("golfer_id", golferId)
     .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw new ApiError(500, error.message);
   const role = data?.member_role;
-  const profileRole = (data?.profiles as { role?: string } | null)?.role;
-  if (!data || (!["owner", "editor"].includes(String(role)) && profileRole !== "admin")) {
+  if (!data || !["owner", "editor"].includes(String(role))) {
     throw new ApiError(403, "You do not have access to edit this golfer");
   }
 }
@@ -294,13 +302,7 @@ async function addSignedPhotoUrls<T extends Record<string, unknown>>(
 async function handleMe(req: Request) {
   const user = await requireUser(req);
   const profile = await requireProfile(user);
-  const { data, error } = await adminClient()
-    .from("golfer_members")
-    .select("member_role,golfers(id,slug,display_name,headline,visibility)")
-    .eq("user_id", user.id);
-
-  if (error) throw new ApiError(500, error.message);
-  return jsonResponse(200, { user, profile, golfers: data || [] });
+  return jsonResponse(200, { user, profile, golfers: await dashboardGolfers(user.id, profile) });
 }
 
 async function handlePasswordUpdated(req: Request) {
@@ -381,13 +383,31 @@ async function handlePublicGolfer(slug: string) {
 
 async function handleDashboardGolfers(req: Request) {
   const user = await requireUser(req);
+  const profile = await requireProfile(user);
+  return jsonResponse(200, { golfers: await dashboardGolfers(user.id, profile) });
+}
+
+async function dashboardGolfers(userId: string, profile: Profile) {
+  if (profile.role === "admin") {
+    const { data, error } = await adminClient()
+      .from("golfers")
+      .select("id,slug,display_name,headline,visibility")
+      .order("display_name", { ascending: true });
+
+    if (error) throw new ApiError(500, error.message);
+    return (data || []).map((golfer) => ({
+      member_role: "admin",
+      golfers: golfer,
+    }));
+  }
+
   const { data, error } = await adminClient()
     .from("golfer_members")
-    .select("member_role,golfers(*)")
-    .eq("user_id", user.id);
+    .select("member_role,golfers(id,slug,display_name,headline,visibility)")
+    .eq("user_id", userId);
 
   if (error) throw new ApiError(500, error.message);
-  return jsonResponse(200, { golfers: data || [] });
+  return data || [];
 }
 
 async function handleDashboardEntries(req: Request, golferId: string) {

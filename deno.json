@@ -1,7 +1,8 @@
 {
   "tasks": {
     "check:passport-api": "deno check supabase/functions/passport-api/index.ts",
-    "fmt:check": "deno fmt --check supabase/functions/passport-api/index.ts"
+    "check:bootstrap-account": "deno check scripts/bootstrap-account.ts",
+    "fmt:check": "deno fmt --check supabase/functions/passport-api/index.ts scripts/bootstrap-account.ts"
   },
   "fmt": {
     "lineWidth": 100,

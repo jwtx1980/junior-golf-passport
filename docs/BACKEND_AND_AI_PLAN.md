@@ -569,6 +569,12 @@ Build:
 - Kara seeded public golfer/profile data: public golfer and starter passport data done
 - auth dashboard: started
 - password-change enforcement: backend/dashboard support started
+- account bootstrap tooling: local script can create/update real Auth users,
+  profile roles, AI entitlement, temporary-password flags, and golfer
+  memberships once Kara/Jamie emails are known
+- admin access: account-level admins can now load and edit all golfer profiles
+  through the Edge Function and RLS helper, even before a golfer-specific
+  membership exists
 - manual course/round/memory forms: dashboard can save courses, memories, course
   stamps, rounds, achievements, and tournaments
 - protected dashboard entry log: dashboard can load recent rounds, memories,

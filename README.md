@@ -57,6 +57,7 @@ Local checks:
 
 ```powershell
 deno task check:passport-api
+deno task check:bootstrap-account
 deno task fmt:check
 ```
 
@@ -108,6 +109,46 @@ npx supabase secrets set OPENAI_API_KEY="sk-..."
 The free `Use Your Own AI` flow does not require an OpenAI key because users copy
 the generated prompt into their own AI tool and paste JSON back into the
 dashboard.
+
+## Account Bootstrap
+
+Create real Kara/Jamie accounts with the local bootstrap script after exporting
+the Junior Golf Passport service-role key in your shell. Do not commit the
+service-role key.
+
+```powershell
+$env:JGP_SUPABASE_URL="https://znstslovujtpmydnrcxf.supabase.co"
+$env:JGP_SUPABASE_SERVICE_ROLE_KEY="paste-service-role-key-here"
+```
+
+Kara should start with AI access and a temporary password that must be changed
+on first sign-in:
+
+```powershell
+deno run --allow-env --allow-net scripts/bootstrap-account.ts `
+  --email kara@example.com `
+  --password password `
+  --display-name "Kara Walker" `
+  --profile-role owner `
+  --member-role owner `
+  --golfer-slug kara `
+  --has-ai-access true `
+  --must-change-password true
+```
+
+Jamie/JW can be added as an admin with AI access:
+
+```powershell
+deno run --allow-env --allow-net scripts/bootstrap-account.ts `
+  --email jamie@example.com `
+  --password "replace-this-temporary-password" `
+  --display-name "Jamie Walker" `
+  --profile-role admin `
+  --member-role owner `
+  --golfer-slug kara `
+  --has-ai-access true `
+  --must-change-password true
+```
 
 ## Domain
 
