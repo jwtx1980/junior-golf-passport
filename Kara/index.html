@@ -177,6 +177,20 @@
       </section>
     </main>
 
+    <section class="notice-panel password-reset-modal" id="profile-password-panel" role="dialog" aria-modal="true" aria-labelledby="profile-password-heading" hidden>
+      <div>
+        <p class="eyebrow">Password update required</p>
+        <h2 id="profile-password-heading">Replace the temporary password before editing.</h2>
+        <p>This protects Kara's passport before Quick Add and edit tools turn on.</p>
+      </div>
+      <label>
+        <span>New password</span>
+        <input id="profile-new-password" type="password" autocomplete="new-password">
+      </label>
+      <button class="button primary" id="profile-update-password" type="button">Update Password</button>
+      <p class="quick-add-status" id="profile-password-status" role="status" aria-live="polite"></p>
+    </section>
+
     <div class="quick-add-backdrop" id="quick-add-backdrop" hidden>
       <section class="quick-add-modal" role="dialog" aria-modal="true" aria-labelledby="quick-add-title">
         <header class="quick-add-header">

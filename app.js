@@ -50,6 +50,12 @@
     saveReview: document.getElementById("quick-save-review"),
     status: document.getElementById("quick-add-status")
   };
+  var passwordGate = {
+    panel: document.getElementById("profile-password-panel"),
+    input: document.getElementById("profile-new-password"),
+    button: document.getElementById("profile-update-password"),
+    status: document.getElementById("profile-password-status")
+  };
 
   function uniqueBy(items, keyFn) {
     var seen = {};
@@ -80,6 +86,10 @@
 
   function setQuickStatus(message) {
     setText(quick.status, message);
+  }
+
+  function setPasswordStatus(message) {
+    setText(passwordGate.status, message);
   }
 
   function authHeaders() {
@@ -660,8 +670,10 @@
 
   function renderEditControls() {
     var canEdit = canEditCurrentGolfer();
+    var mustChange = Boolean(profileState.me && profileState.me.profile && profileState.me.profile.must_change_password);
     setHidden(quick.open, !canEdit);
-    setHidden(quick.signIn, canEdit);
+    setHidden(quick.signIn, canEdit || mustChange);
+    setHidden(passwordGate.panel, !mustChange);
     renderCourseNavigation();
   }
 
@@ -692,6 +704,22 @@
     } catch (error) {
       renderEditControls();
     }
+  }
+
+  async function updateProfilePassword() {
+    if (!authClient || !profileState.session) throw new Error("Sign in before updating the password.");
+    var newPassword = passwordGate.input ? passwordGate.input.value : "";
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("New password must be at least 6 characters.");
+    }
+    setPasswordStatus("Updating password...");
+    var result = await authClient.auth.updateUser({ password: newPassword });
+    if (result.error) throw result.error;
+    await api("/me/password-updated", { method: "POST", body: {} });
+    if (passwordGate.input) passwordGate.input.value = "";
+    profileState.me = await api("/me");
+    setPasswordStatus("Password updated.");
+    renderEditControls();
   }
 
   function todayIso() {
@@ -1149,6 +1177,24 @@
     }
   }
 
+  function bindPasswordGate() {
+    if (!passwordGate.button) return;
+    passwordGate.button.addEventListener("click", function () {
+      updateProfilePassword().catch(function (error) {
+        setPasswordStatus(error.message);
+      });
+    });
+    if (passwordGate.input) {
+      passwordGate.input.addEventListener("keydown", function (event) {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        updateProfilePassword().catch(function (error) {
+          setPasswordStatus(error.message);
+        });
+      });
+    }
+  }
+
   function renderPublicPassport(data) {
     var golfer = data.golfer || {};
     var normalized = {
@@ -1286,6 +1332,7 @@
   });
 
   bindQuickAdd();
+  bindPasswordGate();
   bindMapFrameBridge();
   loadPublicPassport();
   loadProfileAuth();
