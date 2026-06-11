@@ -170,6 +170,12 @@
               <span>State</span>
               <input id="course-state" type="text" placeholder="Massachusetts">
             </label>
+            <input id="course-source-place-id" type="hidden">
+            <div class="course-lookup-actions">
+              <button class="button secondary small-button" id="lookup-course-button" type="button">Find Course</button>
+              <p class="tiny-status" id="course-lookup-status" role="status" aria-live="polite"></p>
+            </div>
+            <div class="course-lookup-results" id="course-lookup-results" hidden></div>
             <div class="form-row">
               <label>
                 <span>Latitude</span>

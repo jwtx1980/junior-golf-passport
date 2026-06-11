@@ -12,7 +12,8 @@
     currentDraft: null,
     entries: null,
     currentEdit: null,
-    renderedRows: {}
+    renderedRows: {},
+    courseLookupCandidates: []
   };
 
   var elements = {
@@ -49,6 +50,10 @@
     courseName: document.getElementById("course-name"),
     courseCity: document.getElementById("course-city"),
     courseState: document.getElementById("course-state"),
+    courseSourcePlaceId: document.getElementById("course-source-place-id"),
+    lookupCourse: document.getElementById("lookup-course-button"),
+    lookupStatus: document.getElementById("course-lookup-status"),
+    lookupResults: document.getElementById("course-lookup-results"),
     courseLatitude: document.getElementById("course-latitude"),
     courseLongitude: document.getElementById("course-longitude"),
     courseVerificationStatus: document.getElementById("course-verification-status"),
@@ -193,6 +198,49 @@
     return hasPin ? status + " pin" : status;
   }
 
+  function setLookupStatus(message) {
+    setText(elements.lookupStatus, message);
+  }
+
+  function hideLookupResults() {
+    state.courseLookupCandidates = [];
+    if (elements.lookupResults) {
+      elements.lookupResults.innerHTML = "";
+      elements.lookupResults.hidden = true;
+    }
+  }
+
+  function renderLookupResults(candidates) {
+    state.courseLookupCandidates = Array.isArray(candidates) ? candidates : [];
+    if (!elements.lookupResults) return;
+    if (!state.courseLookupCandidates.length) {
+      elements.lookupResults.innerHTML = "";
+      elements.lookupResults.hidden = true;
+      setLookupStatus("No verified course matches found.");
+      return;
+    }
+
+    elements.lookupResults.innerHTML = state.courseLookupCandidates.map(function (candidate, index) {
+      var address = candidate.formatted_address || [
+        candidate.city,
+        candidate.state,
+        candidate.country
+      ].filter(Boolean).join(", ");
+      return [
+        "<article>",
+        "<div>",
+        "<h3>" + escapeHtml(candidate.name) + "</h3>",
+        "<p>" + escapeHtml(address) + "</p>",
+        "</div>",
+        '<button class="button secondary small-button" type="button" data-course-candidate="' + index + '">Use</button>',
+        "</article>"
+      ].join("");
+    }).join("");
+    elements.lookupResults.hidden = false;
+    setLookupStatus(state.courseLookupCandidates.length + " course match" +
+      (state.courseLookupCandidates.length === 1 ? "" : "es") + " found.");
+  }
+
   function entryCollections() {
     if (!state.entries) return [];
     return []
@@ -269,6 +317,7 @@
       elements.courseName,
       elements.courseCity,
       elements.courseState,
+      elements.courseSourcePlaceId,
       elements.courseLatitude,
       elements.courseLongitude,
       elements.entryDate,
@@ -290,6 +339,8 @@
     if (elements.courseVerificationSource) elements.courseVerificationSource.value = "manual_admin";
     if (elements.approved) elements.approved.checked = false;
     setEditMode(null);
+    hideLookupResults();
+    setLookupStatus("");
   }
 
   function clearPhotoForm() {
@@ -482,10 +533,13 @@
     elements.courseName.value = course.name || "";
     elements.courseCity.value = course.city || "";
     elements.courseState.value = course.state || "";
+    elements.courseSourcePlaceId.value = course.source_place_id || "";
     elements.courseLatitude.value = course.latitude || "";
     elements.courseLongitude.value = course.longitude || "";
     elements.courseVerificationStatus.value = course.verification_status || "manual";
     elements.courseVerificationSource.value = course.verification_source || "manual_admin";
+    hideLookupResults();
+    setLookupStatus("");
   }
 
   function editRow(row) {
@@ -643,10 +697,13 @@
       elements.courseName.value = draft.course.name || "";
       elements.courseCity.value = draft.course.city || "";
       elements.courseState.value = draft.course.state || "";
+      elements.courseSourcePlaceId.value = "";
       elements.courseLatitude.value = "";
       elements.courseLongitude.value = "";
       elements.courseVerificationStatus.value = "needs_review";
       elements.courseVerificationSource.value = "unknown";
+      hideLookupResults();
+      setLookupStatus("");
     }
     if (draft.round) {
       elements.entryDate.value = draft.round.played_on || "";
@@ -688,6 +745,42 @@
     setStatus("AI draft ready. Review before saving.");
   }
 
+  async function lookupCourse() {
+    if (!state.selectedGolferId) throw new Error("Create or select a golfer first.");
+    if (!elements.courseName.value.trim()) throw new Error("Course name is required.");
+
+    setLookupStatus("Looking up course...");
+    var payload = await api("/courses/lookup", {
+      method: "POST",
+      body: {
+        golfer_id: state.selectedGolferId,
+        name: elements.courseName.value.trim(),
+        city: elements.courseCity.value.trim(),
+        state: elements.courseState.value.trim(),
+        country: "United States"
+      }
+    });
+    renderLookupResults(payload.candidates || []);
+  }
+
+  function applyCourseCandidate(candidate) {
+    if (!candidate) return;
+    elements.courseName.value = candidate.name || elements.courseName.value;
+    elements.courseCity.value = candidate.city || "";
+    elements.courseState.value = candidate.state || "";
+    elements.courseLatitude.value = candidate.latitude === null || candidate.latitude === undefined
+      ? ""
+      : candidate.latitude;
+    elements.courseLongitude.value = candidate.longitude === null || candidate.longitude === undefined
+      ? ""
+      : candidate.longitude;
+    elements.courseSourcePlaceId.value = candidate.source_place_id || "";
+    elements.courseVerificationStatus.value = candidate.verification_status || "verified";
+    elements.courseVerificationSource.value = candidate.verification_source || "google_places";
+    hideLookupResults();
+    setLookupStatus("Verified course details added to the form.");
+  }
+
   function editedCourseStillMatches() {
     var row = state.currentEdit && state.currentEdit.row;
     var course = row && row.raw && row.raw.courses;
@@ -699,6 +792,7 @@
       comparableText(elements.courseName.value) === comparableText(course.name) &&
       comparableText(elements.courseCity.value) === comparableText(course.city) &&
       comparableText(elements.courseState.value) === comparableText(course.state) &&
+      comparableText(elements.courseSourcePlaceId.value) === comparableText(course.source_place_id) &&
       comparableNumber(elements.courseLatitude.value) === comparableNumber(course.latitude) &&
       comparableNumber(elements.courseLongitude.value) === comparableNumber(course.longitude) &&
       formStatus === (course.verification_status || "manual") &&
@@ -722,7 +816,8 @@
         latitude: optionalNumber(elements.courseLatitude.value),
         longitude: optionalNumber(elements.courseLongitude.value),
         verification_status: elements.courseVerificationStatus.value,
-        verification_source: elements.courseVerificationSource.value
+        verification_source: elements.courseVerificationSource.value,
+        source_place_id: elements.courseSourcePlaceId.value.trim()
       }
     });
     return coursePayload.course.id;
@@ -909,6 +1004,7 @@
   bind(elements.createGolfer, createGolfer);
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
+  bind(elements.lookupCourse, lookupCourse, setLookupStatus);
   bind(elements.saveEntry, saveEntry);
   bind(elements.uploadPhoto, uploadPhoto);
 
@@ -956,6 +1052,15 @@
           setStatus(error.message);
         });
       }
+    });
+  }
+
+  if (elements.lookupResults) {
+    elements.lookupResults.addEventListener("click", function (event) {
+      var button = event.target.closest("button[data-course-candidate]");
+      if (!button) return;
+      var index = Number(button.getAttribute("data-course-candidate"));
+      applyCourseCandidate(state.courseLookupCandidates[index]);
     });
   }
 

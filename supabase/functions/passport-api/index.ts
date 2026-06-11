@@ -14,6 +14,19 @@ type Profile = {
   must_change_password: boolean;
 };
 
+type CourseLookupCandidate = {
+  name: string;
+  formatted_address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  source_place_id: string | null;
+  verification_status: "verified";
+  verification_source: "google_places";
+};
+
 const passportEntrySchema = {
   type: "object",
   additionalProperties: false,
@@ -275,6 +288,42 @@ function stringArray(value: unknown) {
   return value.map((item) => cleanString(item)).filter(Boolean).slice(0, 12);
 }
 
+function addressComponent(place: Record<string, unknown>, type: string) {
+  const components = Array.isArray(place.addressComponents) ? place.addressComponents : [];
+  for (const component of components) {
+    if (!component || typeof component !== "object") continue;
+    const row = component as Record<string, unknown>;
+    const types = Array.isArray(row.types) ? row.types : [];
+    if (types.includes(type)) return cleanNullableString(row.longText);
+  }
+  return null;
+}
+
+function normalizePlaceCandidate(place: Record<string, unknown>): CourseLookupCandidate {
+  const displayName = place.displayName && typeof place.displayName === "object"
+    ? cleanString((place.displayName as Record<string, unknown>).text)
+    : "";
+  const location = place.location && typeof place.location === "object"
+    ? place.location as Record<string, unknown>
+    : {};
+  const state = addressComponent(place, "administrative_area_level_1");
+
+  return {
+    name: displayName || cleanString(place.formattedAddress),
+    formatted_address: cleanNullableString(place.formattedAddress),
+    city: addressComponent(place, "locality") ||
+      addressComponent(place, "postal_town") ||
+      addressComponent(place, "administrative_area_level_2"),
+    state,
+    country: addressComponent(place, "country") || "United States",
+    latitude: cleanNumber(location.latitude),
+    longitude: cleanNumber(location.longitude),
+    source_place_id: cleanNullableString(place.id),
+    verification_status: "verified",
+    verification_source: "google_places",
+  };
+}
+
 async function addSignedPhotoUrls<T extends Record<string, unknown>>(
   photos: T[],
   expiresIn = 60 * 60,
@@ -519,6 +568,7 @@ async function upsertCourse(body: Record<string, unknown>) {
       longitude: cleanNumber(body.longitude),
       verification_status: cleanCourseVerificationStatus(body.verification_status),
       verification_source: cleanCourseVerificationSource(body.verification_source),
+      source_place_id: cleanNullableString(body.source_place_id),
     })
     .select("*")
     .single();
@@ -531,6 +581,58 @@ async function handleCreateCourse(req: Request) {
   await requireReadyUser(req);
   const course = await upsertCourse(await readJson(req));
   return jsonResponse(201, { course });
+}
+
+async function handleLookupCourse(req: Request) {
+  const { user } = await requireReadyUser(req);
+  const body = await readJson(req);
+  const golferId = cleanString(body.golfer_id);
+  if (golferId) await requireEditableGolfer(user.id, golferId);
+
+  const query = cleanString(body.query) ||
+    [
+      cleanString(body.name),
+      cleanString(body.city),
+      cleanString(body.state),
+      cleanString(body.country, "United States"),
+    ].filter(Boolean).join(", ");
+  if (!query) throw new ApiError(400, "Course name or search text is required");
+
+  const apiKey = optionalEnv("GOOGLE_PLACES_API_KEY") || optionalEnv("GOOGLE_MAPS_API_KEY");
+  if (!apiKey) {
+    throw new ApiError(503, "Course lookup needs the GOOGLE_PLACES_API_KEY Supabase secret");
+  }
+
+  const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-goog-api-key": apiKey,
+      "x-goog-fieldmask":
+        "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.types",
+    },
+    body: JSON.stringify({
+      textQuery: `${query} golf course`,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = typeof payload?.error?.message === "string"
+      ? payload.error.message
+      : "Course lookup failed";
+    throw new ApiError(502, message);
+  }
+
+  const places: unknown[] = Array.isArray(payload.places) ? payload.places : [];
+  const candidates = places
+    .map((place: unknown) => normalizePlaceCandidate(place as Record<string, unknown>))
+    .filter((candidate: CourseLookupCandidate) =>
+      candidate.name && candidate.latitude !== null && candidate.longitude !== null
+    )
+    .slice(0, 5);
+
+  return jsonResponse(200, { query, candidates });
 }
 
 async function handleCreateRound(req: Request) {
@@ -1030,6 +1132,7 @@ async function route(req: Request) {
   }
 
   if (req.method === "POST" && pathname === "/courses") return handleCreateCourse(req);
+  if (req.method === "POST" && pathname === "/courses/lookup") return handleLookupCourse(req);
   if (req.method === "POST" && pathname === "/rounds") return handleCreateRound(req);
   if (req.method === "POST" && pathname === "/memories") return handleCreateMemory(req);
   if (req.method === "POST" && pathname === "/achievements") return handleCreateAchievement(req);

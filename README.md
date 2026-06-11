@@ -38,7 +38,7 @@ Current stack:
 - Dashboard: private entry creation/editing, password-change enforcement, and a passport snapshot of saved/public/draft/pinned content
 - Photos: Supabase Storage with dashboard upload, metadata review, and signed public reads
 - AI helper: Supabase Edge Function with free pasted-JSON validation and paid/entitled OpenAI path
-- Course verification: manual coordinates and verification status now; maps/geocoding lookup later
+- Course verification: manual coordinates plus optional server-side Google Places lookup
 
 OpenAI keys should never be placed in public browser code. The browser should send rough notes to an authenticated backend function, receive structured data and a story draft, and save only after parent review.
 
@@ -82,6 +82,7 @@ GET  /dashboard/golfers
 GET  /dashboard/golfers/:id/entries
 POST /golfers
 POST /courses
+POST /courses/lookup
 POST /rounds
 POST /memories
 POST /achievements
@@ -100,11 +101,15 @@ JGP_SUPABASE_URL
 JGP_SUPABASE_SERVICE_ROLE_KEY
 ```
 
-Still needed before built-in AI works:
+Optional secrets:
 
 ```powershell
 npx supabase secrets set OPENAI_API_KEY="sk-..."
+npx supabase secrets set GOOGLE_PLACES_API_KEY="..."
 ```
+
+`OPENAI_API_KEY` is required before built-in AI works. `GOOGLE_PLACES_API_KEY`
+enables dashboard course lookup and verified map pins through Google Places.
 
 The free `Use Your Own AI` flow does not require an OpenAI key because users copy
 the generated prompt into their own AI tool and paste JSON back into the

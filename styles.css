@@ -779,6 +779,42 @@ main {
   overflow-wrap: anywhere;
 }
 
+.course-lookup-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.course-lookup-results {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.course-lookup-results article {
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.course-lookup-results h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.course-lookup-results p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
 .editor-grid {
   align-items: start;
   display: grid;

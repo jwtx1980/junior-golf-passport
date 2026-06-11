@@ -594,6 +594,9 @@ Build:
 - manual course verification fields: dashboard can capture latitude, longitude,
   verification status, and verification source when creating course-backed
   entries
+- automated course lookup: dashboard and Edge Function support server-side
+  Google Places Text Search candidates, but live lookup needs the
+  `GOOGLE_PLACES_API_KEY` Supabase secret before it can return verified matches
 - live public map data: Kara's map now hydrates from approved Supabase rounds and
   course coordinates, with the original built-in map list as fallback
 
@@ -601,6 +604,5 @@ Then add:
 
 - real Kara/Jamie accounts and golfer memberships
 - first-login password update test with Kara's temporary password
-- automated course lookup/verification through Google Places or another maps or
-  geocoding API
+- Google Places secret and live lookup verification
 - subscription/payment only after the product flow is proven
