@@ -1231,6 +1231,24 @@ main {
   color: #fff;
 }
 
+.post-delete-btn {
+  background: none;
+  border: 1.5px solid #c0392b;
+  border-radius: 7px;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 820;
+  margin-left: 8px;
+  padding: 4px 14px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.post-delete-btn:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
 .course-story-actions {
   align-items: center;
   display: flex;

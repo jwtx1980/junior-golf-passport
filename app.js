@@ -581,7 +581,7 @@
       '</div>' +
       extraPhotosHtml +
       (canEdit && editableKind(entry.kind)
-        ? '<footer class="post-footer"><button class="post-edit-btn" type="button" data-edit-entry="' + escapeHtml(entry.kind + ":" + record.id) + '">Edit Entry</button></footer>'
+        ? '<footer class="post-footer"><button class="post-edit-btn" type="button" data-edit-entry="' + escapeHtml(entry.kind + ":" + record.id) + '">Edit Entry</button><button class="post-delete-btn" type="button" data-delete-entry="' + escapeHtml(entry.kind + ":" + record.id) + '">Delete</button></footer>'
         : '') +
       '</article>';
   }
@@ -1128,6 +1128,20 @@
     if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
     setQuickStatus("Editing an existing passport entry.");
+  }
+
+  async function deleteEntry(entryKey) {
+    if (!canEditCurrentGolfer()) return;
+    var entry = findPublicEntry(entryKey);
+    if (!entry || !editableKind(entry.kind)) return;
+    var label = entry.title || (entry.course && entry.course.name) || "this entry";
+    if (!confirm("Delete "" + label + ""? This cannot be undone.")) return;
+    try {
+      await api("/entries/" + entry.kind + "/" + entry.record.id, { method: "DELETE" });
+      loadPublicPassport();
+    } catch (e) {
+      alert("Could not delete entry: " + (e && e.message ? e.message : "unknown error"));
+    }
   }
 
   function openPhotoEdit(photoId) {
@@ -2060,6 +2074,12 @@
     var editButton = event.target.closest("[data-edit-entry]");
     if (editButton) {
       openEntryEdit(editButton.getAttribute("data-edit-entry"));
+      return;
+    }
+
+    var deleteButton = event.target.closest("[data-delete-entry]");
+    if (deleteButton) {
+      deleteEntry(deleteButton.getAttribute("data-delete-entry"));
       return;
     }
 
