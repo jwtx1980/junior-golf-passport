@@ -13,6 +13,7 @@
     features: null,
     courseCandidate: null,
     publicPassport: null,
+    ownerDataLoaded: false,
     selectedState: "",
     selectedCourseKey: "",
     editingEntry: null,
@@ -593,15 +594,23 @@
       var filteredCourses = courses.filter(function (item) {
         return normalizeStateCode(item.state) === profileState.selectedState;
       });
+      var stateEntries = filteredCourses.reduce(function (acc, c) {
+        return acc.concat(courseEntries(c, data));
+      }, []);
+      var canEditState = canEditCurrentGolfer();
       panel.innerHTML = [
         '<div class="selected-course-heading">',
         '<span>' + escapeHtml(profileState.selectedState) + '</span>',
         '<div>',
         '<p class="eyebrow">State selected</p>',
-        '<h3>' + escapeHtml(profileState.selectedState) + ' course list</h3>',
-        '<p>' + escapeHtml(filteredCourses.length + " course" + (filteredCourses.length === 1 ? "" : "s") + " found. Choose a course to open stories and photos.") + '</p>',
+        '<h3>' + escapeHtml(profileState.selectedState) + ' — ' + filteredCourses.length + ' course' + (filteredCourses.length === 1 ? "" : "s") + '</h3>',
         '</div>',
-        '</div>'
+        '</div>',
+        stateEntries.length
+          ? '<div class="course-story-list">' + stateEntries.map(function (entry) {
+              return renderMemoryPost(entry, golfer, canEditState);
+            }).join("") + '</div>'
+          : '<p class="empty-state">No entries yet for ' + escapeHtml(profileState.selectedState) + ' courses.</p>'
       ].join("");
       return;
     }
@@ -931,7 +940,10 @@
       setHidden(quick.signIn, false);
       quick.signIn.textContent = signedIn ? "Sign Out" : "Sign In to Edit";
       quick.signIn.setAttribute("href", signedIn ? "#sign-out" : "/dashboard/");
+      quick.signIn.classList.toggle("nav-signed-in", signedIn);
     }
+    var editBar = document.getElementById("edit-mode-bar");
+    if (editBar) setHidden(editBar, !canEdit);
     if (profileUi.photoButton) {
       profileUi.photoButton.classList.toggle("is-editable", canEdit);
       profileUi.photoButton.setAttribute("title", canEdit ? "Change profile photo" : "View golfer profile");
@@ -963,6 +975,7 @@
         profileState.editableGolfer = adminRow && adminRow.golfers ? adminRow.golfers : null;
       }
       renderEditControls();
+      loadOwnerPassport();
     } catch (error) {
       renderEditControls();
     }
@@ -2003,6 +2016,18 @@
     ].join("");
   }
 
+  async function loadOwnerPassport() {
+    if (!canEditCurrentGolfer() || !profileState.editableGolfer) return;
+    try {
+      var allEntries = await api("/dashboard/golfers/" + profileState.editableGolfer.id + "/entries");
+      var base = profileState.publicPassport || {};
+      profileState.ownerDataLoaded = true;
+      renderPublicPassport(Object.assign({}, base, allEntries));
+    } catch (e) {
+      // fall back to public data already rendered
+    }
+  }
+
   function loadPublicPassport() {
     if (!config || !document.body.classList.contains("profile-page")) return;
     var slug = currentPassportSlug();
@@ -2016,7 +2041,9 @@
         if (!response.ok) throw new Error("Could not load live passport.");
         return response.json();
       })
-      .then(renderPublicPassport)
+      .then(function (data) {
+        if (!profileState.ownerDataLoaded) renderPublicPassport(data);
+      })
       .catch(function () {
         if (document.body.classList.contains("generic-profile-page")) {
           renderPassportError("This passport may be private, unlisted with a different link, or not created yet.");
