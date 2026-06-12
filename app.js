@@ -59,6 +59,17 @@
     button: document.getElementById("profile-update-password"),
     status: document.getElementById("profile-password-status")
   };
+  var profileUi = {
+    photoButton: document.getElementById("profile-photo-button"),
+    photoInput: document.getElementById("profile-photo-input"),
+    photoModal: document.getElementById("profile-photo-modal"),
+    photoModalClose: document.getElementById("profile-photo-modal-close"),
+    photoModalImage: document.getElementById("profile-photo-modal-image"),
+    photoModalName: document.getElementById("profile-photo-modal-name"),
+    photoModalMeta: document.getElementById("profile-photo-modal-meta"),
+    photoModalBio: document.getElementById("profile-photo-modal-bio")
+  };
+  var PROFILE_PHOTO_CAPTION = "Profile photo";
 
   function uniqueBy(items, keyFn) {
     var seen = {};
@@ -216,6 +227,30 @@
         return part.charAt(0).toUpperCase();
       })
       .join("") || "J";
+  }
+
+  function isProfilePhoto(photo) {
+    if (!photo) return false;
+    return String(photo.caption || "").trim().toLowerCase() === PROFILE_PHOTO_CAPTION.toLowerCase() ||
+      String(photo.storage_path || "").indexOf("/profile/") !== -1;
+  }
+
+  function profilePhotoFromData(data) {
+    var photos = data && Array.isArray(data.photos) ? data.photos : [];
+    return photos.find(isProfilePhoto) || null;
+  }
+
+  function setProfilePhotoElement(element, golfer, photo) {
+    if (!element) return;
+    var initials = initialsForName(golfer && golfer.display_name);
+    element.textContent = initials;
+    element.style.backgroundImage = "";
+    element.classList.remove("has-image");
+    if (photo && photo.signed_url) {
+      element.textContent = "";
+      element.style.backgroundImage = "url(" + photo.signed_url + ")";
+      element.classList.add("has-image");
+    }
   }
 
   function recordCourse(record) {
@@ -558,6 +593,9 @@
   function renderPhotos(photos, golfer) {
     var grid = document.querySelector("#photos .memory-grid");
     if (!grid) return;
+    photos = (photos || []).filter(function (photo) {
+      return !isProfilePhoto(photo);
+    });
 
     if (!photos.length) {
       grid.innerHTML = emptyCard("Approved photos and captions will collect here as the scrapbook grows.");
@@ -587,12 +625,23 @@
     var meta = document.querySelector(".profile-meta");
     var bio = document.querySelector(".profile-summary .profile-bio");
     var photo = document.querySelector(".profile-photo");
+    var profilePhoto = profilePhotoFromData(profileState.publicPassport);
 
     if (name && golfer.display_name) name.textContent = golfer.display_name;
     if (eyebrow && golfer.display_name) eyebrow.textContent = golfer.display_name + "'s Junior Golf Passport";
     if (meta && golfer.headline) meta.textContent = golfer.headline;
     if (bio && golfer.bio) bio.textContent = golfer.bio;
-    if (photo && golfer.display_name) photo.textContent = initialsForName(golfer.display_name);
+    setProfilePhotoElement(photo, golfer, profilePhoto);
+    setProfilePhotoElement(profileUi.photoModalImage, golfer, profilePhoto);
+    if (profileUi.photoButton && golfer.display_name) {
+      profileUi.photoButton.setAttribute("aria-label", "View " + golfer.display_name + " profile");
+    }
+    if (profileUi.photoModalName) profileUi.photoModalName.textContent = golfer.display_name || "Junior golfer";
+    if (profileUi.photoModalMeta) profileUi.photoModalMeta.textContent = golfer.headline || "Courses played, memories made, milestones earned.";
+    if (profileUi.photoModalBio) {
+      profileUi.photoModalBio.textContent = golfer.bio ||
+        "This Junior Golf Passport collects courses, memories, photos, achievements, tournaments, and goals.";
+    }
     if (golfer.display_name) {
       document.title = golfer.display_name + " | Junior Golf Passport";
     }
@@ -704,8 +753,11 @@
     var canEdit = canEditCurrentGolfer();
     var mustChange = Boolean(profileState.me && profileState.me.profile && profileState.me.profile.must_change_password);
     setHidden(quick.open, !canEdit);
-    setHidden(quick.signIn, canEdit || mustChange);
-    setHidden(passwordGate.panel, !mustChange);
+    setHidden(quick.signIn, canEdit);
+    if (quick.signIn) {
+      quick.signIn.textContent = mustChange ? "Open Account" : "Sign In to Edit";
+    }
+    setHidden(passwordGate.panel, true);
     renderCourseNavigation();
   }
 
@@ -1120,6 +1172,57 @@
     });
   }
 
+  function openProfilePhotoModal() {
+    if (!profileUi.photoModal || !profileState.publicPassport) return;
+    renderGolferProfile(profileState.publicPassport.golfer || {});
+    setHidden(profileUi.photoModal, false);
+  }
+
+  function closeProfilePhotoModal() {
+    setHidden(profileUi.photoModal, true);
+  }
+
+  async function uploadProfilePhoto() {
+    if (!canEditCurrentGolfer()) {
+      openProfilePhotoModal();
+      return;
+    }
+    var file = profileUi.photoInput && profileUi.photoInput.files ? profileUi.photoInput.files[0] : null;
+    if (!file) return;
+    if (!authClient || !profileState.editableGolfer) throw new Error("Sign in before updating the profile photo.");
+    setText(shareStatus, "Uploading profile photo...");
+    var path = [
+      profileState.editableGolfer.id,
+      "profile",
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+    ].join("/");
+    var upload = await authClient.storage
+      .from("passport-photos")
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+    var payload = await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        storage_path: path,
+        caption: PROFILE_PHOTO_CAPTION,
+        visibility: "public",
+        is_approved: true
+      }
+    });
+    if (profileUi.photoInput) profileUi.photoInput.value = "";
+    if (profileState.publicPassport) {
+      profileState.publicPassport.photos = [payload.photo].concat(profileState.publicPassport.photos || []);
+      renderGolferProfile(profileState.publicPassport.golfer || {});
+      renderPhotos(profileState.publicPassport.photos || [], profileState.publicPassport.golfer || {});
+    }
+    setText(shareStatus, "Profile photo updated.");
+  }
+
   async function saveQuickReview() {
     setQuickStatus("Saving memory...");
     var courseId = await createCourseFromReview();
@@ -1305,6 +1408,33 @@
     }
   }
 
+  function bindProfilePhoto() {
+    if (profileUi.photoButton) {
+      profileUi.photoButton.addEventListener("click", function () {
+        if (canEditCurrentGolfer() && profileUi.photoInput) {
+          profileUi.photoInput.click();
+          return;
+        }
+        openProfilePhotoModal();
+      });
+    }
+    if (profileUi.photoInput) {
+      profileUi.photoInput.addEventListener("change", function () {
+        uploadProfilePhoto().catch(function (error) {
+          setText(shareStatus, error.message);
+        });
+      });
+    }
+    if (profileUi.photoModalClose) {
+      profileUi.photoModalClose.addEventListener("click", closeProfilePhotoModal);
+    }
+    if (profileUi.photoModal) {
+      profileUi.photoModal.addEventListener("click", function (event) {
+        if (event.target === profileUi.photoModal) closeProfilePhotoModal();
+      });
+    }
+  }
+
   function renderPublicPassport(data) {
     var golfer = data.golfer || {};
     var normalized = {
@@ -1445,6 +1575,7 @@
 
   bindQuickAdd();
   bindPasswordGate();
+  bindProfilePhoto();
   bindMapFrameBridge();
   loadPublicPassport();
   loadProfileAuth();

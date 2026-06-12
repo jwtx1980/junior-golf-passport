@@ -597,16 +597,30 @@ main {
 .profile-photo {
   align-items: center;
   background: linear-gradient(135deg, var(--green), var(--gold));
+  background-position: center;
+  background-size: cover;
   border: 4px solid rgba(255, 255, 255, 0.82);
   border-radius: 8px;
   color: #ffffff;
+  cursor: pointer;
   display: inline-flex;
   flex: 0 0 auto;
   font-size: 4rem;
   font-weight: 950;
   height: 132px;
   justify-content: center;
+  padding: 0;
   width: 132px;
+}
+
+.profile-photo.has-image {
+  color: transparent;
+  text-shadow: none;
+}
+
+.profile-photo:hover {
+  box-shadow: 0 16px 34px rgba(23, 34, 29, 0.18);
+  transform: translateY(-1px);
 }
 
 .profile-summary h1 {
@@ -619,6 +633,75 @@ main {
   color: var(--green-dark);
   font-weight: 900;
   margin-bottom: 10px;
+}
+
+.profile-photo-modal[hidden] {
+  display: none;
+}
+
+.profile-photo-modal {
+  align-items: center;
+  background: rgba(18, 24, 21, 0.64);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 45;
+}
+
+.profile-photo-modal-card {
+  background: var(--paper);
+  border-radius: 8px;
+  box-shadow: 0 28px 80px rgba(9, 16, 13, 0.34);
+  display: grid;
+  gap: 22px;
+  max-width: 720px;
+  padding: clamp(22px, 4vw, 36px);
+  position: relative;
+  width: min(100%, 720px);
+}
+
+.profile-photo-large {
+  align-items: center;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, var(--green), var(--gold));
+  background-position: center;
+  background-size: cover;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-size: clamp(4rem, 14vw, 8rem);
+  font-weight: 950;
+  justify-content: center;
+  max-height: 360px;
+  width: 100%;
+}
+
+.profile-photo-large.has-image {
+  color: transparent;
+}
+
+.profile-photo-modal-card h2 {
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  margin-bottom: 6px;
+}
+
+.profile-photo-modal-card p {
+  color: var(--muted);
+}
+
+.profile-modal-meta {
+  color: var(--green-dark) !important;
+  font-weight: 900;
+}
+
+.modal-close-dark {
+  background: var(--ink);
+  border: 0;
+  position: absolute;
+  right: 14px;
+  top: 14px;
 }
 
 .passport-map-band {
