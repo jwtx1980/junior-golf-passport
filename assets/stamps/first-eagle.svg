@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">First eagle stamp</title>
+  <defs>
+    <filter id="rough-eagle">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="54" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#174d39;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#174d39}
+      .text{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-eagle)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <path class="ink" d="M18 42c8-12 17-14 26-5 9-9 18-7 26 5" stroke-width="2.4"/>
+    <path class="ink" d="M24 45c6-5 12-6 18-2M56 45c-6-5-12-6-18-2" stroke-width="2"/>
+    <path class="ink" d="M40 34l4 8 9 1.2-6.5 5.7 1.8 8.8L40 53l-8.3 4.7 1.8-8.8-6.5-5.7 9-1.2z" stroke-width="2"/>
+    <text class="text" x="40" y="18" text-anchor="middle">FIRST</text>
+    <text class="text" x="40" y="67" text-anchor="middle">EAGLE</text>
+    <path class="ink" d="M20 28h5M56 29h5M20 55l5-2M55 53l5 2" stroke-width="1.4" opacity=".48"/>
+    <circle class="fill" cx="63" cy="41" r=".9" opacity=".35"/>
+  </g>
+</svg>

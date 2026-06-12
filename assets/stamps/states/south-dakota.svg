@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">S. Dakota stamp</title>
+  <defs>
+    <filter id="rough-south-dakota">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="240" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-south-dakota)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">S. DAKOTA</text>
+    <g>
+    <path class="ink" d="M22 54c4-17 13-26 18-26s14 9 18 26z" stroke-width="2.4"/>
+    <path class="ink" d="M31 54c2-8 6-13 9-13s7 5 9 13M25 45h30" stroke-width="1.7"/>
+    <path class="ink" d="M31 31l-3-8M40 28v-9M49 31l3-8" stroke-width="1.6"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">SD - MONUMENT</text>
+    <circle class="fill" cx="18" cy="44" r=".9" opacity=".32"/>
+    <circle class="fill" cx="61" cy="40" r=".8" opacity=".3"/>
+  </g>
+</svg>

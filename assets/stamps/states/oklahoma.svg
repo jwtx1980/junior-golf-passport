@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Oklahoma stamp</title>
+  <defs>
+    <filter id="rough-oklahoma">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="235" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-oklahoma)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">OKLAHOMA</text>
+    <g>
+    <path class="ink" d="M25 25h30v10c0 11-6 18-15 23-9-5-15-12-15-23z" stroke-width="2.4"/>
+    <path class="ink" d="M25 35h30" stroke-width="2"/>
+    <text class="mini" x="40" y="32" text-anchor="middle">66</text>
+    <path class="ink" d="M32 45h16M35 51h10" stroke-width="1.7"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">OK - ROUTE</text>
+    <circle class="fill" cx="21" cy="48" r=".9" opacity=".32"/>
+    <circle class="fill" cx="61" cy="35" r=".8" opacity=".3"/>
+  </g>
+</svg>

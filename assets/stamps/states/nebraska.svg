@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Nebraska stamp</title>
+  <defs>
+    <filter id="rough-nebraska">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="226" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-nebraska)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">NEBRASKA</text>
+    <g>
+    <path class="ink" d="M40 35v24M30 59h20" stroke-width="2.4"/>
+    <circle class="ink" cx="40" cy="34" r="3" stroke-width="2"/>
+    <path class="ink" d="M40 31V20M43 34h12M40 37v12M37 34H25M42 32l8-8M38 36l-8 8M38 32l-8-8M42 36l8 8" stroke-width="1.7"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">NE - PRAIRIE</text>
+    <circle class="fill" cx="20" cy="48" r=".9" opacity=".32"/>
+    <circle class="fill" cx="60" cy="37" r=".8" opacity=".3"/>
+  </g>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Arizona stamp</title>
+  <defs>
+    <filter id="rough-arizona">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="202" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#9b5a17;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#9b5a17}
+      .text{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-arizona)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">ARIZONA</text>
+    <g>
+    <path class="ink" d="M40 55V25c0-3 2-5 5-5s5 2 5 5v6" stroke-width="3"/>
+    <path class="ink" d="M40 38h-7c-3 0-5-2-5-5v-5M50 40h5c3 0 5-2 5-5v-4" stroke-width="3"/>
+    <path class="ink" d="M31 28v9M55 31v9" stroke-width="2"/>
+    <path class="ink" d="M27 55h29" stroke-width="2"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">AZ - CACTUS</text>
+    <circle class="fill" cx="20" cy="42" r=".9" opacity=".32"/>
+    <circle class="fill" cx="59" cy="35" r=".8" opacity=".3"/>
+  </g>
+</svg>

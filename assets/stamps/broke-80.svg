@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Broke 80 stamp</title>
+  <defs>
+    <filter id="rough-80">
+      <feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" seed="87" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#9b5a17;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#9b5a17}
+      .text{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-weight:950;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-80)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="47" text-anchor="middle" font-size="28">80</text>
+    <path class="ink" d="M22 51l11-10 8 6 17-16" stroke-width="3"/>
+    <path class="ink" d="M24 30h32M24 55h32" stroke-width="1.5" opacity=".45" stroke-dasharray="5 5"/>
+    <text class="text" x="40" y="18" text-anchor="middle" font-size="7">BROKE</text>
+    <text class="text" x="40" y="66" text-anchor="middle" font-size="6">ELITE DAY</text>
+    <path class="ink" d="M20 39h5M55 39h5M27 23l3 4M52 23l-3 4" stroke-width="1.4" opacity=".48"/>
+    <circle class="fill" cx="19" cy="49" r=".9" opacity=".35"/>
+  </g>
+</svg>

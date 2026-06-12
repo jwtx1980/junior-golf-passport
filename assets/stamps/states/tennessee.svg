@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Tennessee stamp</title>
+  <defs>
+    <filter id="rough-tennessee">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="241" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-tennessee)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">TENNESSEE</text>
+    <g>
+    <path class="ink" d="M45 23v28" stroke-width="3"/>
+    <path class="ink" d="M45 23l14 5v8l-14-5" stroke-width="2.2"/>
+    <ellipse class="ink" cx="35" cy="52" rx="9" ry="6" transform="rotate(-18 35 52)" stroke-width="2.4"/>
+    <path class="ink" d="M21 37c7-5 14-5 21 0M22 29c6-4 12-4 18 0" stroke-width="1.6" opacity=".6"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">TN - MUSIC</text>
+    <circle class="fill" cx="19" cy="45" r=".9" opacity=".32"/>
+    <circle class="fill" cx="60" cy="41" r=".8" opacity=".3"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Minnesota stamp</title>
+  <defs>
+    <filter id="rough-minnesota">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="222" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#9b5a17;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#9b5a17}
+      .text{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-minnesota)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">MINNESOTA</text>
+    <g>
+    <path class="ink" d="M21 47c7-10 20-11 33-3l6-3-2 8c-8 6-25 8-37-2z" stroke-width="2.4"/>
+    <path class="ink" d="M36 39c2-9 10-13 16-8 3 3 3 7 1 11M48 33h2M21 54c11 3 27 3 38-2" stroke-width="1.8"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">MN - LAKE</text>
+    <circle class="fill" cx="20" cy="44" r=".9" opacity=".32"/>
+    <circle class="fill" cx="59" cy="33" r=".8" opacity=".3"/>
+  </g>
+</svg>

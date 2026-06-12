@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Course played stamp</title>
+  <defs>
+    <filter id="rough-course">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="12" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-course)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.6" stroke-dasharray="3 3"/>
+    <path class="ink" d="M29 54c5-5 17-5 22 0" stroke-width="2"/>
+    <path class="ink" d="M35 51c2-7 9-11 16-11 3 0 6 .5 8 1.5" stroke-width="2"/>
+    <path class="ink" d="M35 48V23" stroke-width="3"/>
+    <path class="fill" d="M37 24h18l-4.5 6L55 36H37z"/>
+    <circle class="ink" cx="28" cy="55" r="2.5" stroke-width="1.6"/>
+    <text class="text" x="40" y="66" text-anchor="middle">COURSE</text>
+    <path class="ink" d="M18 31h7M55 55h7M21 21l4 4M56 22l-4 4" stroke-width="1.4" opacity=".5"/>
+    <circle class="fill" cx="19" cy="48" r="1.1" opacity=".42"/>
+    <circle class="fill" cx="60" cy="35" r=".9" opacity=".36"/>
+  </g>
+</svg>

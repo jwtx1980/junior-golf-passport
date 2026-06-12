@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Broke 90 stamp</title>
+  <defs>
+    <filter id="rough-90">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="76" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-weight:950;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-90)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="47" text-anchor="middle" font-size="28">90</text>
+    <path class="ink" d="M23 51l10-9 8 5 16-14" stroke-width="3"/>
+    <path class="ink" d="M24 30h32M24 55h32" stroke-width="1.5" opacity=".45" stroke-dasharray="5 5"/>
+    <text class="text" x="40" y="18" text-anchor="middle" font-size="7">BROKE</text>
+    <text class="text" x="40" y="66" text-anchor="middle" font-size="6">LEVEL UP</text>
+    <path class="ink" d="M20 38h4M56 39h5M26 23l3 4M53 23l-3 4" stroke-width="1.4" opacity=".45"/>
+    <circle class="fill" cx="61" cy="50" r="1" opacity=".36"/>
+  </g>
+</svg>

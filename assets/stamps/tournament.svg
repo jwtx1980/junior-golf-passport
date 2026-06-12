@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Tournament stamp</title>
+  <defs>
+    <filter id="rough-tournament">
+      <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="2" seed="109" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:.8px}
+    </style>
+  </defs>
+  <g filter="url(#rough-tournament)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path class="ink" d="M31 25h18v9c0 7-4 12-9 12s-9-5-9-12z" stroke-width="2.3"/>
+    <path class="ink" d="M31 30h-7c0 7 3 11 9 11M49 30h7c0 7-3 11-9 11" stroke-width="2.1"/>
+    <path class="ink" d="M40 46v8M32 54h16M28 59h24" stroke-width="2.3"/>
+    <path class="ink" d="M40 29l2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z" stroke-width="1.5"/>
+    <text class="text" x="40" y="18" text-anchor="middle">EVENT</text>
+    <text class="text" x="40" y="68" text-anchor="middle">TOURNAMENT</text>
+    <circle class="fill" cx="19" cy="45" r=".9" opacity=".36"/>
+    <circle class="fill" cx="61" cy="47" r=".9" opacity=".36"/>
+  </g>
+</svg>

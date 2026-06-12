@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Alabama stamp</title>
+  <defs>
+    <filter id="rough-alabama">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="200" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-alabama)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">ALABAMA</text>
+    <g>
+    <circle class="ink" cx="40" cy="39" r="4" stroke-width="2"/>
+    <path class="ink" d="M40 24c5 5 5 10 0 15-5-5-5-10 0-15zM40 54c-5-5-5-10 0-15 5 5 5 10 0 15zM25 39c5-5 10-5 15 0-5 5-10 5-15 0zM55 39c-5 5-10 5-15 0 5-5 10-5 15 0z" stroke-width="2"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">AL - CAMELLIA</text>
+    <circle class="fill" cx="18" cy="40" r=".9" opacity=".32"/>
+    <circle class="fill" cx="61" cy="33" r=".8" opacity=".3"/>
+  </g>
+</svg>

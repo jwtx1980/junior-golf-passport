@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">S. Carolina stamp</title>
+  <defs>
+    <filter id="rough-south-carolina">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="239" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#174d39;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#174d39}
+      .text{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:5px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-south-carolina)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">S. CAROLINA</text>
+    <g>
+    <path class="ink" d="M36 57c5-10 5-20 2-31" stroke-width="3"/>
+    <path class="ink" d="M38 27c-7 0-12 3-16 9M38 27c-3-6-8-9-14-9M38 27c6-6 13-8 20-4M38 27c6 2 10 7 13 14" stroke-width="2"/>
+    <path class="ink" d="M55 23c-4 2-9 0-11-4 4-2 9 0 11 4zM25 57h29" stroke-width="1.8"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">SC - PALMETTO</text>
+    <circle class="fill" cx="21" cy="43" r=".9" opacity=".32"/>
+    <circle class="fill" cx="57" cy="39" r=".8" opacity=".3"/>
+  </g>
+</svg>

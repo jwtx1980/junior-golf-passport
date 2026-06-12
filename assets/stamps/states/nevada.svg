@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Nevada stamp</title>
+  <defs>
+    <filter id="rough-nevada">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="227" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#9b5a17;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#9b5a17}
+      .text{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-nevada)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">NEVADA</text>
+    <g>
+    <rect class="ink" x="24" y="29" width="22" height="22" rx="4" stroke-width="2.3"/>
+    <rect class="ink" x="38" y="24" width="18" height="18" rx="4" stroke-width="2.1"/>
+    <circle class="fill" cx="31" cy="36" r="1.6"/>
+    <circle class="fill" cx="39" cy="44" r="1.6"/>
+    <circle class="fill" cx="44" cy="30" r="1.4"/>
+    <circle class="fill" cx="50" cy="36" r="1.4"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">NV - LUCKY</text>
+    <circle class="fill" cx="21" cy="40" r=".9" opacity=".32"/>
+    <circle class="fill" cx="59" cy="38" r=".8" opacity=".3"/>
+  </g>
+</svg>

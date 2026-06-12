@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">N. Carolina stamp</title>
+  <defs>
+    <filter id="rough-north-carolina">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="232" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#9b5a17;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#9b5a17}
+      .text{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:5px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#9b5a17;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-north-carolina)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">N. CAROLINA</text>
+    <g>
+    <path class="ink" d="M40 21l-12 16h7l-10 12h10l-6 8h22l-6-8h10L45 37h7z" stroke-width="2.3"/>
+    <path class="ink" d="M40 50v10" stroke-width="2"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">NC - PINE</text>
+    <circle class="fill" cx="18" cy="45" r=".9" opacity=".32"/>
+    <circle class="fill" cx="59" cy="43" r=".8" opacity=".3"/>
+  </g>
+</svg>

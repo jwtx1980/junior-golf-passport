@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Wisconsin stamp</title>
+  <defs>
+    <filter id="rough-wisconsin">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="248" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#d8634b;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#d8634b}
+      .text{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-wisconsin)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">WISCONSIN</text>
+    <g>
+    <path class="ink" d="M22 52l36-21v21z" stroke-width="2.5"/>
+    <path class="ink" d="M22 52h36" stroke-width="2"/>
+    <circle class="ink" cx="44" cy="44" r="3" stroke-width="1.7"/>
+    <circle class="ink" cx="53" cy="49" r="2" stroke-width="1.5"/>
+    <circle class="ink" cx="35" cy="49" r="2.2" stroke-width="1.5"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">WI - CHEESE</text>
+    <circle class="fill" cx="18" cy="43" r=".9" opacity=".32"/>
+    <circle class="fill" cx="58" cy="37" r=".8" opacity=".3"/>
+  </g>
+</svg>

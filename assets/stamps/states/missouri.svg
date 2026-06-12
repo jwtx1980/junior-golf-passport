@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Missouri stamp</title>
+  <defs>
+    <filter id="rough-missouri">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="224" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#174d39;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#174d39}
+      .text{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-missouri)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">MISSOURI</text>
+    <g>
+    <path class="ink" d="M21 56c7-25 14-36 19-36s12 11 19 36" stroke-width="3"/>
+    <path class="ink" d="M31 56c3-13 6-20 9-20s6 7 9 20M21 56h38" stroke-width="2"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">MO - ARCH</text>
+    <circle class="fill" cx="18" cy="46" r=".9" opacity=".32"/>
+    <circle class="fill" cx="57" cy="35" r=".8" opacity=".3"/>
+  </g>
+</svg>

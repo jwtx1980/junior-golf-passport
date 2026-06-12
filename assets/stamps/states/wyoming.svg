@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Wyoming stamp</title>
+  <defs>
+    <filter id="rough-wyoming">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="249" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#174d39;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#174d39}
+      .text{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#174d39;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-wyoming)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">WYOMING</text>
+    <g>
+    <path class="ink" d="M28 31c0-8 24-8 24 0v14c0 10-6 15-12 15s-12-5-12-15z" stroke-width="2.4"/>
+    <path class="ink" d="M34 31v14c0 5 3 8 6 8s6-3 6-8V31" stroke-width="2"/>
+    <circle class="fill" cx="28" cy="38" r="1.2"/>
+    <circle class="fill" cx="52" cy="38" r="1.2"/>
+    <circle class="fill" cx="31" cy="50" r="1.2"/>
+    <circle class="fill" cx="49" cy="50" r="1.2"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">WY - HORSESHOE</text>
+    <circle class="fill" cx="19" cy="44" r=".9" opacity=".32"/>
+    <circle class="fill" cx="57" cy="38" r=".8" opacity=".3"/>
+  </g>
+</svg>

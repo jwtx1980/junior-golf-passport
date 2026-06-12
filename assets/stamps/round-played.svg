@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Round played stamp</title>
+  <defs>
+    <filter id="rough-round">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="32" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-round)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <rect class="ink" x="25" y="23" width="24" height="31" rx="3" stroke-width="2.3"/>
+    <path class="ink" d="M30 31h14M30 38h14M30 45h8" stroke-width="1.7"/>
+    <path class="ink" d="M49 48l10-16 5 3-10 16-6 3z" stroke-width="2"/>
+    <path class="ink" d="M57 35l5 3" stroke-width="2"/>
+    <circle class="ink" cx="29" cy="58" r="3" stroke-width="1.5"/>
+    <path class="ink" d="M18 42h5M56 20h6M19 25l4 3" stroke-width="1.4" opacity=".48"/>
+    <text class="text" x="40" y="67" text-anchor="middle">ROUND</text>
+    <circle class="fill" cx="61" cy="52" r="1" opacity=".38"/>
+  </g>
+</svg>

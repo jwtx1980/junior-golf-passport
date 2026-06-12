@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Memory stamp</title>
+  <defs>
+    <filter id="rough-memory">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="131" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#65746d;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#65746d}
+      .text{fill:#65746d;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-memory)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <rect class="ink" x="24" y="25" width="32" height="26" rx="3" stroke-width="2.3"/>
+    <path class="ink" d="M29 47l8-8 6 6 4-4 6 6" stroke-width="2"/>
+    <circle class="ink" cx="47" cy="32" r="3" stroke-width="1.7"/>
+    <path class="ink" d="M30 56h20M34 60h12" stroke-width="2"/>
+    <text class="text" x="40" y="18" text-anchor="middle">SAVED</text>
+    <text class="text" x="40" y="68" text-anchor="middle">MEMORY</text>
+    <path class="ink" d="M18 40h5M57 40h5M22 28l4 3M54 31l4-3" stroke-width="1.4" opacity=".48"/>
+    <circle class="fill" cx="60" cy="51" r=".9" opacity=".35"/>
+  </g>
+</svg>

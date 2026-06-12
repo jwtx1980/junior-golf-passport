@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Broke 100 stamp</title>
+  <defs>
+    <filter id="rough-100">
+      <feTurbulence type="fractalNoise" baseFrequency="0.88" numOctaves="2" seed="65" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#d8634b;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#d8634b}
+      .text{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-weight:950;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-100)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="46" text-anchor="middle" font-size="24">100</text>
+    <path class="ink" d="M22 50l12-8 8 6 14-12" stroke-width="3"/>
+    <path class="ink" d="M21 31h38M21 54h38" stroke-width="1.5" opacity=".45" stroke-dasharray="5 5"/>
+    <path class="ink" d="M31 24l-4 8M49 24l4 8" stroke-width="1.6"/>
+    <text class="text" x="40" y="18" text-anchor="middle" font-size="7">BROKE</text>
+    <text class="text" x="40" y="66" text-anchor="middle" font-size="6">MILESTONE</text>
+    <circle class="fill" cx="18" cy="43" r="1" opacity=".38"/>
+    <circle class="fill" cx="62" cy="52" r=".9" opacity=".36"/>
+  </g>
+</svg>

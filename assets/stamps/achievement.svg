@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Achievement stamp</title>
+  <defs>
+    <filter id="rough-achievement">
+      <feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" seed="120" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#d8634b;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#d8634b}
+      .text{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:.8px}
+    </style>
+  </defs>
+  <g filter="url(#rough-achievement)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <path class="ink" d="M40 22l5.1 10.4 11.5 1.7-8.3 8.1 2 11.4L40 48.2l-10.3 5.4 2-11.4-8.3-8.1 11.5-1.7z" stroke-width="2.4"/>
+    <path class="ink" d="M31 55l-3 8 8-4 4 5 4-5 8 4-3-8" stroke-width="2"/>
+    <path class="ink" d="M18 43h5M57 43h5M22 25l4 4M54 29l4-4" stroke-width="1.4" opacity=".48"/>
+    <text class="text" x="40" y="18" text-anchor="middle">STAMPED</text>
+    <text class="text" x="40" y="68" text-anchor="middle">ACHIEVED</text>
+    <circle class="fill" cx="59" cy="52" r="1" opacity=".36"/>
+  </g>
+</svg>

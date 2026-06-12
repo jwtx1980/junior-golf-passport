@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Mass. stamp</title>
+  <defs>
+    <filter id="rough-massachusetts">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="220" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-massachusetts)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">MASS.</text>
+    <g>
+    <path class="ink" d="M33 56l4-29h6l4 29z" stroke-width="2.4"/>
+    <path class="ink" d="M33 32h14M31 56h18M35 24h10l-2-5h-6zM37 40h6M36 48h8" stroke-width="1.8"/>
+    <path class="ink" d="M27 26l-9-4M53 26l9-4M27 36h-8M53 36h8" stroke-width="1.5" opacity=".6"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">MA - LIGHTHOUSE</text>
+    <circle class="fill" cx="18" cy="42" r=".9" opacity=".32"/>
+    <circle class="fill" cx="61" cy="42" r=".8" opacity=".3"/>
+  </g>
+</svg>

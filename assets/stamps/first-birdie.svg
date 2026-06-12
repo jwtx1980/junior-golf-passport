@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">First birdie stamp</title>
+  <defs>
+    <filter id="rough-birdie">
+      <feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" seed="43" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1f6b4c;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1f6b4c}
+      .text{fill:#1f6b4c;font-family:Inter,Arial,sans-serif;font-size:6px;font-weight:900;letter-spacing:1px}
+    </style>
+  </defs>
+  <g filter="url(#rough-birdie)" opacity=".93">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path class="ink" d="M23 45c11-14 24-14 34 0" stroke-width="2.2"/>
+    <path class="ink" d="M29 43c6-5 13-6 20-1" stroke-width="2"/>
+    <path class="ink" d="M39 45l-5 8h12z" stroke-width="2"/>
+    <path class="ink" d="M40 28v19" stroke-width="2.4"/>
+    <path class="fill" d="M42 29h13l-3.2 4.5L55 38H42z"/>
+    <path class="ink" d="M23 27l3 5M56 27l-3 5M19 52h6M55 53h6" stroke-width="1.4" opacity=".48"/>
+    <text class="text" x="40" y="18" text-anchor="middle">FIRST</text>
+    <text class="text" x="40" y="67" text-anchor="middle">BIRDIE</text>
+    <circle class="fill" cx="20" cy="39" r="1" opacity=".36"/>
+    <circle class="fill" cx="61" cy="42" r=".9" opacity=".34"/>
+  </g>
+</svg>

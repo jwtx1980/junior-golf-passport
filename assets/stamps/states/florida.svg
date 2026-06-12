@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Florida stamp</title>
+  <defs>
+    <filter id="rough-florida">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="208" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#d8634b;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#d8634b}
+      .text{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#d8634b;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-florida)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">FLORIDA</text>
+    <g>
+    <circle class="ink" cx="40" cy="42" r="15" stroke-width="2.5"/>
+    <path class="ink" d="M39 27c1-5 5-8 11-8-1 6-5 9-11 8zM38 27c-3-3-6-5-10-5" stroke-width="2"/>
+    <path class="ink" d="M30 42h20M40 32v20M33 34c5 5 9 11 14 16M47 34c-5 5-9 11-14 16" stroke-width="1.4" opacity=".7"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">FL - ORANGE</text>
+    <circle class="fill" cx="18" cy="48" r=".9" opacity=".32"/>
+    <circle class="fill" cx="58" cy="41" r=".8" opacity=".3"/>
+  </g>
+</svg>

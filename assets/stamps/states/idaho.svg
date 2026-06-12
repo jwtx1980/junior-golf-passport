@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-labelledby="title">
+  <title id="title">Idaho stamp</title>
+  <defs>
+    <filter id="rough-idaho">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="211" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.65"/>
+    </filter>
+    <style>
+      .ink{fill:none;stroke:#1d3142;stroke-linecap:round;stroke-linejoin:round}
+      .fill{fill:#1d3142}
+      .text{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:5.6px;font-weight:900;letter-spacing:.7px}
+      .abbr{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:1px}
+      .mini{fill:#1d3142;font-family:Inter,Arial,sans-serif;font-size:8px;font-weight:950;letter-spacing:0}
+    </style>
+  </defs>
+  <g filter="url(#rough-idaho)" opacity=".94">
+    <circle class="ink" cx="40" cy="40" r="35" stroke-width="3.2"/>
+    <circle class="ink" cx="40" cy="40" r="29" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text class="text" x="40" y="17" text-anchor="middle">IDAHO</text>
+    <g>
+    <path class="ink" d="M25 43c-1-11 7-18 18-17 10 1 15 8 13 18-2 11-12 15-22 12-6-2-9-6-9-13z" stroke-width="2.5"/>
+    <circle class="fill" cx="35" cy="38" r="1.2"/>
+    <circle class="fill" cx="45" cy="46" r="1.2"/>
+    <circle class="fill" cx="39" cy="51" r="1"/>
+    <path class="ink" d="M28 32c4-5 11-7 18-5" stroke-width="1.5" opacity=".55"/></g>
+    <text class="abbr" x="40" y="68" text-anchor="middle">ID - POTATO</text>
+    <circle class="fill" cx="21" cy="42" r=".9" opacity=".32"/>
+    <circle class="fill" cx="60" cy="33" r=".8" opacity=".3"/>
+  </g>
+</svg>
