@@ -5,6 +5,8 @@
     ? supabaseFactory.createClient(config.supabaseUrl, config.supabaseAnonKey)
     : null;
   var PROFILE_PHOTO_CAPTION = "Profile photo";
+  var MAX_PHOTO_DIMENSION = 1600;
+  var PHOTO_JPEG_QUALITY = 0.82;
 
   var state = {
     session: null,
@@ -254,6 +256,64 @@
       .replace(/[^a-z0-9.]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 80) || "photo";
+  }
+
+  function jpegFileName(value) {
+    var base = safeFileName(value).replace(/\.[^.]+$/, "");
+    return (base || "photo") + ".jpg";
+  }
+
+  function loadImageFile(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var image = new Image();
+      image.onload = function () {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+      image.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not read the image file."));
+      };
+      image.src = url;
+    });
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise(function (resolve, reject) {
+      canvas.toBlob(function (blob) {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        reject(new Error("Could not resize the photo."));
+      }, type, quality);
+    });
+  }
+
+  async function cappedImageFile(file) {
+    if (!file) return null;
+    if (!/^image\//.test(file.type || "")) throw new Error("Choose an image file.");
+
+    var image = await loadImageFile(file);
+    var width = image.naturalWidth || image.width;
+    var height = image.naturalHeight || image.height;
+    if (!width || !height) throw new Error("Could not read the image size.");
+
+    var scale = Math.min(1, MAX_PHOTO_DIMENSION / Math.max(width, height));
+    if (scale >= 1) return file;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    var context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    var blob = await canvasToBlob(canvas, "image/jpeg", PHOTO_JPEG_QUALITY);
+    return new File([blob], jpegFileName(file.name), {
+      type: "image/jpeg",
+      lastModified: Date.now()
+    });
   }
 
   function publicPathForGolfer(golfer) {
@@ -970,7 +1030,7 @@
       elements.photoVisibility.value = row.raw.visibility || "private";
       elements.photoApproved.checked = Boolean(row.raw.is_approved);
       setEditMode({ kind: row.kind, id: row.id, row: row });
-      setStatus("Editing photo details. Update the caption, visibility, or approval.");
+      setStatus("Editing photo details. Update the caption, visibility, approval, or choose a replacement image.");
       return;
     }
 
@@ -1201,19 +1261,22 @@
     if (!file) throw new Error("Choose a profile photo first.");
     if (!/^image\//.test(file.type || "")) throw new Error("Choose an image file.");
 
-    setText(elements.profilePhotoStatus, "Saving profile photo...");
-    setStatus("Saving profile photo...");
+    setText(elements.profilePhotoStatus, "Resizing profile photo...");
+    setStatus("Resizing profile photo...");
+    var uploadFile = await cappedImageFile(file);
     var path = [
       golfer.id,
       "profile",
-      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
     ].join("/");
 
+    setText(elements.profilePhotoStatus, "Saving profile photo...");
+    setStatus("Saving profile photo...");
     var upload = await client.storage
       .from("passport-photos")
-      .upload(path, file, {
+      .upload(path, uploadFile, {
         cacheControl: "3600",
-        contentType: file.type || "image/jpeg",
+        contentType: uploadFile.type || "image/jpeg",
         upsert: false
       });
     if (upload.error) throw upload.error;
@@ -1509,18 +1572,53 @@
 
     var file = elements.photoFile && elements.photoFile.files ? elements.photoFile.files[0] : null;
     if (state.currentEdit && state.currentEdit.kind === "photos") {
-      setStatus("Updating photo...");
-      await api("/entries/photos/" + state.currentEdit.id, {
-        method: "PATCH",
-        body: {
-          caption: elements.photoCaption.value.trim(),
-          visibility: elements.photoVisibility.value,
-          is_approved: elements.photoApproved.checked
+      var photoDetails = {
+        caption: elements.photoCaption.value.trim(),
+        visibility: elements.photoVisibility.value,
+        is_approved: elements.photoApproved.checked
+      };
+      if (file) {
+        if (!/^image\//.test(file.type || "")) {
+          throw new Error("Choose an image file.");
         }
-      });
+        setStatus("Resizing replacement photo...");
+        var replacementFile = await cappedImageFile(file);
+        var replacementPath = [
+          state.selectedGolferId,
+          Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(replacementFile.name)
+        ].join("/");
+        setStatus("Uploading replacement photo...");
+        var replacementUpload = await client.storage
+          .from("passport-photos")
+          .upload(replacementPath, replacementFile, {
+            cacheControl: "3600",
+            contentType: replacementFile.type || "image/jpeg",
+            upsert: false
+          });
+        if (replacementUpload.error) throw replacementUpload.error;
+        await api("/photos", {
+          method: "POST",
+          body: {
+            golfer_id: state.selectedGolferId,
+            storage_path: replacementUpload.data.path,
+            caption: photoDetails.caption,
+            linked_type: state.currentEdit.row.raw.linked_type || null,
+            linked_id: state.currentEdit.row.raw.linked_id || null,
+            visibility: photoDetails.visibility,
+            is_approved: photoDetails.is_approved
+          }
+        });
+        await api("/entries/photos/" + state.currentEdit.id, { method: "DELETE" });
+      } else {
+        setStatus("Updating photo...");
+        await api("/entries/photos/" + state.currentEdit.id, {
+          method: "PATCH",
+          body: photoDetails
+        });
+      }
       clearPhotoForm();
       await loadEntries();
-      setStatus("Photo updated.");
+      setStatus(file ? "Photo replaced." : "Photo updated.");
       return;
     }
     if (!file) {
@@ -1530,17 +1628,19 @@
       throw new Error("Choose an image file.");
     }
 
-    setStatus("Uploading photo...");
+    setStatus("Resizing photo...");
+    var uploadFile = await cappedImageFile(file);
     var path = [
       state.selectedGolferId,
-      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
     ].join("/");
 
+    setStatus("Uploading photo...");
     var upload = await client.storage
       .from("passport-photos")
-      .upload(path, file, {
+      .upload(path, uploadFile, {
         cacheControl: "3600",
-        contentType: file.type || "image/jpeg",
+        contentType: uploadFile.type || "image/jpeg",
         upsert: false
       });
     if (upload.error) throw upload.error;

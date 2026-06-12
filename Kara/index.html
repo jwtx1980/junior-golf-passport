@@ -302,6 +302,41 @@
             </div>
           </div>
         </div>
+
+        <div class="quick-add-body" id="quick-photo-edit-panel" hidden>
+          <div class="quick-review-card">
+            <p class="eyebrow">Photo</p>
+            <h3>Edit scrapbook photo.</h3>
+            <label>
+              <span>Caption</span>
+              <input id="quick-photo-edit-caption" type="text" placeholder="Photo caption">
+            </label>
+            <label class="quick-photo-drop">
+              <span>Replace photo</span>
+              <input id="quick-photo-edit-file" type="file" accept="image/*">
+              <span class="quick-photo-preview">Choose a new photo only if this one should change</span>
+            </label>
+            <div class="quick-add-row">
+              <label>
+                <span>Visibility</span>
+                <select id="quick-photo-edit-visibility">
+                  <option value="private">Private</option>
+                  <option value="unlisted">Unlisted</option>
+                  <option value="public">Public</option>
+                </select>
+              </label>
+              <label class="quick-check">
+                <input id="quick-photo-edit-approved" type="checkbox">
+                <span>Approved for public passport</span>
+              </label>
+            </div>
+            <p class="quick-add-status" id="quick-photo-edit-status" role="status" aria-live="polite"></p>
+            <div class="quick-add-actions compact-actions">
+              <button class="button secondary" id="quick-photo-edit-cancel" type="button">Cancel</button>
+              <button class="button primary" id="quick-photo-edit-save" type="button">Save Photo</button>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
 
@@ -319,6 +354,6 @@
     <script src="/assets/vendor/supabase.js"></script>
     <script src="/assets/vendor/supabase-global.js"></script>
     <script src="/config.js"></script>
-    <script src="/app.js?v=auth-map-cleanup"></script>
+    <script src="/app.js?v=photo-cap-edit"></script>
   </body>
 </html>

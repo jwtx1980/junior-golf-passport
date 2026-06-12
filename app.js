@@ -16,9 +16,11 @@
     selectedState: "",
     selectedCourseKey: "",
     editingEntry: null,
+    editingPhoto: null,
     baseReviewTags: [],
     reviewTags: [],
-    profilePhotoSaving: false
+    profilePhotoSaving: false,
+    quickPhotoPreviewUrl: ""
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -28,6 +30,7 @@
     compose: document.getElementById("quick-add-compose"),
     ownAiPanel: document.getElementById("quick-own-ai-panel"),
     reviewPanel: document.getElementById("quick-review-panel"),
+    photoEditPanel: document.getElementById("quick-photo-edit-panel"),
     date: document.getElementById("quick-add-date"),
     course: document.getElementById("quick-add-course"),
     note: document.getElementById("quick-add-note"),
@@ -52,6 +55,13 @@
     reviewVisibility: document.getElementById("quick-review-visibility"),
     reviewApproved: document.getElementById("quick-review-approved"),
     saveReview: document.getElementById("quick-save-review"),
+    photoEditCaption: document.getElementById("quick-photo-edit-caption"),
+    photoEditFile: document.getElementById("quick-photo-edit-file"),
+    photoEditVisibility: document.getElementById("quick-photo-edit-visibility"),
+    photoEditApproved: document.getElementById("quick-photo-edit-approved"),
+    photoEditCancel: document.getElementById("quick-photo-edit-cancel"),
+    photoEditSave: document.getElementById("quick-photo-edit-save"),
+    photoEditStatus: document.getElementById("quick-photo-edit-status"),
     status: document.getElementById("quick-add-status")
   };
   var passwordGate = {
@@ -71,6 +81,8 @@
     photoModalBio: document.getElementById("profile-photo-modal-bio")
   };
   var PROFILE_PHOTO_CAPTION = "Profile photo";
+  var MAX_PHOTO_DIMENSION = 1600;
+  var PHOTO_JPEG_QUALITY = 0.82;
 
   function uniqueBy(items, keyFn) {
     var seen = {};
@@ -101,6 +113,10 @@
 
   function setQuickStatus(message) {
     setText(quick.status, message);
+  }
+
+  function setPhotoEditStatus(message) {
+    setText(quick.photoEditStatus, message);
   }
 
   function setPasswordStatus(message) {
@@ -456,8 +472,13 @@
       photos.length
         ? '<div class="selected-course-photos">' + photos.slice(0, 3).map(function (photo) {
           var caption = photo.caption || "Course photo";
+          var editButton = canEditCurrentGolfer()
+            ? '<button class="course-entry-edit photo-edit-action" type="button" data-edit-photo="' +
+              escapeHtml(photo.id) + '">Edit Photo</button>'
+            : "";
           return photo.signed_url
-            ? '<figure><img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption) + '"><figcaption>' + escapeHtml(caption) + '</figcaption></figure>'
+            ? '<figure><img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption) + '"><figcaption>' +
+              escapeHtml(caption) + '</figcaption>' + editButton + '</figure>'
             : "";
         }).join("") + '</div>'
         : ""
@@ -605,6 +626,10 @@
 
     grid.innerHTML = photos.map(function (photo) {
       var caption = photo.caption || "Passport photo";
+      var editButton = canEditCurrentGolfer()
+        ? '<button class="course-entry-edit photo-edit-action" type="button" data-edit-photo="' +
+          escapeHtml(photo.id) + '">Edit Photo</button>'
+        : "";
       return [
         "<article>",
         photo.signed_url
@@ -613,6 +638,7 @@
         "<div>",
         "<h3>" + escapeHtml(caption) + "</h3>",
         "<p>Saved to " + escapeHtml(golferFirstName(golfer)) + "'s Junior Golf Passport.</p>",
+        editButton,
         "</div>",
         "</article>"
       ].join("");
@@ -870,6 +896,7 @@
     setHidden(quick.compose, panel !== "compose");
     setHidden(quick.ownAiPanel, panel !== "own-ai");
     setHidden(quick.reviewPanel, panel !== "review");
+    setHidden(quick.photoEditPanel, panel !== "photo-edit");
   }
 
   function openQuickAdd() {
@@ -879,6 +906,7 @@
     if (quick.reviewCaption) quick.reviewCaption.value = "";
     profileState.courseCandidate = null;
     profileState.editingEntry = null;
+    profileState.editingPhoto = null;
     profileState.baseReviewTags = [];
     profileState.reviewTags = [];
     renderRibbonSuggestions([]);
@@ -892,8 +920,21 @@
   function closeQuickAdd() {
     setHidden(quick.backdrop, true);
     profileState.editingEntry = null;
+    profileState.editingPhoto = null;
+    if (profileState.quickPhotoPreviewUrl) {
+      URL.revokeObjectURL(profileState.quickPhotoPreviewUrl);
+      profileState.quickPhotoPreviewUrl = "";
+    }
+    if (quick.photoPreview) {
+      quick.photoPreview.style.backgroundImage = "";
+      quick.photoPreview.classList.remove("has-image");
+      setText(quick.photoPreview, "Add an optional photo");
+    }
+    if (quick.photo) quick.photo.value = "";
+    if (quick.photoEditFile) quick.photoEditFile.value = "";
     if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
+    setPhotoEditStatus("");
   }
 
   function entryRecordTitle(kind, record, course) {
@@ -921,6 +962,14 @@
     return { kind: kind, record: record, course: recordCourse(record) };
   }
 
+  function findPublicPhoto(id) {
+    var data = profileState.publicPassport;
+    if (!data || !id) return null;
+    return (data.photos || []).find(function (photo) {
+      return photo.id === id;
+    }) || null;
+  }
+
   function openEntryEdit(entryKey) {
     if (!canEditCurrentGolfer()) return;
     var entry = findPublicEntry(entryKey);
@@ -942,6 +991,77 @@
     if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
     setQuickStatus("Editing an existing passport entry.");
+  }
+
+  function openPhotoEdit(photoId) {
+    if (!canEditCurrentGolfer()) return;
+    var photo = findPublicPhoto(photoId);
+    if (!photo) return;
+    profileState.editingPhoto = photo;
+    setHidden(quick.backdrop, false);
+    showQuickPanel("photo-edit");
+    if (quick.photoEditCaption) quick.photoEditCaption.value = photo.caption || "";
+    if (quick.photoEditFile) quick.photoEditFile.value = "";
+    if (quick.photoEditVisibility) quick.photoEditVisibility.value = photo.visibility || "private";
+    if (quick.photoEditApproved) quick.photoEditApproved.checked = Boolean(photo.is_approved);
+    setPhotoEditStatus("Editing a saved scrapbook photo.");
+  }
+
+  async function replaceEditedPhoto(photo, details) {
+    var file = quick.photoEditFile && quick.photoEditFile.files ? quick.photoEditFile.files[0] : null;
+    if (!file) return false;
+    setPhotoEditStatus("Resizing replacement photo...");
+    var uploadFile = await cappedImageFile(file);
+    var path = [
+      profileState.editableGolfer.id,
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
+    ].join("/");
+    setPhotoEditStatus("Uploading replacement photo...");
+    var upload = await authClient.storage
+      .from("passport-photos")
+      .upload(path, uploadFile, {
+        cacheControl: "3600",
+        contentType: uploadFile.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+    await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        storage_path: upload.data.path,
+        caption: details.caption,
+        linked_type: photo.linked_type || null,
+        linked_id: photo.linked_id || null,
+        visibility: details.visibility,
+        is_approved: details.is_approved
+      }
+    });
+    await api("/entries/photos/" + photo.id, { method: "DELETE" });
+    return true;
+  }
+
+  async function savePhotoEdit() {
+    var photo = profileState.editingPhoto;
+    if (!photo) return;
+    var details = {
+      caption: quick.photoEditCaption ? quick.photoEditCaption.value.trim() : "",
+      visibility: quick.photoEditVisibility ? quick.photoEditVisibility.value : "private",
+      is_approved: quick.photoEditApproved ? quick.photoEditApproved.checked : false
+    };
+    setPhotoEditStatus("Updating photo...");
+    var replaced = await replaceEditedPhoto(photo, details);
+    if (!replaced) {
+      await api("/entries/photos/" + photo.id, {
+        method: "PATCH",
+        body: details
+      });
+    }
+    setPhotoEditStatus("Updated.");
+    profileState.editingPhoto = null;
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 650);
   }
 
   async function lookupBestCourse(course) {
@@ -1143,9 +1263,69 @@
       .slice(0, 80) || "photo";
   }
 
+  function jpegFileName(value) {
+    var base = safeFileName(value).replace(/\.[^.]+$/, "");
+    return (base || "photo") + ".jpg";
+  }
+
+  function loadImageFile(file) {
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file);
+      var image = new Image();
+      image.onload = function () {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+      image.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not read the image file."));
+      };
+      image.src = url;
+    });
+  }
+
+  function canvasToBlob(canvas, type, quality) {
+    return new Promise(function (resolve, reject) {
+      canvas.toBlob(function (blob) {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+        reject(new Error("Could not resize the photo."));
+      }, type, quality);
+    });
+  }
+
+  async function cappedImageFile(file) {
+    if (!file) return null;
+    if (!/^image\//.test(file.type || "")) throw new Error("Choose an image file.");
+
+    var image = await loadImageFile(file);
+    var width = image.naturalWidth || image.width;
+    var height = image.naturalHeight || image.height;
+    if (!width || !height) throw new Error("Could not read the image size.");
+
+    var scale = Math.min(1, MAX_PHOTO_DIMENSION / Math.max(width, height));
+    if (scale >= 1) return file;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * scale));
+    canvas.height = Math.max(1, Math.round(height * scale));
+    var context = canvas.getContext("2d");
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    var blob = await canvasToBlob(canvas, "image/jpeg", PHOTO_JPEG_QUALITY);
+    return new File([blob], jpegFileName(file.name), {
+      type: "image/jpeg",
+      lastModified: Date.now()
+    });
+  }
+
   async function uploadQuickPhoto(memoryId) {
     var file = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
     if (!file) return;
+    setQuickStatus("Resizing photo...");
+    var uploadFile = await cappedImageFile(file);
     var linkedType = "memory";
     if (profileState.editingEntry) {
       linkedType = {
@@ -1157,13 +1337,14 @@
     }
     var path = [
       profileState.editableGolfer.id,
-      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
     ].join("/");
+    setQuickStatus("Uploading photo...");
     var upload = await authClient.storage
       .from("passport-photos")
-      .upload(path, file, {
+      .upload(path, uploadFile, {
         cacheControl: "3600",
-        contentType: file.type || "image/jpeg",
+        contentType: uploadFile.type || "image/jpeg",
         upsert: false
       });
     if (upload.error) throw upload.error;
@@ -1221,16 +1402,17 @@
     setText(shareStatus, "Profile photo selected. Saving...");
     profileState.profilePhotoSaving = true;
     try {
+      var uploadFile = await cappedImageFile(file);
       var path = [
         profileState.editableGolfer.id,
         "profile",
-        Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+        Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
       ].join("/");
       var upload = await authClient.storage
         .from("passport-photos")
-        .upload(path, file, {
+        .upload(path, uploadFile, {
           cacheControl: "3600",
-          contentType: file.type || "image/jpeg",
+          contentType: uploadFile.type || "image/jpeg",
           upsert: false
         });
       if (upload.error) throw upload.error;
@@ -1376,7 +1558,14 @@
         var file = quick.photo.files && quick.photo.files[0];
         setText(quick.photoPreview, file ? file.name : "Add an optional photo");
         if (quick.photoPreview) {
-          quick.photoPreview.style.backgroundImage = file ? "url(" + URL.createObjectURL(file) + ")" : "";
+          if (profileState.quickPhotoPreviewUrl) {
+            URL.revokeObjectURL(profileState.quickPhotoPreviewUrl);
+            profileState.quickPhotoPreviewUrl = "";
+          }
+          profileState.quickPhotoPreviewUrl = file ? URL.createObjectURL(file) : "";
+          quick.photoPreview.style.backgroundImage = profileState.quickPhotoPreviewUrl
+            ? "url(" + profileState.quickPhotoPreviewUrl + ")"
+            : "";
           quick.photoPreview.classList.toggle("has-image", Boolean(file));
         }
       });
@@ -1427,6 +1616,14 @@
       quick.saveReview.addEventListener("click", function () {
         saveQuickReview().catch(function (error) {
           setQuickStatus(error.message);
+        });
+      });
+    }
+    if (quick.photoEditCancel) quick.photoEditCancel.addEventListener("click", closeQuickAdd);
+    if (quick.photoEditSave) {
+      quick.photoEditSave.addEventListener("click", function () {
+        savePhotoEdit().catch(function (error) {
+          setPhotoEditStatus(error.message);
         });
       });
     }
@@ -1602,6 +1799,12 @@
     var editButton = event.target.closest("[data-edit-entry]");
     if (editButton) {
       openEntryEdit(editButton.getAttribute("data-edit-entry"));
+      return;
+    }
+
+    var photoEditButton = event.target.closest("[data-edit-photo]");
+    if (photoEditButton) {
+      openPhotoEdit(photoEditButton.getAttribute("data-edit-photo"));
     }
   });
 
