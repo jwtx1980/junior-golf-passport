@@ -16,6 +16,7 @@
     renderedRows: {},
     courseLookupCandidates: [],
     golferSlugEdited: false,
+    authMode: "sign-in",
     features: {
       loaded: false,
       built_in_ai_configured: false,
@@ -140,9 +141,17 @@
   }
 
   function showSignUpNameField(message) {
+    state.authMode = "sign-up";
     setHidden(elements.displayNameField, false);
     if (elements.displayName) elements.displayName.focus();
     if (message) setAuthStatus(message);
+  }
+
+  function hideSignUpNameField(message) {
+    state.authMode = "sign-in";
+    setHidden(elements.displayNameField, true);
+    if (elements.displayName) elements.displayName.value = "";
+    if (message !== undefined) setAuthStatus(message);
   }
 
   function escapeHtml(value) {
@@ -1046,7 +1055,7 @@
   }
 
   async function signIn() {
-    setAuthStatus("Signing in...");
+    hideSignUpNameField("Signing in...");
     var result = await client.auth.signInWithPassword({
       email: elements.email.value.trim(),
       password: elements.password.value
@@ -1058,7 +1067,7 @@
   }
 
   async function signUp() {
-    if (elements.displayNameField && elements.displayNameField.hidden) {
+    if (elements.displayNameField && (elements.displayNameField.hidden || state.authMode !== "sign-up")) {
       showSignUpNameField("Add your display name, then create the account.");
       return;
     }
@@ -1089,7 +1098,7 @@
   async function sendMagicLink() {
     var email = elements.email.value.trim();
     if (!email) throw new Error("Email is required.");
-    setAuthStatus("Sending magic link...");
+    hideSignUpNameField("Sending magic link...");
     var result = await client.auth.signInWithOtp({
       email: email,
       options: {
