@@ -4,6 +4,7 @@
   var client = config && supabaseFactory
     ? supabaseFactory.createClient(config.supabaseUrl, config.supabaseAnonKey)
     : null;
+  window._jgpSupabase = client;
   var PROFILE_PHOTO_CAPTION = "Profile photo";
   var MAX_PHOTO_DIMENSION = 1600;
   var PHOTO_JPEG_QUALITY = 0.82;
