@@ -20,7 +20,8 @@
     baseReviewTags: [],
     reviewTags: [],
     profilePhotoSaving: false,
-    quickPhotoPreviewUrl: ""
+    quickPhotoPreviewUrl: "",
+    reviewPhotoPreviewUrl: ""
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -52,6 +53,8 @@
     reviewStory: document.getElementById("quick-review-story"),
     ribbons: document.getElementById("quick-ribbon-suggestions"),
     reviewCaption: document.getElementById("quick-review-caption"),
+    reviewPhoto: document.getElementById("quick-review-photo"),
+    reviewPhotoPreview: document.getElementById("quick-review-photo-preview"),
     reviewVisibility: document.getElementById("quick-review-visibility"),
     reviewApproved: document.getElementById("quick-review-approved"),
     saveReview: document.getElementById("quick-save-review"),
@@ -353,6 +356,26 @@
     }).filter(Boolean);
     return (data.photos || []).filter(function (photo) {
       return photo.linked_type && photo.linked_id && entryIds.includes(photo.linked_id);
+    });
+  }
+
+  function linkedTypeForEntryKind(kind) {
+    return {
+      rounds: "round",
+      memories: "memory",
+      achievements: "achievement",
+      tournaments: "tournament"
+    }[kind] || "memory";
+  }
+
+  function photosForEntry(entry) {
+    var data = profileState.publicPassport;
+    if (!data || !entry || !entry.record || !entry.record.id) return [];
+    var linkedType = linkedTypeForEntryKind(entry.kind);
+    return (data.photos || []).filter(function (photo) {
+      return !isProfilePhoto(photo) &&
+        photo.linked_id === entry.record.id &&
+        (!photo.linked_type || photo.linked_type === linkedType);
     });
   }
 
@@ -909,6 +932,7 @@
     profileState.editingPhoto = null;
     profileState.baseReviewTags = [];
     profileState.reviewTags = [];
+    clearReviewPhotoPreview();
     renderRibbonSuggestions([]);
     if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
@@ -931,6 +955,7 @@
       setText(quick.photoPreview, "Add an optional photo");
     }
     if (quick.photo) quick.photo.value = "";
+    clearReviewPhotoPreview();
     if (quick.photoEditFile) quick.photoEditFile.value = "";
     if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
     setQuickStatus("");
@@ -984,7 +1009,11 @@
     if (quick.reviewState) quick.reviewState.value = course.state || "";
     if (quick.reviewTitle) quick.reviewTitle.value = entryRecordTitle(entry.kind, entry.record, course);
     if (quick.reviewStory) quick.reviewStory.value = entryRecordStory(entry.kind, entry.record);
-    if (quick.reviewCaption) quick.reviewCaption.value = "";
+    var existingPhotos = photosForEntry(entry);
+    var existingPhoto = existingPhotos[0] || null;
+    if (quick.reviewCaption) quick.reviewCaption.value = existingPhoto && existingPhoto.caption ? existingPhoto.caption : "";
+    clearReviewPhotoPreview();
+    showReviewPhotoPreview(existingPhoto);
     profileState.baseReviewTags = Array.isArray(entry.record.tags) ? entry.record.tags : [];
     renderRibbonSuggestions(inferredRibbonTags({ tags: profileState.baseReviewTags }, course, entryRecordStory(entry.kind, entry.record)));
     if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "private";
@@ -1146,6 +1175,49 @@
     ].join("");
   }
 
+  function clearReviewPhotoPreview() {
+    if (profileState.reviewPhotoPreviewUrl) {
+      URL.revokeObjectURL(profileState.reviewPhotoPreviewUrl);
+      profileState.reviewPhotoPreviewUrl = "";
+    }
+    if (quick.reviewPhotoPreview) {
+      quick.reviewPhotoPreview.style.backgroundImage = "";
+      quick.reviewPhotoPreview.classList.remove("has-image");
+      setText(quick.reviewPhotoPreview, "Add or replace the entry photo");
+    }
+    if (quick.reviewPhoto) quick.reviewPhoto.value = "";
+  }
+
+  function showReviewPhotoPreview(photo, fallbackText) {
+    if (!quick.reviewPhotoPreview) return;
+    if (profileState.reviewPhotoPreviewUrl) {
+      URL.revokeObjectURL(profileState.reviewPhotoPreviewUrl);
+      profileState.reviewPhotoPreviewUrl = "";
+    }
+    quick.reviewPhotoPreview.style.backgroundImage = "";
+    quick.reviewPhotoPreview.classList.remove("has-image");
+    setText(quick.reviewPhotoPreview, fallbackText || "Add or replace the entry photo");
+    if (photo && photo.signed_url) {
+      quick.reviewPhotoPreview.style.backgroundImage = 'url("' + String(photo.signed_url).replace(/"/g, "%22") + '")';
+      quick.reviewPhotoPreview.classList.add("has-image");
+      setText(quick.reviewPhotoPreview, "Current entry photo. Choose a new file to replace it.");
+    }
+  }
+
+  function setReviewPhotoFilePreview(file) {
+    if (!quick.reviewPhotoPreview) return;
+    if (profileState.reviewPhotoPreviewUrl) {
+      URL.revokeObjectURL(profileState.reviewPhotoPreviewUrl);
+      profileState.reviewPhotoPreviewUrl = "";
+    }
+    profileState.reviewPhotoPreviewUrl = file ? URL.createObjectURL(file) : "";
+    quick.reviewPhotoPreview.style.backgroundImage = profileState.reviewPhotoPreviewUrl
+      ? "url(" + profileState.reviewPhotoPreviewUrl + ")"
+      : "";
+    quick.reviewPhotoPreview.classList.toggle("has-image", Boolean(file));
+    setText(quick.reviewPhotoPreview, file ? file.name : "Add or replace the entry photo");
+  }
+
   function currentReviewCourse() {
     return {
       name: quick.reviewCourse ? quick.reviewCourse.value : "",
@@ -1185,6 +1257,11 @@
     profileState.baseReviewTags = draft && Array.isArray(draft.tags) ? draft.tags : [];
     renderRibbonSuggestions(inferredRibbonTags(draft, course, story));
     quick.reviewCaption.value = quick.reviewCaption.value || "";
+    if (quick.reviewPhoto && quick.reviewPhoto.files && !quick.reviewPhoto.files.length) {
+      var composeFile = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
+      showReviewPhotoPreview(null, composeFile ? composeFile.name : "Add or replace the entry photo");
+      if (composeFile) setReviewPhotoFilePreview(composeFile);
+    }
     quick.reviewVisibility.value = "private";
     quick.reviewApproved.checked = false;
     setQuickStatus(candidate ? "Course verified with Google Places." : "Review the story before saving.");
@@ -1322,19 +1399,31 @@
   }
 
   async function uploadQuickPhoto(memoryId) {
-    var file = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
-    if (!file) return;
+    var reviewFile = quick.reviewPhoto && quick.reviewPhoto.files ? quick.reviewPhoto.files[0] : null;
+    var composeFile = quick.photo && quick.photo.files ? quick.photo.files[0] : null;
+    var file = reviewFile || composeFile;
+    if (!file) {
+      var existingPhoto = profileState.editingEntry ? photosForEntry(profileState.editingEntry)[0] || null : null;
+      if (existingPhoto) {
+        await api("/entries/photos/" + existingPhoto.id, {
+          method: "PATCH",
+          body: {
+            caption: quick.reviewCaption.value.trim(),
+            visibility: quick.reviewVisibility.value,
+            is_approved: quick.reviewApproved.checked
+          }
+        });
+      }
+      return;
+    }
     setQuickStatus("Resizing photo...");
     var uploadFile = await cappedImageFile(file);
-    var linkedType = "memory";
-    if (profileState.editingEntry) {
-      linkedType = {
-        rounds: "round",
-        memories: "memory",
-        achievements: "achievement",
-        tournaments: "tournament"
-      }[profileState.editingEntry.kind] || "memory";
-    }
+    var linkedType = profileState.editingEntry
+      ? linkedTypeForEntryKind(profileState.editingEntry.kind)
+      : "memory";
+    var oldPhoto = profileState.editingEntry && reviewFile
+      ? photosForEntry(profileState.editingEntry)[0] || null
+      : null;
     var path = [
       profileState.editableGolfer.id,
       Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
@@ -1360,6 +1449,9 @@
         is_approved: quick.reviewApproved.checked
       }
     });
+    if (oldPhoto) {
+      await api("/entries/photos/" + oldPhoto.id, { method: "DELETE" });
+    }
   }
 
   function openProfilePhotoModal() {
@@ -1568,6 +1660,12 @@
             : "";
           quick.photoPreview.classList.toggle("has-image", Boolean(file));
         }
+      });
+    }
+    if (quick.reviewPhoto) {
+      quick.reviewPhoto.addEventListener("change", function () {
+        var file = quick.reviewPhoto.files && quick.reviewPhoto.files[0];
+        setReviewPhotoFilePreview(file || null);
       });
     }
     if (quick.saveManual) {
