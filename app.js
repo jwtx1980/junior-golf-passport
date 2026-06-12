@@ -459,6 +459,133 @@
     }).join("");
   }
 
+  var STAMP_MAP = {
+    "new state": "new-state",
+    "first birdie": "first-birdie",
+    "first eagle": "first-eagle",
+    "hole in one": "hole-in-one",
+    "broke 100": "broke-100",
+    "broke 90": "broke-90",
+    "broke 80": "broke-80",
+    "broke 70": "broke-70",
+    "personal best": "personal-best",
+    "tournament moment": "tournament",
+    "memorable drive": "memorable-drive"
+  };
+
+  function stampForEntry(entry) {
+    var record = entry.record;
+    var tags = Array.isArray(record.tags) ? record.tags : [];
+    for (var i = 0; i < tags.length; i++) {
+      var slug = STAMP_MAP[tags[i].toLowerCase()];
+      if (slug) return { slug: slug, label: tags[i] };
+    }
+    if (entry.kind === "memories" && record.entry_type === "course_played") return { slug: "course-played", label: "Course Stamp" };
+    if (entry.kind === "rounds") return { slug: "round-played", label: "Round Played" };
+    if (entry.kind === "achievements") return { slug: "achievement", label: "Achievement" };
+    if (entry.kind === "tournaments") return { slug: "tournament", label: "Tournament" };
+    return { slug: "memory", label: "Memory" };
+  }
+
+  function stampBadgeHtml(stamp) {
+    if (!stamp) return "";
+    return '<div class="memory-post-stamp" data-stamp="' + escapeHtml(stamp.slug) + '" title="' + escapeHtml(stamp.label) + '">' +
+      '<img src="/assets/stamps/' + escapeHtml(stamp.slug) + '.svg" alt="" aria-hidden="true" onerror="this.style.display=\'none\'">' +
+      '<span>' + escapeHtml(stamp.label) + '</span>' +
+      '</div>';
+  }
+
+  function entryDetailChips(entry) {
+    var record = entry.record;
+    var chips = [];
+    if (entry.kind === "rounds") {
+      if (record.score) chips.push(escapeHtml("Score: " + record.score));
+      if (record.holes) chips.push(escapeHtml(record.holes + " holes"));
+      if (record.tees) chips.push(escapeHtml(record.tees));
+    } else if (entry.kind === "achievements") {
+      if (record.achievement_type) chips.push(escapeHtml(record.achievement_type));
+      if (record.value) chips.push(escapeHtml(record.value));
+    } else if (entry.kind === "tournaments") {
+      if (record.division) chips.push(escapeHtml(record.division));
+      if (record.finish) chips.push(escapeHtml("Finish: " + record.finish));
+    }
+    return chips;
+  }
+
+  function renderMemoryPost(entry, golfer, canEdit) {
+    var record = entry.record;
+    var course = entry.course || {};
+    var entryPhotos = photosForEntry(entry);
+    var heroPhoto = entryPhotos[0] || null;
+    var extraPhotos = entryPhotos.slice(1);
+    var stamp = stampForEntry(entry);
+    var chips = entryDetailChips(entry);
+    var tags = Array.isArray(record.tags) ? uniqueStrings(record.tags) : [];
+    var golferInitial = golfer && golfer.display_name ? golfer.display_name.charAt(0).toUpperCase() : "G";
+    var golferName = golfer && golfer.display_name ? escapeHtml(golfer.display_name) : "";
+    var courseName = course.name || "";
+    var sc = stateCode(course) || "";
+    var entryDate = entry.date ? entry.date.slice(0, 10) : "";
+    var metaParts = [courseName, sc, entryDate].filter(Boolean).map(escapeHtml).join(" \xb7 ");
+
+    // Hero area
+    var heroHtml;
+    var addPhotoAttr = canEdit && editableKind(entry.kind)
+      ? ' data-add-photo="' + escapeHtml(entry.kind + ":" + record.id) + '"' : "";
+    if (heroPhoto && heroPhoto.signed_url) {
+      heroHtml = '<div class="post-hero">' +
+        '<img src="' + escapeHtml(heroPhoto.signed_url) + '" alt="' + escapeHtml(heroPhoto.caption || courseName) + '">' +
+        (canEdit ? '<button class="post-hero-btn" type="button" data-edit-photo="' + escapeHtml(heroPhoto.id) + '">Edit Photo</button>' : '') +
+        '</div>';
+    } else if (course.photo_url) {
+      heroHtml = '<div class="post-hero">' +
+        '<img src="' + escapeHtml(course.photo_url) + '" alt="' + escapeHtml(courseName) + '">' +
+        (addPhotoAttr ? '<button class="post-hero-btn post-hero-add"' + addPhotoAttr + ' type="button">+ Add Your Photo</button>' : '') +
+        '</div>';
+    } else {
+      heroHtml = '<div class="post-hero">' +
+        '<div class="post-hero-placeholder">' +
+        '<span class="hero-state-code">' + escapeHtml(sc || "⛳") + '</span>' +
+        '<span class="hero-course-name">' + escapeHtml(courseName) + '</span>' +
+        '</div>' +
+        (addPhotoAttr ? '<button class="post-hero-btn post-hero-add"' + addPhotoAttr + ' type="button">+ Add Photo</button>' : '') +
+        '</div>';
+    }
+
+    var extraPhotosHtml = extraPhotos.length
+      ? '<div class="post-photo-strip">' + extraPhotos.map(function (photo) {
+          if (!photo.signed_url) return "";
+          return '<figure>' +
+            '<img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(photo.caption || "") + '">' +
+            (canEdit ? '<button class="post-strip-edit" type="button" data-edit-photo="' + escapeHtml(photo.id) + '">Edit</button>' : '') +
+            (photo.caption ? '<figcaption>' + escapeHtml(photo.caption) + '</figcaption>' : '') +
+            '</figure>';
+        }).filter(Boolean).join("") + '</div>'
+      : "";
+
+    return '<article class="memory-post">' +
+      '<header class="post-header">' +
+        '<div class="post-avatar">' + golferInitial + '</div>' +
+        '<div class="post-meta">' +
+          '<strong>' + golferName + '</strong>' +
+          '<span>' + metaParts + '</span>' +
+        '</div>' +
+        stampBadgeHtml(stamp) +
+      '</header>' +
+      heroHtml +
+      '<div class="post-body">' +
+        '<h4>' + escapeHtml(entry.title) + '</h4>' +
+        (entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : '') +
+        (chips.length ? '<div class="post-facts">' + chips.map(function (c) { return '<span>' + c + '</span>'; }).join("") + '</div>' : '') +
+        (tags.length ? '<div class="post-tags">' + tags.map(function (t) { return '<span>' + escapeHtml(t) + '</span>'; }).join("") + '</div>' : '') +
+      '</div>' +
+      extraPhotosHtml +
+      (canEdit && editableKind(entry.kind)
+        ? '<footer class="post-footer"><button class="post-edit-btn" type="button" data-edit-entry="' + escapeHtml(entry.kind + ":" + record.id) + '">Edit Entry</button></footer>'
+        : '') +
+      '</article>';
+  }
+
   function renderSelectedCoursePanel(courses, data, golfer) {
     var panel = document.getElementById("course-story-panel");
     if (!panel) return;
@@ -499,67 +626,8 @@
       '</div>',
       entries.length
         ? '<div class="course-story-list">' + entries.map(function (entry) {
-          var record = entry.record;
-
-          var details = [];
-          if (entry.kind === "rounds") {
-            if (record.score) details.push(escapeHtml("Score: " + record.score));
-            if (record.holes) details.push(escapeHtml(record.holes + " holes"));
-            if (record.tees) details.push(escapeHtml(record.tees));
-          } else if (entry.kind === "achievements") {
-            if (record.achievement_type) details.push(escapeHtml(record.achievement_type));
-            if (record.value) details.push(escapeHtml(record.value));
-          } else if (entry.kind === "tournaments") {
-            if (record.division) details.push(escapeHtml(record.division));
-            if (record.finish) details.push(escapeHtml("Finish: " + record.finish));
-          }
-
-          var tags = Array.isArray(record.tags) ? uniqueStrings(record.tags) : [];
-          var entryPhotos = photosForEntry(entry);
-
-          var editButton = canEdit && editableKind(entry.kind)
-            ? '<button class="course-entry-edit" type="button" data-edit-entry="' +
-              escapeHtml(entry.kind + ":" + record.id) + '">Edit</button>'
-            : "";
-          var addPhotoButton = canEdit && editableKind(entry.kind) && !entryPhotos.length
-            ? '<button class="course-entry-edit" type="button" data-add-photo="' +
-              escapeHtml(entry.kind + ":" + record.id) + '">+ Add Photo</button>'
-            : "";
-
-          return [
-            '<article>',
-            '<div class="course-story-actions">',
-            '<span class="timeline-date">' + escapeHtml(entry.label + (entry.date ? " \xb7 " + entry.date.slice(0, 10) : "")) + '</span>',
-            editButton,
-            addPhotoButton,
-            '</div>',
-            '<h4>' + escapeHtml(entry.title) + '</h4>',
-            details.length
-              ? '<div class="entry-facts">' + details.map(function (d) { return '<span>' + d + '</span>'; }).join("") + '</div>'
-              : "",
-            entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : "",
-            tags.length
-              ? '<div class="entry-tags">' + tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>'
-              : "",
-            entryPhotos.length
-              ? '<div class="entry-photos">' + entryPhotos.map(function (photo) {
-                  var caption = photo.caption || "";
-                  var photoEditBtn = canEdit
-                    ? '<button class="course-entry-edit photo-edit-action" type="button" data-edit-photo="' +
-                      escapeHtml(photo.id) + '">Edit Photo</button>'
-                    : "";
-                  return photo.signed_url
-                    ? '<figure>' +
-                      '<img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption || "Course photo") + '">' +
-                      (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
-                      photoEditBtn +
-                      '</figure>'
-                    : "";
-                }).join("") + '</div>'
-              : "",
-            '</article>'
-          ].join("");
-        }).join("") + '</div>'
+            return renderMemoryPost(entry, golfer, canEdit);
+          }).join("") + '</div>'
         : '<p class="empty-state">No public story is attached to this course yet. ' + escapeHtml(golferFirstName(golfer)) + "'s private notes can be approved when they are ready.</p>"
     ].join("");
   }
@@ -1428,7 +1496,8 @@
         longitude: candidate ? candidate.longitude : null,
         verification_status: candidate ? "verified" : "manual",
         verification_source: candidate ? "google_places" : "manual_admin",
-        source_place_id: candidate ? candidate.source_place_id : ""
+        source_place_id: candidate ? candidate.source_place_id : "",
+        photo_name: candidate ? (candidate.photo_name || "") : ""
       }
     });
     return payload.course.id;

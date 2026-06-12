@@ -23,6 +23,7 @@ type CourseLookupCandidate = {
   latitude: number | null;
   longitude: number | null;
   source_place_id: string | null;
+  photo_name: string | null;
   verification_status: "verified";
   verification_source: "google_places";
 };
@@ -329,6 +330,8 @@ function normalizePlaceCandidate(place: Record<string, unknown>): CourseLookupCa
     ? place.location as Record<string, unknown>
     : {};
   const state = addressComponent(place, "administrative_area_level_1");
+  const photos = Array.isArray(place.photos) ? place.photos as Array<Record<string, unknown>> : [];
+  const photo_name = photos.length > 0 && photos[0].name ? cleanNullableString(photos[0].name) : null;
 
   return {
     name: displayName || cleanString(place.formattedAddress),
@@ -341,9 +344,73 @@ function normalizePlaceCandidate(place: Record<string, unknown>): CourseLookupCa
     latitude: cleanNumber(location.latitude),
     longitude: cleanNumber(location.longitude),
     source_place_id: cleanNullableString(place.id),
+    photo_name,
     verification_status: "verified",
     verification_source: "google_places",
   };
+}
+
+async function fetchAndStoreCoursePhoto(courseId: string, photoName: string): Promise<string | null> {
+  const apiKey = optionalEnv("GOOGLE_PLACES_API_KEY") || optionalEnv("GOOGLE_MAPS_API_KEY");
+  if (!apiKey) return null;
+  try {
+    const response = await fetch(
+      `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=1200&key=${apiKey}`
+    );
+    if (!response.ok) return null;
+    const contentType = response.headers.get("content-type") || "image/jpeg";
+    const buffer = await response.arrayBuffer();
+    const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+    const storagePath = `${courseId}.${ext}`;
+    const { error: uploadError } = await adminClient()
+      .storage
+      .from("course-photos")
+      .upload(storagePath, buffer, { contentType, cacheControl: "604800", upsert: true });
+    if (uploadError) return null;
+    const { data: pub } = adminClient().storage.from("course-photos").getPublicUrl(storagePath);
+    const url = pub?.publicUrl || null;
+    if (url) {
+      await adminClient().from("courses").update({ photo_url: url }).eq("id", courseId);
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCoursePhotoByPlaceId(courseId: string, placeId: string): Promise<string | null> {
+  const apiKey = optionalEnv("GOOGLE_PLACES_API_KEY") || optionalEnv("GOOGLE_MAPS_API_KEY");
+  if (!apiKey) return null;
+  try {
+    const response = await fetch(
+      `https://places.googleapis.com/v1/places/${placeId}?fields=photos&key=${apiKey}`
+    );
+    if (!response.ok) return null;
+    const data = await response.json().catch(() => ({}));
+    const photos = Array.isArray(data.photos) ? data.photos as Array<Record<string, unknown>> : [];
+    if (!photos.length || !photos[0].name) return null;
+    return fetchAndStoreCoursePhoto(courseId, String(photos[0].name));
+  } catch {
+    return null;
+  }
+}
+
+async function handleBackfillCoursePhotos(req: Request) {
+  const { user } = await requireReadyUser(req);
+  const profile = await requireProfile(user);
+  if (profile.role !== "admin") throw new ApiError(403, "Admin only");
+  const { data: courses, error } = await adminClient()
+    .from("courses")
+    .select("id, name, source_place_id")
+    .not("source_place_id", "is", null)
+    .is("photo_url", null);
+  if (error) throw new ApiError(500, error.message);
+  const results: Array<{ id: string; name: string; ok: boolean }> = [];
+  for (const course of courses || []) {
+    const url = await fetchCoursePhotoByPlaceId(course.id, course.source_place_id).catch(() => null);
+    results.push({ id: course.id, name: course.name, ok: Boolean(url) });
+  }
+  return jsonResponse(200, { results });
 }
 
 function googlePlacesErrorMessage(message: string) {
@@ -677,6 +744,17 @@ async function upsertCourse(body: Record<string, unknown>) {
     .single();
 
   if (error) throw new ApiError(500, error.message);
+
+  // Fire-and-forget: fetch marketing photo from Google Places
+  const photoName = cleanNullableString(body.photo_name);
+  if (data && !data.photo_url) {
+    if (photoName) {
+      fetchAndStoreCoursePhoto(data.id, photoName).catch(() => {});
+    } else if (data.source_place_id) {
+      fetchCoursePhotoByPlaceId(data.id, data.source_place_id).catch(() => {});
+    }
+  }
+
   return data;
 }
 
@@ -712,7 +790,7 @@ async function handleLookupCourse(req: Request) {
       "content-type": "application/json",
       "x-goog-api-key": apiKey,
       "x-goog-fieldmask":
-        "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.types",
+        "places.id,places.displayName,places.formattedAddress,places.location,places.addressComponents,places.types,places.photos",
     },
     body: JSON.stringify({
       textQuery: `${query} golf course`,
@@ -1287,6 +1365,9 @@ async function route(req: Request) {
   const dashboardEntriesMatch = pathname.match(/^\/dashboard\/golfers\/([^/]+)\/entries$/);
   if (req.method === "GET" && dashboardEntriesMatch) {
     return handleDashboardEntries(req, dashboardEntriesMatch[1]);
+  }
+  if (req.method === "POST" && pathname === "/admin/backfill-course-photos") {
+    return handleBackfillCoursePhotos(req);
   }
   if (req.method === "POST" && pathname === "/golfers") return handleCreateGolfer(req);
   const golferMatch = pathname.match(/^\/golfers\/([^/]+)$/);
