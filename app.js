@@ -752,10 +752,18 @@
   function renderEditControls() {
     var canEdit = canEditCurrentGolfer();
     var mustChange = Boolean(profileState.me && profileState.me.profile && profileState.me.profile.must_change_password);
+    var signedIn = Boolean(profileState.session && profileState.me);
     setHidden(quick.open, !canEdit);
-    setHidden(quick.signIn, canEdit);
     if (quick.signIn) {
-      quick.signIn.textContent = mustChange ? "Open Account" : "Sign In to Edit";
+      setHidden(quick.signIn, false);
+      quick.signIn.textContent = signedIn
+        ? (mustChange ? "Open Account" : "Sign Out")
+        : "Sign In to Edit";
+      quick.signIn.setAttribute("href", mustChange || !signedIn ? "/dashboard/" : "#sign-out");
+    }
+    if (profileUi.photoButton) {
+      profileUi.photoButton.classList.toggle("is-editable", canEdit);
+      profileUi.photoButton.setAttribute("title", canEdit ? "Change profile photo" : "View golfer profile");
     }
     setHidden(passwordGate.panel, true);
     renderCourseNavigation();
@@ -1182,6 +1190,15 @@
     setHidden(profileUi.photoModal, true);
   }
 
+  async function signOutFromProfile() {
+    if (!authClient || !profileState.session) return;
+    await authClient.auth.signOut();
+    profileState.session = null;
+    profileState.me = null;
+    profileState.editableGolfer = null;
+    renderEditControls();
+  }
+
   async function uploadProfilePhoto() {
     if (!canEditCurrentGolfer()) {
       openProfilePhotoModal();
@@ -1412,6 +1429,7 @@
     if (profileUi.photoButton) {
       profileUi.photoButton.addEventListener("click", function () {
         if (canEditCurrentGolfer() && profileUi.photoInput) {
+          setText(shareStatus, "Choose a profile photo to upload.");
           profileUi.photoInput.click();
           return;
         }
@@ -1431,6 +1449,15 @@
     if (profileUi.photoModal) {
       profileUi.photoModal.addEventListener("click", function (event) {
         if (event.target === profileUi.photoModal) closeProfilePhotoModal();
+      });
+    }
+    if (quick.signIn) {
+      quick.signIn.addEventListener("click", function (event) {
+        if (!profileState.session || quick.signIn.getAttribute("href") !== "#sign-out") return;
+        event.preventDefault();
+        signOutFromProfile().catch(function (error) {
+          setText(shareStatus, error.message);
+        });
       });
     }
   }

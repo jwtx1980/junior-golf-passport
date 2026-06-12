@@ -29,6 +29,7 @@
     email: document.getElementById("auth-email"),
     password: document.getElementById("auth-password"),
     displayName: document.getElementById("auth-name"),
+    displayNameField: document.getElementById("auth-name-field"),
     authStatus: document.getElementById("auth-status"),
     signIn: document.getElementById("sign-in-button"),
     signUp: document.getElementById("sign-up-button"),
@@ -132,6 +133,12 @@
 
   function setAccountStatus(message) {
     setText(elements.accountSettingsStatus, message);
+  }
+
+  function showSignUpNameField(message) {
+    setHidden(elements.displayNameField, false);
+    if (elements.displayName) elements.displayName.focus();
+    if (message) setAuthStatus(message);
   }
 
   function escapeHtml(value) {
@@ -1041,6 +1048,14 @@
   }
 
   async function signUp() {
+    if (elements.displayNameField && elements.displayNameField.hidden) {
+      showSignUpNameField("Add your display name, then create the account.");
+      return;
+    }
+    if (!elements.displayName.value.trim()) {
+      showSignUpNameField("Display name is required to create an account.");
+      return;
+    }
     setAuthStatus("Creating account...");
     var result = await client.auth.signUp({
       email: elements.email.value.trim(),
