@@ -1150,7 +1150,7 @@
     var entry = findPublicEntry(entryKey);
     if (!entry || !editableKind(entry.kind)) return;
     var label = entry.title || (entry.course && entry.course.name) || "this entry";
-    if (!confirm("Delete "" + label + ""? This cannot be undone.")) return;
+    if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
     try {
       await api("/entries/" + entry.kind + "/" + entry.record.id, { method: "DELETE" });
       loadPublicPassport();
