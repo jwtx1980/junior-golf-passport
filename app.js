@@ -336,7 +336,7 @@
   }
 
   function dateLabel(record) {
-    return record.played_on || record.achieved_on || record.created_at || record.updated_at || "";
+    return record.played_on || record.achieved_on || record.occurred_on || record.created_at || record.updated_at || "";
   }
 
   function entryLabel(kind, record) {
@@ -1685,17 +1685,18 @@
       visibility: quick.reviewVisibility.value,
       is_approved: quick.reviewApproved.checked
     };
+    var editedDate = quick.reviewDate && quick.reviewDate.value ? quick.reviewDate.value : null;
     if (entry.kind === "memories") {
       return Object.assign(base, {
         round_id: record.round_id || null,
         title: memoryTitle(),
         entry_type: record.entry_type || "memory",
+        played_on: editedDate || record.played_on || null,
         story: quick.reviewStory.value.trim(),
         raw_note: record.raw_note || "",
         tags: uniqueStrings((Array.isArray(record.tags) ? record.tags : []).concat(profileState.reviewTags))
       });
     }
-    var editedDate = quick.reviewDate && quick.reviewDate.value ? quick.reviewDate.value : null;
     if (entry.kind === "rounds") {
       return Object.assign(base, {
         played_on: editedDate || record.played_on || null,
