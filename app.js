@@ -1139,8 +1139,8 @@
     renderRibbonSuggestions(inferredRibbonTags({ tags: profileState.baseReviewTags }, course, entryRecordStory(entry.kind, entry.record)));
     var entryDate = entry.record.played_on || entry.record.achieved_on || "";
     if (quick.reviewDate) quick.reviewDate.value = entryDate ? entryDate.slice(0, 10) : "";
-    if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "private";
-    if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
+    if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "public";
+    if (quick.reviewApproved) quick.reviewApproved.checked = entry.record.is_approved !== false;
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
     setQuickStatus("Editing an existing passport entry.");
   }
@@ -1168,8 +1168,8 @@
     showQuickPanel("photo-edit");
     if (quick.photoEditCaption) quick.photoEditCaption.value = photo.caption || "";
     if (quick.photoEditFile) quick.photoEditFile.value = "";
-    if (quick.photoEditVisibility) quick.photoEditVisibility.value = photo.visibility || "private";
-    if (quick.photoEditApproved) quick.photoEditApproved.checked = Boolean(photo.is_approved);
+    if (quick.photoEditVisibility) quick.photoEditVisibility.value = photo.visibility || "public";
+    if (quick.photoEditApproved) quick.photoEditApproved.checked = photo.is_approved !== false;
     if (quick.photoEditHeading) quick.photoEditHeading.textContent = "Edit scrapbook photo.";
     if (quick.photoEditLabel) quick.photoEditLabel.textContent = "Replace photo";
     if (quick.photoEditHint) quick.photoEditHint.textContent = "Choose a new photo only if this one should change";
