@@ -13,7 +13,7 @@
     features: null,
     courseCandidate: null,
     publicPassport: null,
-    ownerDataLoaded: false,
+    ownerEntries: null,
     selectedState: "",
     selectedCourseKey: "",
     editingEntry: null,
@@ -944,6 +944,8 @@
     }
     var editBar = document.getElementById("edit-mode-bar");
     if (editBar) setHidden(editBar, !canEdit);
+    var navSignIn = document.getElementById("nav-sign-in-link");
+    if (navSignIn) setHidden(navSignIn, signedIn);
     if (profileUi.photoButton) {
       profileUi.photoButton.classList.toggle("is-editable", canEdit);
       profileUi.photoButton.setAttribute("title", canEdit ? "Change profile photo" : "View golfer profile");
@@ -2020,11 +2022,13 @@
     if (!canEditCurrentGolfer() || !profileState.editableGolfer) return;
     try {
       var allEntries = await api("/dashboard/golfers/" + profileState.editableGolfer.id + "/entries");
-      var base = profileState.publicPassport || {};
-      profileState.ownerDataLoaded = true;
-      renderPublicPassport(Object.assign({}, base, allEntries));
+      profileState.ownerEntries = allEntries;
+      if (profileState.publicPassport) {
+        renderPublicPassport(Object.assign({}, profileState.publicPassport, allEntries));
+      }
+      // If publicPassport isn't loaded yet, loadPublicPassport's handler will merge on arrival
     } catch (e) {
-      // fall back to public data already rendered
+      // fall back to whatever public data is already rendered
     }
   }
 
@@ -2042,7 +2046,11 @@
         return response.json();
       })
       .then(function (data) {
-        if (!profileState.ownerDataLoaded) renderPublicPassport(data);
+        if (profileState.ownerEntries) {
+          renderPublicPassport(Object.assign({}, data, profileState.ownerEntries));
+        } else {
+          renderPublicPassport(data);
+        }
       })
       .catch(function () {
         if (document.body.classList.contains("generic-profile-page")) {
