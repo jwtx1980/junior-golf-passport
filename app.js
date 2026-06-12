@@ -248,7 +248,7 @@
     element.classList.remove("has-image");
     if (photo && photo.signed_url) {
       element.textContent = "";
-      element.style.backgroundImage = "url(" + photo.signed_url + ")";
+      element.style.backgroundImage = 'url("' + String(photo.signed_url).replace(/"/g, "%22") + '")';
       element.classList.add("has-image");
     }
   }
@@ -1207,7 +1207,12 @@
     var file = profileUi.photoInput && profileUi.photoInput.files ? profileUi.photoInput.files[0] : null;
     if (!file) return;
     if (!authClient || !profileState.editableGolfer) throw new Error("Sign in before updating the profile photo.");
-    setText(shareStatus, "Uploading profile photo...");
+    var previewUrl = URL.createObjectURL(file);
+    var golfer = (profileState.publicPassport && profileState.publicPassport.golfer) || profileState.editableGolfer || {};
+    var previewPhoto = { signed_url: previewUrl, caption: PROFILE_PHOTO_CAPTION };
+    setProfilePhotoElement(profileUi.photoButton, golfer, previewPhoto);
+    setProfilePhotoElement(profileUi.photoModalImage, golfer, previewPhoto);
+    setText(shareStatus, "Profile photo selected. Saving...");
     var path = [
       profileState.editableGolfer.id,
       "profile",
@@ -1232,11 +1237,17 @@
       }
     });
     if (profileUi.photoInput) profileUi.photoInput.value = "";
+    var savedPhoto = payload.photo || {};
+    if (!savedPhoto.signed_url) savedPhoto.signed_url = previewUrl;
     if (profileState.publicPassport) {
-      profileState.publicPassport.photos = [payload.photo].concat(profileState.publicPassport.photos || []);
+      profileState.publicPassport.photos = [savedPhoto].concat(profileState.publicPassport.photos || []);
       renderGolferProfile(profileState.publicPassport.golfer || {});
       renderPhotos(profileState.publicPassport.photos || [], profileState.publicPassport.golfer || {});
+    } else {
+      setProfilePhotoElement(profileUi.photoButton, golfer, savedPhoto);
+      setProfilePhotoElement(profileUi.photoModalImage, golfer, savedPhoto);
     }
+    if (savedPhoto.signed_url !== previewUrl) URL.revokeObjectURL(previewUrl);
     setText(shareStatus, "Profile photo updated.");
   }
 
