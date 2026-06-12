@@ -31,7 +31,6 @@
     backdrop: document.getElementById("quick-add-backdrop"),
     close: document.getElementById("quick-add-close"),
     compose: document.getElementById("quick-add-compose"),
-    ownAiPanel: document.getElementById("quick-own-ai-panel"),
     reviewPanel: document.getElementById("quick-review-panel"),
     photoEditPanel: document.getElementById("quick-photo-edit-panel"),
     date: document.getElementById("quick-add-date"),
@@ -41,12 +40,6 @@
     photoPreview: document.getElementById("quick-photo-preview"),
     saveManual: document.getElementById("quick-save-manual"),
     draftAi: document.getElementById("quick-draft-ai"),
-    ownAi: document.getElementById("quick-own-ai"),
-    prompt: document.getElementById("quick-ai-prompt"),
-    copyPrompt: document.getElementById("quick-copy-prompt"),
-    aiResult: document.getElementById("quick-ai-result"),
-    parseAi: document.getElementById("quick-parse-ai"),
-    backCompose: document.getElementById("quick-back-compose"),
     editCompose: document.getElementById("quick-edit-compose"),
     reviewCourse: document.getElementById("quick-review-course"),
     reviewCity: document.getElementById("quick-review-city"),
@@ -58,13 +51,9 @@
     reviewCaption: document.getElementById("quick-review-caption"),
     reviewPhoto: document.getElementById("quick-review-photo"),
     reviewPhotoPreview: document.getElementById("quick-review-photo-preview"),
-    reviewVisibility: document.getElementById("quick-review-visibility"),
-    reviewApproved: document.getElementById("quick-review-approved"),
     saveReview: document.getElementById("quick-save-review"),
     photoEditCaption: document.getElementById("quick-photo-edit-caption"),
     photoEditFile: document.getElementById("quick-photo-edit-file"),
-    photoEditVisibility: document.getElementById("quick-photo-edit-visibility"),
-    photoEditApproved: document.getElementById("quick-photo-edit-approved"),
     photoEditCancel: document.getElementById("quick-photo-edit-cancel"),
     photoEditSave: document.getElementById("quick-photo-edit-save"),
     photoEditStatus: document.getElementById("quick-photo-edit-status"),
@@ -1036,7 +1025,6 @@
 
   function showQuickPanel(panel) {
     setHidden(quick.compose, panel !== "compose");
-    setHidden(quick.ownAiPanel, panel !== "own-ai");
     setHidden(quick.reviewPanel, panel !== "review");
     setHidden(quick.photoEditPanel, panel !== "photo-edit");
   }
@@ -1139,8 +1127,6 @@
     renderRibbonSuggestions(inferredRibbonTags({ tags: profileState.baseReviewTags }, course, entryRecordStory(entry.kind, entry.record)));
     var entryDate = entry.record.played_on || entry.record.achieved_on || "";
     if (quick.reviewDate) quick.reviewDate.value = entryDate ? entryDate.slice(0, 10) : "";
-    if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "public";
-    if (quick.reviewApproved) quick.reviewApproved.checked = entry.record.is_approved !== false;
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
     setQuickStatus("Editing an existing passport entry.");
   }
@@ -1168,8 +1154,6 @@
     showQuickPanel("photo-edit");
     if (quick.photoEditCaption) quick.photoEditCaption.value = photo.caption || "";
     if (quick.photoEditFile) quick.photoEditFile.value = "";
-    if (quick.photoEditVisibility) quick.photoEditVisibility.value = photo.visibility || "public";
-    if (quick.photoEditApproved) quick.photoEditApproved.checked = photo.is_approved !== false;
     if (quick.photoEditHeading) quick.photoEditHeading.textContent = "Edit scrapbook photo.";
     if (quick.photoEditLabel) quick.photoEditLabel.textContent = "Replace photo";
     if (quick.photoEditHint) quick.photoEditHint.textContent = "Choose a new photo only if this one should change";
@@ -1186,8 +1170,6 @@
     showQuickPanel("photo-edit");
     if (quick.photoEditCaption) quick.photoEditCaption.value = "";
     if (quick.photoEditFile) quick.photoEditFile.value = "";
-    if (quick.photoEditVisibility) quick.photoEditVisibility.value = "private";
-    if (quick.photoEditApproved) quick.photoEditApproved.checked = false;
     if (quick.photoEditHeading) quick.photoEditHeading.textContent = "Add a photo to this memory.";
     if (quick.photoEditLabel) quick.photoEditLabel.textContent = "Photo";
     if (quick.photoEditHint) quick.photoEditHint.textContent = "Choose a photo to attach to this entry";
@@ -1237,8 +1219,8 @@
       return;
     }
     var caption = quick.photoEditCaption ? quick.photoEditCaption.value.trim() : "";
-    var visibility = quick.photoEditVisibility ? quick.photoEditVisibility.value : "private";
-    var isApproved = quick.photoEditApproved ? quick.photoEditApproved.checked : false;
+    var visibility = "public";
+    var isApproved = true;
     setPhotoEditStatus("Resizing photo...");
     var uploadFile = await cappedImageFile(file);
     var path = [
@@ -1282,8 +1264,8 @@
     if (!photo) return;
     var details = {
       caption: quick.photoEditCaption ? quick.photoEditCaption.value.trim() : "",
-      visibility: quick.photoEditVisibility ? quick.photoEditVisibility.value : "private",
-      is_approved: quick.photoEditApproved ? quick.photoEditApproved.checked : false
+      visibility: "public",
+      is_approved: true
     };
     setPhotoEditStatus("Updating photo...");
     var replaced = await replaceEditedPhoto(photo, details);
@@ -1469,8 +1451,6 @@
       showReviewPhotoPreview(null, composeFile ? composeFile.name : "Add or replace the entry photo");
       if (composeFile) setReviewPhotoFilePreview(composeFile);
     }
-    quick.reviewVisibility.value = "private";
-    quick.reviewApproved.checked = false;
     setQuickStatus(candidate ? "Course verified with Google Places." : "Review the story before saving.");
     showQuickPanel("review");
   }
@@ -1489,15 +1469,6 @@
         golfer_id: profileState.editableGolfer.id,
         note: quickDraftSourceNote()
       }
-    });
-    await prepareReview(payload.draft || {});
-  }
-
-  async function parseOwnAiResult() {
-    setQuickStatus("Parsing AI result...");
-    var payload = await api("/ai/parse-pasted-result", {
-      method: "POST",
-      body: { result: quick.aiResult.value }
     });
     await prepareReview(payload.draft || {});
   }
@@ -1617,8 +1588,8 @@
           method: "PATCH",
           body: {
             caption: quick.reviewCaption.value.trim(),
-            visibility: quick.reviewVisibility.value,
-            is_approved: quick.reviewApproved.checked
+            visibility: "public",
+            is_approved: true
           }
         });
       }
@@ -1653,8 +1624,8 @@
         caption: quick.reviewCaption.value.trim(),
         linked_type: linkedType,
         linked_id: memoryId,
-        visibility: quick.reviewVisibility.value,
-        is_approved: quick.reviewApproved.checked
+        visibility: "public",
+        is_approved: true
       }
     });
     if (oldPhoto) {
@@ -1764,8 +1735,8 @@
         story: quick.reviewStory.value.trim(),
         raw_note: quick.note.value.trim(),
         tags: profileState.reviewTags,
-        visibility: quick.reviewVisibility.value,
-        is_approved: quick.reviewApproved.checked
+        visibility: "public",
+        is_approved: true
       }
     });
     await uploadQuickPhoto(payload.memory.id);
@@ -1780,8 +1751,8 @@
     var record = entry.record;
     var base = {
       course_id: courseId,
-      visibility: quick.reviewVisibility.value,
-      is_approved: quick.reviewApproved.checked
+      visibility: "public",
+      is_approved: true
     };
     var editedDate = quick.reviewDate && quick.reviewDate.value ? quick.reviewDate.value : null;
     if (entry.kind === "memories") {
@@ -1892,30 +1863,7 @@
         });
       });
     }
-    if (quick.ownAi) {
-      quick.ownAi.addEventListener("click", function () {
-        quick.prompt.value = freeAiPrompt(quickDraftSourceNote());
-        showQuickPanel("own-ai");
-      });
-    }
-    if (quick.copyPrompt) {
-      quick.copyPrompt.addEventListener("click", function () {
-        navigator.clipboard.writeText(quick.prompt.value).then(function () {
-          setQuickStatus("Prompt copied.");
-        }).catch(function () {
-          setQuickStatus("Copy failed. Select and copy the prompt manually.");
-        });
-      });
-    }
-    if (quick.backCompose) quick.backCompose.addEventListener("click", function () { showQuickPanel("compose"); });
     if (quick.editCompose) quick.editCompose.addEventListener("click", function () { showQuickPanel("compose"); });
-    if (quick.parseAi) {
-      quick.parseAi.addEventListener("click", function () {
-        parseOwnAiResult().catch(function (error) {
-          setQuickStatus(error.message);
-        });
-      });
-    }
     [quick.reviewTitle, quick.reviewStory, quick.reviewCourse, quick.reviewCity, quick.reviewState].forEach(function (field) {
       if (!field) return;
       field.addEventListener("input", refreshRibbonSuggestionsFromReview);

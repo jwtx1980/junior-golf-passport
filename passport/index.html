@@ -199,23 +199,6 @@
           <div class="quick-add-actions">
             <button class="button secondary" id="quick-save-manual" type="button">Save Manually</button>
             <button class="button primary" id="quick-draft-ai" type="button">Draft with AI</button>
-            <button class="button secondary" id="quick-own-ai" type="button">Use My Own AI</button>
-          </div>
-        </div>
-
-        <div class="quick-add-body" id="quick-own-ai-panel" hidden>
-          <label>
-            <span>Copy this prompt into your AI tool</span>
-            <textarea id="quick-ai-prompt" rows="7" readonly></textarea>
-          </label>
-          <button class="button secondary" id="quick-copy-prompt" type="button">Copy Prompt</button>
-          <label>
-            <span>Paste the AI JSON result</span>
-            <textarea id="quick-ai-result" rows="7" placeholder="{ &quot;entry_type&quot;: &quot;course_played&quot;, ... }"></textarea>
-          </label>
-          <div class="quick-add-actions">
-            <button class="button secondary" id="quick-back-compose" type="button">Back</button>
-            <button class="button primary" id="quick-parse-ai" type="button">Review AI Draft</button>
           </div>
         </div>
 
@@ -255,20 +238,6 @@
               <input id="quick-review-photo" type="file" accept="image/*">
               <span class="quick-photo-preview" id="quick-review-photo-preview">Add or replace the entry photo</span>
             </label>
-            <div class="quick-add-row">
-              <label>
-                <span>Visibility</span>
-                <select id="quick-review-visibility">
-                  <option value="private">Private</option>
-                  <option value="unlisted">Unlisted</option>
-                  <option value="public">Public</option>
-                </select>
-              </label>
-              <label class="quick-check">
-                <input id="quick-review-approved" type="checkbox">
-                <span>Approved for public passport</span>
-              </label>
-            </div>
             <p class="quick-add-status" id="quick-add-status" role="status" aria-live="polite"></p>
             <div class="quick-add-actions">
               <button class="button secondary" id="quick-edit-compose" type="button">Back</button>
@@ -292,6 +261,6 @@
     <script src="/assets/vendor/supabase.js"></script>
     <script src="/assets/vendor/supabase-global.js"></script>
     <script src="/config.js"></script>
-    <script src="/app.js?v=entry-photo-edit"></script>
+    <script src="/app.js?v=remove-visibility-controls"></script>
   </body>
 </html>
