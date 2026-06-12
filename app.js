@@ -1944,10 +1944,8 @@
     renderCourseCards(courses, golfer);
     renderSelectedCoursePanel(courses, normalized, golfer);
     renderMapNotes(courses, golfer);
-    renderMemories(normalized.memories, golfer);
     renderAchievements(normalized.achievements, golfer, courses);
     renderTournaments(normalized.tournaments, golfer);
-    renderPhotos(normalized.photos, golfer);
     renderGoals(normalized.goals, golfer);
   }
 
