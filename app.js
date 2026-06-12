@@ -926,10 +926,7 @@
     var signedIn = Boolean(profileState.session && profileState.me);
     setHidden(quick.open, !canEdit);
     if (quick.signIn) {
-      setHidden(quick.signIn, false);
-      quick.signIn.textContent = signedIn ? "Sign Out" : "Sign In to Edit";
-      quick.signIn.setAttribute("href", signedIn ? "#sign-out" : "/dashboard/");
-      quick.signIn.classList.toggle("nav-signed-in", signedIn);
+      setHidden(quick.signIn, canEdit || signedIn);
     }
     var editBar = document.getElementById("edit-mode-bar");
     if (editBar) setHidden(editBar, !canEdit);
@@ -1909,15 +1906,6 @@
     if (profileUi.photoModal) {
       profileUi.photoModal.addEventListener("click", function (event) {
         if (event.target === profileUi.photoModal) closeProfilePhotoModal();
-      });
-    }
-    if (quick.signIn) {
-      quick.signIn.addEventListener("click", function (event) {
-        if (!profileState.session || quick.signIn.getAttribute("href") !== "#sign-out") return;
-        event.preventDefault();
-        signOutFromProfile().catch(function (error) {
-          setText(shareStatus, error.message);
-        });
       });
     }
   }
