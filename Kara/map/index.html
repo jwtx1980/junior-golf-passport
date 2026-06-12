@@ -365,6 +365,12 @@
     render();
     loadLiveCourses();
 
+    elements.map.addEventListener("click", (event) => {
+      if (event.target.closest("[data-state]")) return;
+      if (event.target.closest(".pin")) return;
+      clearSelection();
+    });
+
     elements.form.addEventListener("submit", (event) => {
       event.preventDefault();
       const lat = parseOptionalNumber(elements.lat.value);
@@ -584,6 +590,13 @@
       selectedCourseId = null;
       render();
       notifyParent({ state: stateCode });
+    }
+
+    function clearSelection() {
+      selectedStateCode = null;
+      selectedCourseId = null;
+      render();
+      notifyParent({ clearState: true });
     }
 
     function notifyParent(payload) {

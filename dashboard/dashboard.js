@@ -40,9 +40,6 @@
     magicLink: document.getElementById("magic-link-button"),
     signOut: document.getElementById("sign-out-button"),
     accountSummary: document.getElementById("account-summary"),
-    passwordPanel: document.getElementById("password-panel"),
-    newPassword: document.getElementById("new-password"),
-    updatePassword: document.getElementById("update-password-button"),
     accountDisplayName: document.getElementById("account-display-name"),
     accountNewPassword: document.getElementById("account-new-password"),
     saveAccount: document.getElementById("save-account-button"),
@@ -955,11 +952,9 @@
       elements.accountSummary,
       [
         profile.display_name || profile.email || "Signed in",
-        profile.has_ai_access ? "AI access enabled" : "Manual and Use Your Own AI access",
-        profile.must_change_password ? "Password update required" : ""
+        profile.has_ai_access ? "AI access enabled" : "Manual and Use Your Own AI access"
       ].filter(Boolean).join(" - ")
     );
-    setHidden(elements.passwordPanel, !profile.must_change_password);
 
     var golfers = state.me.golfers || [];
     elements.golferSelect.innerHTML = golfers.map(function (row) {
@@ -986,7 +981,6 @@
     updateEntryFieldVisibility();
     setText(elements.apiStatus, config.passportApiBaseUrl + " | " + featureSummary());
     renderEntries();
-    setDashboardLocked(profile.must_change_password);
   }
 
   async function refreshMe() {
@@ -1167,21 +1161,6 @@
     });
     if (result.error) throw result.error;
     setAuthStatus("Magic link sent. Check that email inbox.");
-  }
-
-  async function updatePassword() {
-    if (!elements.newPassword.value || elements.newPassword.value.length < 6) {
-      throw new Error("New password must be at least 6 characters.");
-    }
-    setStatus("Updating password...");
-    var result = await client.auth.updateUser({
-      password: elements.newPassword.value
-    });
-    if (result.error) throw result.error;
-    await api("/me/password-updated", { method: "POST", body: {} });
-    elements.newPassword.value = "";
-    await refreshMe();
-    setStatus("Password updated.");
   }
 
   async function saveAccount() {
@@ -1689,7 +1668,6 @@
   bind(elements.signIn, signIn, setAuthStatus);
   bind(elements.signUp, signUp, setAuthStatus);
   bind(elements.magicLink, sendMagicLink, setAuthStatus);
-  bind(elements.updatePassword, updatePassword);
   bind(elements.saveAccount, saveAccount, setAccountStatus);
   bind(elements.createGolfer, createGolfer);
   bind(elements.saveProfile, saveProfile);

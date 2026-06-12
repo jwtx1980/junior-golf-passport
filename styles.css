@@ -625,6 +625,15 @@ main {
   transform: translateY(-1px);
 }
 
+@keyframes profile-photo-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.62; }
+}
+
+.profile-photo:not(.has-image) {
+  animation: profile-photo-pulse 2s ease-in-out infinite;
+}
+
 .profile-photo.is-editable::after {
   align-items: center;
   background: rgba(12, 26, 20, 0.72);
@@ -736,14 +745,14 @@ main {
 }
 
 .passport-map-band {
-  margin: 0 24px 28px;
+  margin: 0 0 28px;
   position: relative;
 }
 
 .profile-map-frame {
-  border-radius: 8px;
+  border-radius: 0;
   box-shadow: none;
-  height: 430px;
+  height: clamp(400px, 46vw, 580px);
 }
 
 .passport-map-band .profile-stats {
@@ -991,6 +1000,63 @@ main {
 
 .course-story-list p {
   margin-bottom: 0;
+}
+
+.entry-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 8px;
+}
+
+.entry-facts span {
+  background: var(--green-soft);
+  border-radius: 999px;
+  color: var(--green-dark);
+  font-size: 0.8rem;
+  font-weight: 820;
+  padding: 3px 10px;
+}
+
+.entry-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.entry-tags span {
+  background: rgba(217, 167, 65, 0.14);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 760;
+  padding: 3px 10px;
+}
+
+.entry-photos {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  margin-top: 12px;
+}
+
+.entry-photos figure {
+  margin: 0;
+}
+
+.entry-photos img {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.entry-photos figcaption {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 760;
+  margin-top: 5px;
 }
 
 .selected-course-photos {
@@ -2055,7 +2121,11 @@ footer nav {
     padding: 28px 16px 14px;
   }
 
-  .passport-map-band,
+  .passport-map-band {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
   .profile-content-layout {
     margin-left: 16px;
     margin-right: 16px;
@@ -2069,7 +2139,7 @@ footer nav {
 
   .profile-map-frame,
   .map-frame.small {
-    height: 360px;
+    height: 320px;
   }
 
   .map-frame:not(.profile-map-frame) {

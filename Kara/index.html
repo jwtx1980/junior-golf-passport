@@ -56,7 +56,6 @@
           class="map-frame profile-map-frame"
           src="/Kara/map/?embed=profile"
           title="Kara Walker interactive golfed states map"
-          loading="lazy"
         ></iframe>
       </section>
 
@@ -172,20 +171,6 @@
       </section>
     </main>
 
-    <section class="notice-panel password-reset-modal" id="profile-password-panel" role="dialog" aria-modal="true" aria-labelledby="profile-password-heading" hidden>
-      <div>
-        <p class="eyebrow">Password update required</p>
-        <h2 id="profile-password-heading">Replace the temporary password before editing.</h2>
-        <p>This protects Kara's passport before Quick Add and edit tools turn on.</p>
-      </div>
-      <label>
-        <span>New password</span>
-        <input id="profile-new-password" type="password" autocomplete="new-password">
-      </label>
-      <button class="button primary" id="profile-update-password" type="button">Update Password</button>
-      <p class="quick-add-status" id="profile-password-status" role="status" aria-live="polite"></p>
-    </section>
-
     <div class="profile-photo-modal" id="profile-photo-modal" hidden>
       <div class="profile-photo-modal-card" role="dialog" aria-modal="true" aria-labelledby="profile-photo-modal-name">
         <button class="icon-button modal-close-dark" id="profile-photo-modal-close" type="button" aria-label="Close profile">x</button>
@@ -264,10 +249,16 @@
                 <input id="quick-review-city" type="text">
               </label>
             </div>
-            <label>
-              <span>State</span>
-              <input id="quick-review-state" type="text">
-            </label>
+            <div class="quick-add-row">
+              <label>
+                <span>State</span>
+                <input id="quick-review-state" type="text">
+              </label>
+              <label>
+                <span>Date played</span>
+                <input id="quick-review-date" type="date">
+              </label>
+            </div>
             <label>
               <span>Title</span>
               <input id="quick-review-title" type="text" placeholder="Short scrapbook title">
@@ -311,15 +302,15 @@
         <div class="quick-add-body" id="quick-photo-edit-panel" hidden>
           <div class="quick-review-card">
             <p class="eyebrow">Photo</p>
-            <h3>Edit scrapbook photo.</h3>
+            <h3 id="quick-photo-edit-heading">Edit scrapbook photo.</h3>
             <label>
               <span>Caption</span>
               <input id="quick-photo-edit-caption" type="text" placeholder="Photo caption">
             </label>
             <label class="quick-photo-drop">
-              <span>Replace photo</span>
+              <span id="quick-photo-edit-label">Replace photo</span>
               <input id="quick-photo-edit-file" type="file" accept="image/*">
-              <span class="quick-photo-preview">Choose a new photo only if this one should change</span>
+              <span class="quick-photo-preview" id="quick-photo-edit-hint">Choose a new photo only if this one should change</span>
             </label>
             <div class="quick-add-row">
               <label>
@@ -359,6 +350,6 @@
     <script src="/assets/vendor/supabase.js"></script>
     <script src="/assets/vendor/supabase-global.js"></script>
     <script src="/config.js"></script>
-    <script src="/app.js?v=entry-photo-edit"></script>
+    <script src="/app.js?v=date-edit"></script>
   </body>
 </html>

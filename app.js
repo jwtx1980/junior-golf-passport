@@ -17,6 +17,7 @@
     selectedCourseKey: "",
     editingEntry: null,
     editingPhoto: null,
+    addingPhotoToEntry: null,
     baseReviewTags: [],
     reviewTags: [],
     profilePhotoSaving: false,
@@ -49,6 +50,7 @@
     reviewCourse: document.getElementById("quick-review-course"),
     reviewCity: document.getElementById("quick-review-city"),
     reviewState: document.getElementById("quick-review-state"),
+    reviewDate: document.getElementById("quick-review-date"),
     reviewTitle: document.getElementById("quick-review-title"),
     reviewStory: document.getElementById("quick-review-story"),
     ribbons: document.getElementById("quick-ribbon-suggestions"),
@@ -65,13 +67,10 @@
     photoEditCancel: document.getElementById("quick-photo-edit-cancel"),
     photoEditSave: document.getElementById("quick-photo-edit-save"),
     photoEditStatus: document.getElementById("quick-photo-edit-status"),
+    photoEditHeading: document.getElementById("quick-photo-edit-heading"),
+    photoEditLabel: document.getElementById("quick-photo-edit-label"),
+    photoEditHint: document.getElementById("quick-photo-edit-hint"),
     status: document.getElementById("quick-add-status")
-  };
-  var passwordGate = {
-    panel: document.getElementById("profile-password-panel"),
-    input: document.getElementById("profile-new-password"),
-    button: document.getElementById("profile-update-password"),
-    status: document.getElementById("profile-password-status")
   };
   var profileUi = {
     photoButton: document.getElementById("profile-photo-button"),
@@ -86,6 +85,7 @@
   var PROFILE_PHOTO_CAPTION = "Profile photo";
   var MAX_PHOTO_DIMENSION = 1600;
   var PHOTO_JPEG_QUALITY = 0.82;
+  var PROFILE_PHOTO_CACHE_MAX_AGE_MS = 45 * 60 * 1000;
 
   function uniqueBy(items, keyFn) {
     var seen = {};
@@ -120,10 +120,6 @@
 
   function setPhotoEditStatus(message) {
     setText(quick.photoEditStatus, message);
-  }
-
-  function setPasswordStatus(message) {
-    setText(passwordGate.status, message);
   }
 
   function authHeaders() {
@@ -271,6 +267,32 @@
       element.style.backgroundImage = 'url("' + String(photo.signed_url).replace(/"/g, "%22") + '")';
       element.classList.add("has-image");
     }
+  }
+
+  function profilePhotoCacheKey() {
+    return "jgp_pp_" + (currentPassportSlug() || "kara");
+  }
+
+  function applyProfilePhotoCache() {
+    try {
+      var raw = localStorage.getItem(profilePhotoCacheKey());
+      if (!raw) return;
+      var cached = JSON.parse(raw);
+      if (!cached || !cached.url || !cached.ts) return;
+      if (Date.now() - cached.ts > PROFILE_PHOTO_CACHE_MAX_AGE_MS) return;
+      var el = profileUi.photoButton;
+      if (!el || el.classList.contains("has-image")) return;
+      el.textContent = "";
+      el.style.backgroundImage = 'url("' + String(cached.url).replace(/"/g, "%22") + '")';
+      el.classList.add("has-image");
+    } catch (e) {}
+  }
+
+  function saveProfilePhotoCache(signedUrl) {
+    try {
+      if (!signedUrl) return;
+      localStorage.setItem(profilePhotoCacheKey(), JSON.stringify({ url: signedUrl, ts: Date.now() }));
+    } catch (e) {}
   }
 
   function recordCourse(record) {
@@ -464,7 +486,8 @@
       return;
     }
     var entries = courseEntries(course, data);
-    var photos = photosForEntries(entries, data);
+    var canEdit = canEditCurrentGolfer();
+
     panel.innerHTML = [
       '<div class="selected-course-heading">',
       '<span>' + escapeHtml(stateCode(course)) + '</span>',
@@ -476,35 +499,68 @@
       '</div>',
       entries.length
         ? '<div class="course-story-list">' + entries.map(function (entry) {
-          var editButton = canEditCurrentGolfer() && editableKind(entry.kind)
+          var record = entry.record;
+
+          var details = [];
+          if (entry.kind === "rounds") {
+            if (record.score) details.push(escapeHtml("Score: " + record.score));
+            if (record.holes) details.push(escapeHtml(record.holes + " holes"));
+            if (record.tees) details.push(escapeHtml(record.tees));
+          } else if (entry.kind === "achievements") {
+            if (record.achievement_type) details.push(escapeHtml(record.achievement_type));
+            if (record.value) details.push(escapeHtml(record.value));
+          } else if (entry.kind === "tournaments") {
+            if (record.division) details.push(escapeHtml(record.division));
+            if (record.finish) details.push(escapeHtml("Finish: " + record.finish));
+          }
+
+          var tags = Array.isArray(record.tags) ? uniqueStrings(record.tags) : [];
+          var entryPhotos = photosForEntry(entry);
+
+          var editButton = canEdit && editableKind(entry.kind)
             ? '<button class="course-entry-edit" type="button" data-edit-entry="' +
-              escapeHtml(entry.kind + ":" + entry.record.id) + '">Edit</button>'
+              escapeHtml(entry.kind + ":" + record.id) + '">Edit</button>'
             : "";
+          var addPhotoButton = canEdit && editableKind(entry.kind) && !entryPhotos.length
+            ? '<button class="course-entry-edit" type="button" data-add-photo="' +
+              escapeHtml(entry.kind + ":" + record.id) + '">+ Add Photo</button>'
+            : "";
+
           return [
             '<article>',
             '<div class="course-story-actions">',
-            '<span class="timeline-date">' + escapeHtml(entry.label + (entry.date ? " - " + entry.date.slice(0, 10) : "")) + '</span>',
+            '<span class="timeline-date">' + escapeHtml(entry.label + (entry.date ? " \xb7 " + entry.date.slice(0, 10) : "")) + '</span>',
             editButton,
+            addPhotoButton,
             '</div>',
             '<h4>' + escapeHtml(entry.title) + '</h4>',
-            entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : '<p>Saved to this course.</p>',
+            details.length
+              ? '<div class="entry-facts">' + details.map(function (d) { return '<span>' + d + '</span>'; }).join("") + '</div>'
+              : "",
+            entry.story ? '<p>' + escapeHtml(entry.story) + '</p>' : "",
+            tags.length
+              ? '<div class="entry-tags">' + tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>'
+              : "",
+            entryPhotos.length
+              ? '<div class="entry-photos">' + entryPhotos.map(function (photo) {
+                  var caption = photo.caption || "";
+                  var photoEditBtn = canEdit
+                    ? '<button class="course-entry-edit photo-edit-action" type="button" data-edit-photo="' +
+                      escapeHtml(photo.id) + '">Edit Photo</button>'
+                    : "";
+                  return photo.signed_url
+                    ? '<figure>' +
+                      '<img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption || "Course photo") + '">' +
+                      (caption ? '<figcaption>' + escapeHtml(caption) + '</figcaption>' : '') +
+                      photoEditBtn +
+                      '</figure>'
+                    : "";
+                }).join("") + '</div>'
+              : "",
             '</article>'
           ].join("");
         }).join("") + '</div>'
-        : '<p class="empty-state">No public story is attached to this course yet. ' + escapeHtml(golferFirstName(golfer)) + "'s private notes can be approved when they are ready.</p>",
-      photos.length
-        ? '<div class="selected-course-photos">' + photos.slice(0, 3).map(function (photo) {
-          var caption = photo.caption || "Course photo";
-          var editButton = canEditCurrentGolfer()
-            ? '<button class="course-entry-edit photo-edit-action" type="button" data-edit-photo="' +
-              escapeHtml(photo.id) + '">Edit Photo</button>'
-            : "";
-          return photo.signed_url
-            ? '<figure><img src="' + escapeHtml(photo.signed_url) + '" alt="' + escapeHtml(caption) + '"><figcaption>' +
-              escapeHtml(caption) + '</figcaption>' + editButton + '</figure>'
-            : "";
-        }).join("") + '</div>'
-        : ""
+        : '<p class="empty-state">No public story is attached to this course yet. ' + escapeHtml(golferFirstName(golfer)) + "'s private notes can be approved when they are ready.</p>"
     ].join("");
   }
 
@@ -683,6 +739,7 @@
     if (bio && golfer.bio) bio.textContent = golfer.bio;
     setProfilePhotoElement(photo, golfer, profilePhoto);
     setProfilePhotoElement(profileUi.photoModalImage, golfer, profilePhoto);
+    if (profilePhoto && profilePhoto.signed_url) saveProfilePhotoCache(profilePhoto.signed_url);
     if (profileUi.photoButton && golfer.display_name) {
       profileUi.photoButton.setAttribute("aria-label", "View " + golfer.display_name + " profile");
     }
@@ -794,28 +851,23 @@
 
   function canEditCurrentGolfer() {
     if (!profileState.me || !profileState.me.profile) return false;
-    if (profileState.me.profile.must_change_password) return false;
     if (profileState.me.profile.role === "admin") return Boolean(profileState.editableGolfer);
     return Boolean(currentGolferRow());
   }
 
   function renderEditControls() {
     var canEdit = canEditCurrentGolfer();
-    var mustChange = Boolean(profileState.me && profileState.me.profile && profileState.me.profile.must_change_password);
     var signedIn = Boolean(profileState.session && profileState.me);
     setHidden(quick.open, !canEdit);
     if (quick.signIn) {
       setHidden(quick.signIn, false);
-      quick.signIn.textContent = signedIn
-        ? (mustChange ? "Open Account" : "Sign Out")
-        : "Sign In to Edit";
-      quick.signIn.setAttribute("href", mustChange || !signedIn ? "/dashboard/" : "#sign-out");
+      quick.signIn.textContent = signedIn ? "Sign Out" : "Sign In to Edit";
+      quick.signIn.setAttribute("href", signedIn ? "#sign-out" : "/dashboard/");
     }
     if (profileUi.photoButton) {
       profileUi.photoButton.classList.toggle("is-editable", canEdit);
       profileUi.photoButton.setAttribute("title", canEdit ? "Change profile photo" : "View golfer profile");
     }
-    setHidden(passwordGate.panel, true);
     renderCourseNavigation();
   }
 
@@ -846,22 +898,6 @@
     } catch (error) {
       renderEditControls();
     }
-  }
-
-  async function updateProfilePassword() {
-    if (!authClient || !profileState.session) throw new Error("Sign in before updating the password.");
-    var newPassword = passwordGate.input ? passwordGate.input.value : "";
-    if (!newPassword || newPassword.length < 6) {
-      throw new Error("New password must be at least 6 characters.");
-    }
-    setPasswordStatus("Updating password...");
-    var result = await authClient.auth.updateUser({ password: newPassword });
-    if (result.error) throw result.error;
-    await api("/me/password-updated", { method: "POST", body: {} });
-    if (passwordGate.input) passwordGate.input.value = "";
-    profileState.me = await api("/me");
-    setPasswordStatus("Password updated.");
-    renderEditControls();
   }
 
   function todayIso() {
@@ -945,6 +981,7 @@
     setHidden(quick.backdrop, true);
     profileState.editingEntry = null;
     profileState.editingPhoto = null;
+    profileState.addingPhotoToEntry = null;
     if (profileState.quickPhotoPreviewUrl) {
       URL.revokeObjectURL(profileState.quickPhotoPreviewUrl);
       profileState.quickPhotoPreviewUrl = "";
@@ -955,6 +992,7 @@
       setText(quick.photoPreview, "Add an optional photo");
     }
     if (quick.photo) quick.photo.value = "";
+    if (quick.reviewDate) quick.reviewDate.value = "";
     clearReviewPhotoPreview();
     if (quick.photoEditFile) quick.photoEditFile.value = "";
     if (quick.saveReview) quick.saveReview.textContent = "Save Memory";
@@ -1016,6 +1054,8 @@
     showReviewPhotoPreview(existingPhoto);
     profileState.baseReviewTags = Array.isArray(entry.record.tags) ? entry.record.tags : [];
     renderRibbonSuggestions(inferredRibbonTags({ tags: profileState.baseReviewTags }, course, entryRecordStory(entry.kind, entry.record)));
+    var entryDate = entry.record.played_on || entry.record.achieved_on || "";
+    if (quick.reviewDate) quick.reviewDate.value = entryDate ? entryDate.slice(0, 10) : "";
     if (quick.reviewVisibility) quick.reviewVisibility.value = entry.record.visibility || "private";
     if (quick.reviewApproved) quick.reviewApproved.checked = Boolean(entry.record.is_approved);
     if (quick.saveReview) quick.saveReview.textContent = "Update Entry";
@@ -1033,7 +1073,28 @@
     if (quick.photoEditFile) quick.photoEditFile.value = "";
     if (quick.photoEditVisibility) quick.photoEditVisibility.value = photo.visibility || "private";
     if (quick.photoEditApproved) quick.photoEditApproved.checked = Boolean(photo.is_approved);
+    if (quick.photoEditHeading) quick.photoEditHeading.textContent = "Edit scrapbook photo.";
+    if (quick.photoEditLabel) quick.photoEditLabel.textContent = "Replace photo";
+    if (quick.photoEditHint) quick.photoEditHint.textContent = "Choose a new photo only if this one should change";
     setPhotoEditStatus("Editing a saved scrapbook photo.");
+  }
+
+  function openAddEntryPhoto(entryKey) {
+    if (!canEditCurrentGolfer()) return;
+    var entry = findPublicEntry(entryKey);
+    if (!entry || !editableKind(entry.kind)) return;
+    profileState.addingPhotoToEntry = entry;
+    profileState.editingPhoto = null;
+    setHidden(quick.backdrop, false);
+    showQuickPanel("photo-edit");
+    if (quick.photoEditCaption) quick.photoEditCaption.value = "";
+    if (quick.photoEditFile) quick.photoEditFile.value = "";
+    if (quick.photoEditVisibility) quick.photoEditVisibility.value = "private";
+    if (quick.photoEditApproved) quick.photoEditApproved.checked = false;
+    if (quick.photoEditHeading) quick.photoEditHeading.textContent = "Add a photo to this memory.";
+    if (quick.photoEditLabel) quick.photoEditLabel.textContent = "Photo";
+    if (quick.photoEditHint) quick.photoEditHint.textContent = "Choose a photo to attach to this entry";
+    setPhotoEditStatus("Adding a photo to an existing memory.");
   }
 
   async function replaceEditedPhoto(photo, details) {
@@ -1070,7 +1131,56 @@
     return true;
   }
 
+  async function saveAddedPhoto() {
+    var entry = profileState.addingPhotoToEntry;
+    if (!entry) return;
+    var file = quick.photoEditFile && quick.photoEditFile.files ? quick.photoEditFile.files[0] : null;
+    if (!file) {
+      setPhotoEditStatus("Please choose a photo to add.");
+      return;
+    }
+    var caption = quick.photoEditCaption ? quick.photoEditCaption.value.trim() : "";
+    var visibility = quick.photoEditVisibility ? quick.photoEditVisibility.value : "private";
+    var isApproved = quick.photoEditApproved ? quick.photoEditApproved.checked : false;
+    setPhotoEditStatus("Resizing photo...");
+    var uploadFile = await cappedImageFile(file);
+    var path = [
+      profileState.editableGolfer.id,
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(uploadFile.name)
+    ].join("/");
+    setPhotoEditStatus("Uploading photo...");
+    var upload = await authClient.storage
+      .from("passport-photos")
+      .upload(path, uploadFile, {
+        cacheControl: "3600",
+        contentType: uploadFile.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+    await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: profileState.editableGolfer.id,
+        storage_path: upload.data.path,
+        caption: caption,
+        linked_type: entry.kind,
+        linked_id: entry.record.id,
+        visibility: visibility,
+        is_approved: isApproved
+      }
+    });
+    setPhotoEditStatus("Photo added.");
+    profileState.addingPhotoToEntry = null;
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 650);
+  }
+
   async function savePhotoEdit() {
+    if (profileState.addingPhotoToEntry) {
+      await saveAddedPhoto();
+      return;
+    }
     var photo = profileState.editingPhoto;
     if (!photo) return;
     var details = {
@@ -1585,9 +1695,10 @@
         tags: uniqueStrings((Array.isArray(record.tags) ? record.tags : []).concat(profileState.reviewTags))
       });
     }
+    var editedDate = quick.reviewDate && quick.reviewDate.value ? quick.reviewDate.value : null;
     if (entry.kind === "rounds") {
       return Object.assign(base, {
-        played_on: record.played_on || null,
+        played_on: editedDate || record.played_on || null,
         score: record.score || null,
         holes: record.holes || null,
         tees: record.tees || null,
@@ -1599,7 +1710,7 @@
       return Object.assign(base, {
         title: memoryTitle(),
         achievement_type: record.achievement_type || null,
-        achieved_on: record.achieved_on || null,
+        achieved_on: editedDate || record.achieved_on || null,
         round_id: record.round_id || null,
         value: record.value || null,
         story: quick.reviewStory.value.trim()
@@ -1608,7 +1719,7 @@
     if (entry.kind === "tournaments") {
       return Object.assign(base, {
         event_name: memoryTitle(),
-        played_on: record.played_on || null,
+        played_on: editedDate || record.played_on || null,
         division: record.division || null,
         score: record.score || null,
         finish: record.finish || null,
@@ -1722,24 +1833,6 @@
       quick.photoEditSave.addEventListener("click", function () {
         savePhotoEdit().catch(function (error) {
           setPhotoEditStatus(error.message);
-        });
-      });
-    }
-  }
-
-  function bindPasswordGate() {
-    if (!passwordGate.button) return;
-    passwordGate.button.addEventListener("click", function () {
-      updateProfilePassword().catch(function (error) {
-        setPasswordStatus(error.message);
-      });
-    });
-    if (passwordGate.input) {
-      passwordGate.input.addEventListener("keydown", function (event) {
-        if (event.key !== "Enter") return;
-        event.preventDefault();
-        updateProfilePassword().catch(function (error) {
-          setPasswordStatus(error.message);
         });
       });
     }
@@ -1903,11 +1996,23 @@
     var photoEditButton = event.target.closest("[data-edit-photo]");
     if (photoEditButton) {
       openPhotoEdit(photoEditButton.getAttribute("data-edit-photo"));
+      return;
+    }
+
+    var addPhotoBtn = event.target.closest("[data-add-photo]");
+    if (addPhotoBtn) {
+      openAddEntryPhoto(addPhotoBtn.getAttribute("data-add-photo"));
     }
   });
 
   window.addEventListener("message", function (event) {
     if (!event.data || event.data.source !== "jgp-map") return;
+    if (event.data.clearState) {
+      profileState.selectedState = "";
+      profileState.selectedCourseKey = "";
+      renderCourseNavigation();
+      return;
+    }
     if (event.data.state) {
       profileState.selectedState = normalizeStateCode(event.data.state);
       profileState.selectedCourseKey = "";
@@ -1927,9 +2032,9 @@
   });
 
   bindQuickAdd();
-  bindPasswordGate();
   bindProfilePhoto();
   bindMapFrameBridge();
+  applyProfilePhotoCache();
   loadPublicPassport();
   loadProfileAuth();
 })();
