@@ -716,6 +716,17 @@ main {
   font-weight: 900;
 }
 
+.profile-photo-control {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.profile-photo-control .tiny-status {
+  grid-column: 1 / -1;
+}
+
 .modal-close-dark {
   background: var(--ink);
   border: 0;

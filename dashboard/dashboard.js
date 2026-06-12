@@ -4,6 +4,7 @@
   var client = config && supabaseFactory
     ? supabaseFactory.createClient(config.supabaseUrl, config.supabaseAnonKey)
     : null;
+  var PROFILE_PHOTO_CAPTION = "Profile photo";
 
   var state = {
     session: null,
@@ -52,6 +53,9 @@
     profileName: document.getElementById("profile-name"),
     profileHeadline: document.getElementById("profile-headline"),
     profileBio: document.getElementById("profile-bio"),
+    profilePhotoFile: document.getElementById("profile-photo-file"),
+    uploadProfilePhoto: document.getElementById("upload-profile-photo-button"),
+    profilePhotoStatus: document.getElementById("profile-photo-status"),
     profileHomeState: document.getElementById("profile-home-state"),
     profileVisibility: document.getElementById("profile-visibility"),
     saveProfile: document.getElementById("save-profile-button"),
@@ -1170,6 +1174,51 @@
     setStatus("Public profile saved.");
   }
 
+  async function uploadProfilePhoto() {
+    var row = selectedGolfer();
+    var golfer = row && row.golfers;
+    if (!golfer) throw new Error("Choose a golfer profile first.");
+    if (!client) throw new Error("Supabase config did not load.");
+
+    var file = elements.profilePhotoFile && elements.profilePhotoFile.files
+      ? elements.profilePhotoFile.files[0]
+      : null;
+    if (!file) throw new Error("Choose a profile photo first.");
+    if (!/^image\//.test(file.type || "")) throw new Error("Choose an image file.");
+
+    setText(elements.profilePhotoStatus, "Saving profile photo...");
+    setStatus("Saving profile photo...");
+    var path = [
+      golfer.id,
+      "profile",
+      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+    ].join("/");
+
+    var upload = await client.storage
+      .from("passport-photos")
+      .upload(path, file, {
+        cacheControl: "3600",
+        contentType: file.type || "image/jpeg",
+        upsert: false
+      });
+    if (upload.error) throw upload.error;
+
+    await api("/photos", {
+      method: "POST",
+      body: {
+        golfer_id: golfer.id,
+        storage_path: upload.data.path,
+        caption: PROFILE_PHOTO_CAPTION,
+        visibility: "public",
+        is_approved: true
+      }
+    });
+
+    if (elements.profilePhotoFile) elements.profilePhotoFile.value = "";
+    setText(elements.profilePhotoStatus, "Profile photo saved. Open the public passport to see it.");
+    setStatus("Profile photo saved.");
+  }
+
   function applyDraft(draft) {
     state.currentDraft = draft;
     elements.entryTitle.value = draft.title || "";
@@ -1524,6 +1573,7 @@
   bind(elements.saveAccount, saveAccount, setAccountStatus);
   bind(elements.createGolfer, createGolfer);
   bind(elements.saveProfile, saveProfile);
+  bind(elements.uploadProfilePhoto, uploadProfilePhoto);
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
   bind(elements.lookupCourse, lookupCourse, setLookupStatus);

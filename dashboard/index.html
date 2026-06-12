@@ -170,6 +170,14 @@
                 <span>Bio</span>
                 <textarea id="profile-bio" rows="4" placeholder="A short public intro for this passport."></textarea>
               </label>
+              <div class="profile-photo-control">
+                <label>
+                  <span>Profile photo</span>
+                  <input id="profile-photo-file" type="file" accept="image/*">
+                </label>
+                <button class="button secondary" id="upload-profile-photo-button" type="button">Set Profile Photo</button>
+                <p class="tiny-status" id="profile-photo-status" role="status" aria-live="polite"></p>
+              </div>
               <div class="form-row">
                 <label>
                   <span>Home state</span>
@@ -444,6 +452,6 @@
     <script src="/assets/vendor/supabase.js"></script>
     <script src="/assets/vendor/supabase-global.js"></script>
     <script src="/config.js"></script>
-    <script src="/dashboard/dashboard.js?v=signup-name"></script>
+    <script src="/dashboard/dashboard.js?v=profile-photo-upload"></script>
   </body>
 </html>
