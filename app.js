@@ -17,7 +17,8 @@
     selectedCourseKey: "",
     editingEntry: null,
     baseReviewTags: [],
-    reviewTags: []
+    reviewTags: [],
+    profilePhotoSaving: false
   };
   var quick = {
     open: document.getElementById("quick-add-open"),
@@ -1192,6 +1193,10 @@
 
   async function signOutFromProfile() {
     if (!authClient || !profileState.session) return;
+    if (profileState.profilePhotoSaving) {
+      setText(shareStatus, "Wait for the profile photo to finish saving before signing out.");
+      return;
+    }
     await authClient.auth.signOut();
     profileState.session = null;
     profileState.me = null;
@@ -1209,46 +1214,55 @@
     if (!authClient || !profileState.editableGolfer) throw new Error("Sign in before updating the profile photo.");
     var previewUrl = URL.createObjectURL(file);
     var golfer = (profileState.publicPassport && profileState.publicPassport.golfer) || profileState.editableGolfer || {};
+    var previousPhoto = profilePhotoFromData(profileState.publicPassport);
     var previewPhoto = { signed_url: previewUrl, caption: PROFILE_PHOTO_CAPTION };
     setProfilePhotoElement(profileUi.photoButton, golfer, previewPhoto);
     setProfilePhotoElement(profileUi.photoModalImage, golfer, previewPhoto);
     setText(shareStatus, "Profile photo selected. Saving...");
-    var path = [
-      profileState.editableGolfer.id,
-      "profile",
-      Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
-    ].join("/");
-    var upload = await authClient.storage
-      .from("passport-photos")
-      .upload(path, file, {
-        cacheControl: "3600",
-        contentType: file.type || "image/jpeg",
-        upsert: false
+    profileState.profilePhotoSaving = true;
+    try {
+      var path = [
+        profileState.editableGolfer.id,
+        "profile",
+        Date.now() + "-" + Math.random().toString(16).slice(2) + "-" + safeFileName(file.name)
+      ].join("/");
+      var upload = await authClient.storage
+        .from("passport-photos")
+        .upload(path, file, {
+          cacheControl: "3600",
+          contentType: file.type || "image/jpeg",
+          upsert: false
+        });
+      if (upload.error) throw upload.error;
+      await api("/photos", {
+        method: "POST",
+        body: {
+          golfer_id: profileState.editableGolfer.id,
+          storage_path: path,
+          caption: PROFILE_PHOTO_CAPTION,
+          visibility: "public",
+          is_approved: true
+        }
       });
-    if (upload.error) throw upload.error;
-    var payload = await api("/photos", {
-      method: "POST",
-      body: {
-        golfer_id: profileState.editableGolfer.id,
-        storage_path: path,
-        caption: PROFILE_PHOTO_CAPTION,
-        visibility: "public",
-        is_approved: true
+      var refreshed = await publicApi("/golfers/" + currentPassportSlug() + "/public");
+      var savedPhoto = profilePhotoFromData(refreshed);
+      if (!savedPhoto || !savedPhoto.signed_url) {
+        throw new Error("The upload finished, but the public passport did not return a saved profile photo yet.");
       }
-    });
-    if (profileUi.photoInput) profileUi.photoInput.value = "";
-    var savedPhoto = payload.photo || {};
-    if (!savedPhoto.signed_url) savedPhoto.signed_url = previewUrl;
-    if (profileState.publicPassport) {
-      profileState.publicPassport.photos = [savedPhoto].concat(profileState.publicPassport.photos || []);
-      renderGolferProfile(profileState.publicPassport.golfer || {});
-      renderPhotos(profileState.publicPassport.photos || [], profileState.publicPassport.golfer || {});
-    } else {
-      setProfilePhotoElement(profileUi.photoButton, golfer, savedPhoto);
-      setProfilePhotoElement(profileUi.photoModalImage, golfer, savedPhoto);
+      profileState.publicPassport = refreshed;
+      renderGolferProfile(refreshed.golfer || golfer);
+      renderPhotos(refreshed.photos || [], refreshed.golfer || golfer);
+      setText(shareStatus, "Profile photo updated.");
+      URL.revokeObjectURL(previewUrl);
+    } catch (error) {
+      setProfilePhotoElement(profileUi.photoButton, golfer, previousPhoto);
+      setProfilePhotoElement(profileUi.photoModalImage, golfer, previousPhoto);
+      URL.revokeObjectURL(previewUrl);
+      throw new Error("Profile photo did not save: " + error.message);
+    } finally {
+      profileState.profilePhotoSaving = false;
+      if (profileUi.photoInput) profileUi.photoInput.value = "";
     }
-    if (savedPhoto.signed_url !== previewUrl) URL.revokeObjectURL(previewUrl);
-    setText(shareStatus, "Profile photo updated.");
   }
 
   async function saveQuickReview() {

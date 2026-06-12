@@ -258,6 +258,12 @@
     return path ? window.location.origin + path : "";
   }
 
+  function isProfilePhoto(photo) {
+    if (!photo) return false;
+    return String(photo.caption || "").trim().toLowerCase() === PROFILE_PHOTO_CAPTION.toLowerCase() ||
+      String(photo.storage_path || "").indexOf("/profile/") !== -1;
+  }
+
   function isAdmin(profile) {
     return Boolean(profile && profile.role === "admin");
   }
@@ -1213,6 +1219,11 @@
         is_approved: true
       }
     });
+    var publicPassport = await publicApi("/golfers/" + golfer.slug + "/public");
+    var savedProfilePhoto = (publicPassport.photos || []).find(isProfilePhoto);
+    if (!savedProfilePhoto || !savedProfilePhoto.signed_url) {
+      throw new Error("The photo uploaded, but Kara's public passport did not return it yet. Try again in a few seconds.");
+    }
 
     if (elements.profilePhotoFile) elements.profilePhotoFile.value = "";
     setText(elements.profilePhotoStatus, "Profile photo saved. Open the public passport to see it.");
@@ -1573,7 +1584,10 @@
   bind(elements.saveAccount, saveAccount, setAccountStatus);
   bind(elements.createGolfer, createGolfer);
   bind(elements.saveProfile, saveProfile);
-  bind(elements.uploadProfilePhoto, uploadProfilePhoto);
+  bind(elements.uploadProfilePhoto, uploadProfilePhoto, function (message) {
+    setText(elements.profilePhotoStatus, message);
+    setStatus(message);
+  });
   bind(elements.parseResult, parsePastedResult);
   bind(elements.draftWithAi, draftWithAi);
   bind(elements.lookupCourse, lookupCourse, setLookupStatus);
